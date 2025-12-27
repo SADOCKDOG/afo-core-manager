@@ -454,3 +454,53 @@ export const VISA_DOCUMENT_TYPE_LABELS: Record<VisaDocumentType, string> = {
   'anexo-calculo': 'Anexo de Cálculo',
   'otro': 'Otro Documento'
 }
+
+export type InvoiceType = 'visa-fee' | 'professional-fee' | 'expense' | 'other'
+
+export type InvoiceStatus = 'draft' | 'issued' | 'paid' | 'overdue' | 'cancelled'
+
+export interface InvoiceLineItem {
+  id: string
+  description: string
+  quantity: number
+  unitPrice: number
+  totalPrice: number
+  taxRate: number
+}
+
+export interface Invoice {
+  id: string
+  invoiceNumber: string
+  type: InvoiceType
+  projectId: string
+  visaId?: string
+  clientName: string
+  clientNIF: string
+  clientAddress?: string
+  status: InvoiceStatus
+  lineItems: InvoiceLineItem[]
+  subtotal: number
+  taxAmount: number
+  total: number
+  issuedDate?: number
+  dueDate?: number
+  paidDate?: number
+  notes?: string
+  createdAt: number
+  updatedAt: number
+}
+
+export const INVOICE_TYPE_LABELS: Record<InvoiceType, string> = {
+  'visa-fee': 'Tasa de Visado Colegial',
+  'professional-fee': 'Honorarios Profesionales',
+  'expense': 'Gasto Reembolsable',
+  'other': 'Otro'
+}
+
+export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
+  'draft': 'Borrador',
+  'issued': 'Emitida',
+  'paid': 'Pagada',
+  'overdue': 'Vencida',
+  'cancelled': 'Anulada'
+}

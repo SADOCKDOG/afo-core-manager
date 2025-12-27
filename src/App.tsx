@@ -10,6 +10,7 @@ import { StakeholderDialog } from '@/components/StakeholderDialog'
 import { AIRegulatoryAssistant } from '@/components/AIRegulatoryAssistant'
 import { MunicipalComplianceManager } from '@/components/MunicipalComplianceManager'
 import { VisaManager } from '@/components/VisaManager'
+import { InvoiceManager } from '@/components/InvoiceManager'
 import { Plus, Buildings, Users, BookOpen } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
 import { Toaster, toast } from 'sonner'
@@ -158,6 +159,7 @@ function App() {
             
             {viewMode === 'dashboard' && (
               <div className="flex items-center gap-3">
+                <InvoiceManager />
                 <MunicipalComplianceManager />
                 <VisaManager />
                 <AIRegulatoryAssistant />

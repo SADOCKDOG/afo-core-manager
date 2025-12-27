@@ -1,13 +1,18 @@
 import { useState } from 'react'
 import { useKV } from '@github/spark/hooks'
-import { VisaApplication, Project, ProfessionalCollege, ProjectPhase, VISA_STATUS_LABELS, PROFESSIONAL_COLLEGE_LABELS } from '@/lib/types'
+import { VisaApplication, Project, Invoice, Stakeholder, VISA_STATUS_LABELS, PROFESSIONAL_COLLEGE_LABELS } from '@/lib/types'
+import { generateVisaFeeInvoice } from '@/lib/invoice-utils'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
-import { Stamp, FileText, Clock, CheckCircle, WarningCircle, Plus } from '@phosphor-icons/react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
+import { Stamp, FileText, Clock, CheckCircle, WarningCircle, Plus, Receipt } from '@phosphor-icons/react'
 import { VisaApplicationDialog } from './VisaApplicationDialog'
 import { motion } from 'framer-motion'
+import { toast } from 'sonner'
 
 interface VisaManagerProps {
   project?: Project
@@ -15,6 +20,8 @@ interface VisaManagerProps {
 
 export function VisaManager({ project }: VisaManagerProps) {
   const [visaApplications, setVisaApplications] = useKV<VisaApplication[]>('visa-applications', [])
+  const [invoices, setInvoices] = useKV<Invoice[]>('invoices', [])
+  const [stakeholders] = useKV<Stakeholder[]>('stakeholders', [])
   const [selectedVisa, setSelectedVisa] = useState<VisaApplication | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [detailDialogOpen, setDetailDialogOpen] = useState(false)
@@ -39,6 +46,12 @@ export function VisaManager({ project }: VisaManagerProps) {
   }
 
   const handleSaveVisa = (visaData: Partial<VisaApplication>) => {
+    const previousVisa = visaData.id 
+      ? (visaApplications || []).find(v => v.id === visaData.id)
+      : null
+    
+    const wasApproved = previousVisa?.status !== 'approved' && visaData.status === 'approved'
+    
     setVisaApplications(current => {
       const list = current || []
       if (visaData.id) {
@@ -62,13 +75,85 @@ export function VisaManager({ project }: VisaManagerProps) {
         return [...list, newVisa]
       }
     })
+    
+    if (wasApproved) {
+      generateInvoiceForVisa(visaData as VisaApplication)
+    }
+    
     setDialogOpen(false)
+  }
+
+  const generateInvoiceForVisa = (visa: VisaApplication) => {
+    if (!project) {
+      toast.error('No se puede generar factura sin proyecto asociado')
+      return
+    }
+
+    const promotorIds = project.stakeholders || []
+    const promotor = (stakeholders || []).find(s => 
+      promotorIds.includes(s.id) && s.type === 'promotor'
+    )
+
+    if (!promotor) {
+      toast.error('No se encontró un promotor en el proyecto', {
+        description: 'Añade un promotor al proyecto para generar la factura automáticamente'
+      })
+      return
+    }
+
+    const invoiceData = generateVisaFeeInvoice(
+      visa,
+      project.id,
+      promotor.name,
+      promotor.nif,
+      promotor.address
+    )
+
+    const newInvoice: Invoice = {
+      id: Date.now().toString(),
+      ...invoiceData
+    } as Invoice
+
+    setInvoices(current => [...(current || []), newInvoice])
+
+    toast.success('Visado aprobado - Factura generada automáticamente', {
+      description: `Factura ${newInvoice.invoiceNumber} por ${newInvoice.total.toFixed(2)}€`,
+      duration: 5000,
+      action: {
+        label: 'Ver Factura',
+        onClick: () => {
+          console.log('Ver factura:', newInvoice.id)
+        }
+      }
+    })
   }
 
   const handleDeleteVisa = (visaId: string) => {
     setVisaApplications(current => 
       (current || []).filter(v => v.id !== visaId)
     )
+  }
+
+  const handleUpdateStatus = (visaId: string, newStatus: string) => {
+    const visa = (visaApplications || []).find(v => v.id === visaId)
+    if (!visa) return
+    
+    const wasApproved = visa.status !== 'approved' && newStatus === 'approved'
+    
+    setVisaApplications(current => 
+      (current || []).map(v => 
+        v.id === visaId 
+          ? { ...v, status: newStatus as any, updatedAt: Date.now() }
+          : v
+      )
+    )
+    
+    if (wasApproved) {
+      const updatedVisa = { ...visa, status: 'approved' as const }
+      generateInvoiceForVisa(updatedVisa)
+    }
+    
+    toast.success('Estado actualizado correctamente')
   }
 
   const getStatusIcon = (status: string) => {
@@ -265,11 +350,33 @@ export function VisaManager({ project }: VisaManagerProps) {
 
             <div className="space-y-6 py-4">
               <div>
-                <h4 className="font-semibold mb-2">Estado</h4>
-                <Badge variant="outline" className={getStatusColor(selectedVisa.status)}>
-                  {VISA_STATUS_LABELS[selectedVisa.status]}
-                </Badge>
+                <Label className="text-sm font-semibold mb-2 block">Estado del Visado</Label>
+                <Select 
+                  value={selectedVisa.status} 
+                  onValueChange={(value) => handleUpdateStatus(selectedVisa.id, value)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(VISA_STATUS_LABELS).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedVisa.status === 'approved' && (
+                  <div className="mt-2 p-3 rounded-lg bg-green-50 border border-green-200 flex items-center gap-2">
+                    <Receipt size={20} className="text-green-700" weight="duotone" />
+                    <p className="text-sm text-green-700">
+                      Se generó automáticamente una factura al aprobar este visado
+                    </p>
+                  </div>
+                )}
               </div>
+
+              <Separator />
 
               <div>
                 <h4 className="font-semibold mb-2">Fases incluidas</h4>
@@ -281,6 +388,8 @@ export function VisaManager({ project }: VisaManagerProps) {
                   ))}
                 </div>
               </div>
+
+              <Separator />
 
               <div>
                 <h4 className="font-semibold mb-2">Documentos ({selectedVisa.documents.length})</h4>
@@ -307,12 +416,15 @@ export function VisaManager({ project }: VisaManagerProps) {
               </div>
 
               {selectedVisa.notes && (
-                <div>
-                  <h4 className="font-semibold mb-2">Notas</h4>
-                  <p className="text-sm text-muted-foreground p-3 rounded-lg bg-muted">
-                    {selectedVisa.notes}
-                  </p>
-                </div>
+                <>
+                  <Separator />
+                  <div>
+                    <h4 className="font-semibold mb-2">Notas</h4>
+                    <p className="text-sm text-muted-foreground p-3 rounded-lg bg-muted">
+                      {selectedVisa.notes}
+                    </p>
+                  </div>
+                </>
               )}
             </div>
           </DialogContent>

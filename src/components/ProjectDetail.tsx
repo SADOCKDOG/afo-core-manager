@@ -12,6 +12,7 @@ import { DocumentManager } from './DocumentManager'
 import { ComplianceChecklistView } from './ComplianceChecklistView'
 import { BudgetManager } from './BudgetManager'
 import { VisaManager } from './VisaManager'
+import { InvoiceManager } from './InvoiceManager'
 
 interface ProjectDetailProps {
   project: Project
@@ -82,6 +83,7 @@ export function ProjectDetail({ project, stakeholders, onBack, onEdit, onUpdateP
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <InvoiceManager project={project} />
           <VisaManager project={project} />
           <BudgetManager projectId={project.id} projectName={project.title} />
           <Button onClick={onEdit} variant="outline" className="gap-2">
