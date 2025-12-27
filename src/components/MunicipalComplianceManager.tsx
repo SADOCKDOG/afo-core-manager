@@ -23,6 +23,7 @@ import {
 } from '@/lib/municipal-compliance'
 import { BuildingType, BuildingUse } from '@/lib/types'
 import { BUILDING_TYPE_LABELS, BUILDING_USE_LABELS } from '@/lib/compliance-data'
+import { PGOUImporter } from '@/components/PGOUImporter'
 import { 
   MapPin, 
   Plus, 
@@ -32,7 +33,8 @@ import {
   Trash,
   FileText,
   CheckCircle,
-  Warning
+  Warning,
+  FilePdf
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -51,6 +53,7 @@ export function MunicipalComplianceManager({ projectId, onSelectMunicipality }: 
   const [selectedMunicipality, setSelectedMunicipality] = useState<Municipality | null>(null)
   const [editingRequirement, setEditingRequirement] = useState<MunicipalRequirement | null>(null)
   const [requirementDialogOpen, setRequirementDialogOpen] = useState(false)
+  const [importerOpen, setImporterOpen] = useState(false)
 
   const filteredMunicipalities = useMemo(() => {
     let result = municipalities || []
@@ -123,6 +126,30 @@ export function MunicipalComplianceManager({ projectId, onSelectMunicipality }: 
     }
   }
 
+  const handleImportFromPDF = (municipality: Municipality) => {
+    const existingIndex = (municipalities || []).findIndex(m => m.id === municipality.id)
+    
+    if (existingIndex >= 0) {
+      setMunicipalities(current => {
+        const updated = [...(current || [])]
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          requirements: [...updated[existingIndex].requirements, ...municipality.requirements],
+          updatedAt: Date.now()
+        }
+        return updated
+      })
+      toast.success(`${municipality.requirements.length} requisitos añadidos a ${municipality.name}`)
+    } else {
+      setMunicipalities(current => [...(current || []), municipality])
+      toast.success(`Municipio ${municipality.name} creado con ${municipality.requirements.length} requisitos`)
+    }
+    
+    setSelectedMunicipality(municipality)
+    setActiveTab('details')
+    setImporterOpen(false)
+  }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -188,9 +215,13 @@ export function MunicipalComplianceManager({ projectId, onSelectMunicipality }: 
                     ))}
                   </SelectContent>
                 </Select>
-                <Button onClick={handleCreateMunicipality} className="gap-2">
+                <Button onClick={handleCreateMunicipality} className="gap-2" variant="outline">
                   <Plus size={18} weight="bold" />
                   Nuevo Municipio
+                </Button>
+                <Button onClick={() => setImporterOpen(true)} className="gap-2">
+                  <FilePdf size={18} weight="duotone" />
+                  Importar PGOU
                 </Button>
               </div>
 
@@ -422,6 +453,12 @@ export function MunicipalComplianceManager({ projectId, onSelectMunicipality }: 
           />
         )}
       </DialogContent>
+
+      <PGOUImporter
+        open={importerOpen}
+        onOpenChange={setImporterOpen}
+        onImport={handleImportFromPDF}
+      />
     </Dialog>
   )
 }
