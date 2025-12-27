@@ -61,6 +61,13 @@ This MVP focuses on core project management functionality with client tracking, 
 - **Progression**: Enter search text → Apply filters (type, status, discipline, folder) → View active filter badges → Clear individual or all filters → See result count update in real-time
 - **Success criteria**: Search responds instantly as user types, filters combine logically (AND operation), active filters display as removable badges, empty states provide clear guidance
 
+### Bulk Document Upload with Drag-and-Drop
+- **Functionality**: Upload multiple documents simultaneously with drag-and-drop interface, default metadata configuration, and real-time progress tracking
+- **Purpose**: Dramatically accelerate document import for projects with extensive documentation, reducing tedious one-by-one uploads
+- **Trigger**: User clicks "Subida Masiva" button in document manager
+- **Progression**: Open bulk upload dialog → Configure default type, folder, and discipline → Drag files into drop zone or click to select → Review file list with individual file metadata → Adjust individual file settings if needed → Initiate upload → View upload progress with success/error indicators → Receive confirmation toast
+- **Success criteria**: Supports multiple file types (PDF, DWG, DXF, DOC, DOCX, JPG, PNG, XLS, XLSX), validates file names automatically, shows clear upload progress per file, handles errors gracefully with specific error messages, allows removal of files before upload, applies default settings to all files with ability to override per file
+
 ## Edge Case Handling
 
 - **Empty States**: Dashboard shows helpful onboarding message with "Create First Project" CTA when no projects exist; document manager guides user through folder structure setup before first upload
@@ -70,6 +77,9 @@ This MVP focuses on core project management functionality with client tracking, 
 - **Long Content**: Project names and descriptions gracefully truncate with tooltips, tables paginate or scroll
 - **Search with No Results**: Clear empty state message explaining no documents match current filters, with option to clear filters
 - **Filter Combinations**: All filters work together (AND logic), real-time count shows how many documents match current criteria
+- **Bulk Upload Errors**: Individual files that fail validation show error messages inline; valid files can proceed while invalid files are highlighted; users can remove invalid files before uploading
+- **Large File Handling**: Visual progress indicators for each file during bulk upload; system gracefully handles mixed success/failure states in batch uploads
+- **Drag-and-Drop States**: Clear visual feedback when dragging files over drop zone (highlighted border, background color change); supports both drag-and-drop and traditional file picker
 
 ## Design Direction
 

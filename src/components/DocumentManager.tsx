@@ -21,6 +21,7 @@ import { DocumentUploadDialog } from './DocumentUploadDialog'
 import { DocumentVersionDialog } from './DocumentVersionDialog'
 import { FolderStructureDialog } from './FolderStructureDialog'
 import { DocumentSearch, DocumentFilters } from './DocumentSearch'
+import { BulkDocumentUpload } from './BulkDocumentUpload'
 import { formatFileSize, sortVersions } from '@/lib/document-utils'
 
 interface DocumentManagerProps {
@@ -31,6 +32,7 @@ interface DocumentManagerProps {
 export function DocumentManager({ project, onProjectUpdate }: DocumentManagerProps) {
   const [documents, setDocuments] = useKV<Document[]>('documents', [])
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
+  const [bulkUploadOpen, setBulkUploadOpen] = useState(false)
   const [versionDialogOpen, setVersionDialogOpen] = useState(false)
   const [structureDialogOpen, setStructureDialogOpen] = useState(false)
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null)
@@ -225,6 +227,10 @@ export function DocumentManager({ project, onProjectUpdate }: DocumentManagerPro
             <TreeStructure size={18} weight="duotone" />
             Cambiar Estructura
           </Button>
+          <Button variant="outline" onClick={() => setBulkUploadOpen(true)} className="gap-2">
+            <Plus size={18} weight="bold" />
+            Subida Masiva
+          </Button>
           <Button onClick={() => setUploadDialogOpen(true)} className="gap-2">
             <Plus size={18} weight="bold" />
             Nuevo Documento
@@ -355,6 +361,16 @@ export function DocumentManager({ project, onProjectUpdate }: DocumentManagerPro
         onUpload={(docData) => {
           setDocuments(current => [...(current || []), docData])
           setUploadDialogOpen(false)
+        }}
+      />
+
+      <BulkDocumentUpload
+        open={bulkUploadOpen}
+        onOpenChange={setBulkUploadOpen}
+        project={project}
+        folders={folders}
+        onUpload={(docDataArray) => {
+          setDocuments(current => [...(current || []), ...docDataArray])
         }}
       />
 
