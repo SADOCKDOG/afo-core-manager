@@ -6,9 +6,10 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { ArrowLeft, CheckCircle, Circle, Clock, Pencil, Folder } from '@phosphor-icons/react'
+import { ArrowLeft, CheckCircle, Circle, Clock, Pencil, Folder, ListChecks } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
 import { DocumentManager } from './DocumentManager'
+import { ComplianceChecker } from './ComplianceChecker'
 
 interface ProjectDetailProps {
   project: Project
@@ -20,7 +21,7 @@ interface ProjectDetailProps {
 }
 
 export function ProjectDetail({ project, stakeholders, onBack, onEdit, onUpdatePhaseStatus, onProjectUpdate }: ProjectDetailProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'phases' | 'stakeholders' | 'documents'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'phases' | 'stakeholders' | 'documents' | 'compliance'>('overview')
   const projectStakeholders = stakeholders.filter(s => project.stakeholders.includes(s.id))
   
   const statusColors = {
@@ -92,6 +93,10 @@ export function ProjectDetail({ project, stakeholders, onBack, onEdit, onUpdateP
           <TabsTrigger value="documents" className="gap-2">
             <Folder size={16} weight="duotone" />
             Documentos
+          </TabsTrigger>
+          <TabsTrigger value="compliance" className="gap-2">
+            <ListChecks size={16} weight="duotone" />
+            Cumplimiento Normativo
           </TabsTrigger>
         </TabsList>
 
@@ -261,6 +266,10 @@ export function ProjectDetail({ project, stakeholders, onBack, onEdit, onUpdateP
             project={project} 
             onProjectUpdate={onProjectUpdate}
           />
+        </TabsContent>
+
+        <TabsContent value="compliance" className="mt-6">
+          <ComplianceChecker project={project} />
         </TabsContent>
       </Tabs>
     </motion.div>

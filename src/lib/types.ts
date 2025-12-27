@@ -185,3 +185,24 @@ export const TEMPLATE_CATEGORIES: Record<TemplateCategory, string> = {
   'presupuesto': 'Presupuestos y Mediciones',
   'calculo': 'Cálculos y Justificaciones'
 }
+
+export type RegulatoryCode = 
+  | 'cte'
+  | 'rite'
+  | 'rebt'
+  | 'costas'
+  | 'urbanismo'
+  | 'ehe'
+
+export interface ComplianceCheck {
+  id: string
+  projectId: string
+  checkType: 'automatic' | 'manual'
+  category: string
+  requirement: string
+  status: 'compliant' | 'non-compliant' | 'pending' | 'not-applicable'
+  evidence?: string
+  notes?: string
+  checkedAt?: number
+  checkedBy?: string
+}
