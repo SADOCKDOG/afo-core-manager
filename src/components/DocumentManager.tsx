@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useKV } from '@github/spark/hooks'
-import { Document, Project, FOLDER_STRUCTURES, DOCUMENT_TYPE_LABELS } from '@/lib/types'
+import { Document, Project, FOLDER_STRUCTURES, DOCUMENT_TYPE_LABELS, DocumentTemplate } from '@/lib/types'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -14,7 +14,8 @@ import {
   CheckCircle, 
   ShareNetwork,
   Folder,
-  TreeStructure
+  TreeStructure,
+  FileText
 } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
 import { DocumentUploadDialog } from './DocumentUploadDialog'
@@ -22,7 +23,9 @@ import { DocumentVersionDialog } from './DocumentVersionDialog'
 import { FolderStructureDialog } from './FolderStructureDialog'
 import { DocumentSearch, DocumentFilters } from './DocumentSearch'
 import { BulkDocumentUpload } from './BulkDocumentUpload'
+import { DocumentTemplateDialog } from './DocumentTemplateDialog'
 import { formatFileSize, sortVersions } from '@/lib/document-utils'
+import { toast } from 'sonner'
 
 interface DocumentManagerProps {
   project: Project
@@ -35,6 +38,7 @@ export function DocumentManager({ project, onProjectUpdate }: DocumentManagerPro
   const [bulkUploadOpen, setBulkUploadOpen] = useState(false)
   const [versionDialogOpen, setVersionDialogOpen] = useState(false)
   const [structureDialogOpen, setStructureDialogOpen] = useState(false)
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false)
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null)
   const [filters, setFilters] = useState<DocumentFilters>({
     searchQuery: '',
@@ -105,6 +109,64 @@ export function DocumentManager({ project, onProjectUpdate }: DocumentManagerPro
 
   const handleSetupStructure = () => {
     setStructureDialogOpen(true)
+  }
+
+  const handleTemplateSelect = (template: DocumentTemplate, customFields: Record<string, string>) => {
+    let content = ''
+    
+    template.sections.forEach((section) => {
+      let sectionContent = section.content
+      
+      Object.entries(customFields).forEach(([key, value]) => {
+        const placeholder = `[${key.toUpperCase()}]`
+        sectionContent = sectionContent.replace(new RegExp(placeholder, 'g'), value)
+      })
+      
+      content += `${section.title}\n\n${sectionContent}\n\n\n`
+    })
+
+    const newDocument: Document = {
+      id: Date.now().toString(),
+      projectId: project.id,
+      name: template.name,
+      type: template.type,
+      folder: template.folder || folders[0] || '',
+      currentVersion: 'P01',
+      versions: [
+        {
+          id: `${Date.now()}-v1`,
+          version: 'P01',
+          fileName: `${template.name.replace(/\s+/g, '_')}_P01.txt`,
+          fileSize: new Blob([content]).size,
+          uploadedAt: Date.now(),
+          uploadedBy: 'Usuario',
+          status: 'draft',
+          notes: `Documento generado desde plantilla: ${template.name}`
+        }
+      ],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      metadata: {
+        discipline: template.discipline,
+        description: template.description,
+        format: 'text/plain',
+        application: 'AFO CORE MANAGER - Plantillas'
+      }
+    }
+
+    setDocuments((currentDocs) => [...(currentDocs || []), newDocument])
+    
+    const blob = new Blob([content], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${template.name.replace(/\s+/g, '_')}_P01.txt`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+    
+    toast.success('Documento generado desde plantilla y descargado')
   }
 
   const getStatusIcon = (status: string) => {
@@ -226,6 +288,10 @@ export function DocumentManager({ project, onProjectUpdate }: DocumentManagerPro
           <Button variant="outline" onClick={handleSetupStructure} className="gap-2">
             <TreeStructure size={18} weight="duotone" />
             Cambiar Estructura
+          </Button>
+          <Button variant="outline" onClick={() => setTemplateDialogOpen(true)} className="gap-2 bg-accent/10 hover:bg-accent/20 border-accent/30">
+            <FileText size={18} weight="duotone" />
+            Plantillas
           </Button>
           <Button variant="outline" onClick={() => setBulkUploadOpen(true)} className="gap-2">
             <Plus size={18} weight="bold" />
@@ -396,6 +462,12 @@ export function DocumentManager({ project, onProjectUpdate }: DocumentManagerPro
           onProjectUpdate({ folderStructure: type })
           setStructureDialogOpen(false)
         }}
+      />
+
+      <DocumentTemplateDialog
+        open={templateDialogOpen}
+        onOpenChange={setTemplateDialogOpen}
+        onSelectTemplate={handleTemplateSelect}
       />
     </div>
   )

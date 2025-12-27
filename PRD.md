@@ -68,6 +68,13 @@ This MVP focuses on core project management functionality with client tracking, 
 - **Progression**: Open bulk upload dialog → Configure default type, folder, and discipline → Drag files into drop zone or click to select → Review file list with individual file metadata → Adjust individual file settings if needed → Initiate upload → View upload progress with success/error indicators → Receive confirmation toast
 - **Success criteria**: Supports multiple file types (PDF, DWG, DXF, DOC, DOCX, JPG, PNG, XLS, XLSX), validates file names automatically, shows clear upload progress per file, handles errors gracefully with specific error messages, allows removal of files before upload, applies default settings to all files with ability to override per file
 
+### Document Templates for Architectural Deliverables
+- **Functionality**: Pre-configured document templates for common architectural deliverables (memorias, pliego de condiciones, certificados, mediciones) with customizable fields and automatic content generation
+- **Purpose**: Accelerate document creation by providing standardized, CTE-compliant templates that maintain professional consistency and reduce repetitive writing
+- **Trigger**: User clicks "Plantillas" button in document manager
+- **Progression**: Open template library → Browse by category (Memorias, Planos, Administrativo, Presupuestos, Cálculos) or search → Select template → Fill required fields (promotor, arquitecto, ubicación, etc.) → Preview document structure → Confirm → System generates document with populated fields and downloads automatically → Document added to project with metadata
+- **Success criteria**: 8+ professional templates covering essential deliverables (Memoria Básico, Memoria Ejecución, Justificación CTE-HE, Pliego Condiciones, Mediciones y Presupuesto, Gestión Residuos, Carátula Planos, Certificado Final), all fields properly replaced with user input, generated documents follow ISO19650-2 naming, documents automatically added to correct folder structure, instant download of generated content
+
 ## Edge Case Handling
 
 - **Empty States**: Dashboard shows helpful onboarding message with "Create First Project" CTA when no projects exist; document manager guides user through folder structure setup before first upload
@@ -80,6 +87,9 @@ This MVP focuses on core project management functionality with client tracking, 
 - **Bulk Upload Errors**: Individual files that fail validation show error messages inline; valid files can proceed while invalid files are highlighted; users can remove invalid files before uploading
 - **Large File Handling**: Visual progress indicators for each file during bulk upload; system gracefully handles mixed success/failure states in batch uploads
 - **Drag-and-Drop States**: Clear visual feedback when dragging files over drop zone (highlighted border, background color change); supports both drag-and-drop and traditional file picker
+- **Template Selection**: Template library organized by category with visual cards showing section count and discipline; search functionality filters templates in real-time; selected template shows expandable section preview with placeholder fields highlighted
+- **Template Form**: Required fields clearly marked with asterisks; form validates all required fields before allowing document generation; field labels use clear Spanish architectural terminology (Promotor, Arquitecto, Zona Climática)
+- **Generated Documents**: Plain text format with clear section headers; all placeholder fields [CAMPO] replaced with user input; automatic download initiates immediately; document added to project with complete metadata
 
 ## Design Direction
 

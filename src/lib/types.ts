@@ -150,3 +150,38 @@ export const FOLDER_STRUCTURES: Record<FolderStructureType, { name: string; fold
     ]
   }
 }
+
+export type TemplateCategory = 
+  | 'memoria'
+  | 'planos'
+  | 'administrativo'
+  | 'presupuesto'
+  | 'calculo'
+
+export interface DocumentTemplate {
+  id: string
+  name: string
+  description: string
+  category: TemplateCategory
+  type: DocumentType
+  discipline?: string
+  sections: TemplateSection[]
+  requiredFields: string[]
+  folder?: string
+}
+
+export interface TemplateSection {
+  id: string
+  title: string
+  content: string
+  order: number
+  required: boolean
+}
+
+export const TEMPLATE_CATEGORIES: Record<TemplateCategory, string> = {
+  'memoria': 'Memorias',
+  'planos': 'Planos',
+  'administrativo': 'Administrativo',
+  'presupuesto': 'Presupuestos y Mediciones',
+  'calculo': 'Cálculos y Justificaciones'
+}
