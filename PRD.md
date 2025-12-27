@@ -96,6 +96,20 @@ This MVP focuses on core project management functionality with client tracking, 
 - **Progression**: Open municipal manager → Browse existing municipalities (search by name/province, filter by province) → Select municipality to view its requirements → View requirements organized by local categories (Urbanismo Local, Protección Patrimonio, Ordenanzas Municipales, Estética y Composición, Aparcamiento, etc.) → Create new municipality (enter name, province, autonomous community) → Add custom requirements to municipality (category, requirement text, regulatory reference, priority, notes) → Edit or delete existing requirements → **Apply municipality during initial checklist generation OR add to existing checklist** → Municipal requirements automatically merged into compliance checklist with proper categorization and references → Visual indicator shows applied municipality with count of municipal requirements → Municipal requirements display with distinctive "Municipal" badge for easy identification
 - **Success criteria**: 3+ example municipalities pre-loaded (Madrid, Barcelona, Cartagena) with realistic requirements; create new municipalities for any Spanish province/autonomous community; add unlimited custom requirements per municipality; requirements include proper PGOU/ordinance citations; municipality selection integrated into checklist generator; **municipal requirements can be added to existing checklists without duplication**; **system detects and prevents duplicate requirements when applying to existing checklist**; **detailed toast notification shows breakdown of added requirements by category**; municipal requirements merge seamlessly with national requirements in generated checklists; search municipalities by name or province; requirements organized by 10+ municipal categories; **visual badge identifies municipal requirements in checklist view**; **progress card displays applied municipality name and count of municipal requirements**; support for effective/expiry dates on requirements; notes field for implementation guidance; requirements filterable by building type and use; persistent storage of all municipalities and requirements; **municipality information stored in checklist metadata**
 
+### Budget Management with BC3 Integration
+- **Functionality**: Create construction budgets (PEM) with integrated price database, BC3 import/export, and hierarchical budget structure with chapters, units, and resources
+- **Purpose**: Enable accurate cost estimation and budget tracking using standardized construction databases, facilitating integration with cost estimation software
+- **Trigger**: User clicks "Gestión de Presupuestos" from project detail view
+- **Progression**: Create budget → Define chapters and units → Add resources (materials, labor, machinery) from price database → Import prices from external BC3 files or online databases → Calculate totals with GG, BI, IVA → Export to BC3 format
+- **Success criteria**: Budget calculations are accurate, BC3 files import/export successfully, price database is searchable, hierarchical structure is maintained, percentage calculations (GG, BI, IVA) are correct
+
+### COAM/COACM Visa Processing Workflow with Document Validation
+- **Functionality**: Comprehensive workflow for submitting project documentation for professional college visa (visado colegial) with automated validation, requirement tracking, and status management
+- **Purpose**: Streamline the complex administrative process of obtaining mandatory professional college approval for architectural projects in Spain, reducing submission errors and expediting approval
+- **Trigger**: User clicks "Gestión de Visados" from dashboard or "Gestión de Visados" button in project detail view
+- **Progression**: Create visa application → Select professional college (COAM/COACM/COAG/Other) → Choose project phases to visa (Estudio Previo, Anteproyecto, Básico, Ejecución, Dirección de Obra) → System generates required documents list based on phases → Upload documents with automatic type detection → System validates each document (file size max 80MB, format PDF/DWG/DXF, naming conventions) → Assign document types (Memoria Descriptiva, Planos Arquitectónicos, Presupuesto, etc.) → Complete requirements checklist (architect credentials, promoter data, location, signatures) → Review completeness percentage and missing items → View estimated visa fee based on college and phases → Save as draft or submit application → System assigns application number → Track status through workflow (Draft → Submitted → Under Review → Required → Pending Payment → Pending Pickup → Approved/Rejected) → View rejection reasons if required → Edit and resubmit as needed
+- **Success criteria**: Application enforces phase-specific document requirements (Básico requires 8 documents, Ejecución requires 11 documents); validates file size limit (80MB per file); detects document type from filename intelligently; prevents submission with missing required documents or unmet requirements; calculates realistic visa fees (COAM base 150€ + 0.3% PEM, COACM base 120€ + 0.25% PEM); generates unique application numbers per college (COAM/2025/12345 format); tracks complete status lifecycle with visual indicators; displays validation errors inline per document; shows completion progress with percentage; requirements checklist covers all mandatory items (collegiate status, promoter data, location, digital signatures); supports draft saving for incomplete applications; provides detailed rejection reasons for required applications; allows document replacement and resubmission
+
 ## Edge Case Handling
 
 - **Empty States**: Dashboard shows helpful onboarding message with "Create First Project" CTA when no projects exist; document manager guides user through folder structure setup before first upload
@@ -122,6 +136,11 @@ This MVP focuses on core project management functionality with client tracking, 
 - **Compliance Filtering**: Real-time search across requirement text, category, and regulatory reference; category tabs show completion ratio (completed/total); priority filter (all/high/medium/low) and status filter (all/pending/compliant/non-compliant) work independently; filter combinations update result count instantly; empty state when no matches with clear reset option
 - **Compliance Progress**: Overall completion percentage calculated from compliant + not-applicable checks; visual progress bar at top of checklist; per-category completion shown in tab labels; completion updates in real-time as status changes
 - **Compliance Export**: CSV export includes all fields (category, requirement, reference, status, priority, notes); filename based on project title; success toast confirms export; handles special characters in notes field properly
+- **Visa Document Validation**: Files exceeding 80MB show clear error with split suggestion; invalid formats (non-PDF/DWG/DXF) rejected with format guidance; duplicate document types warn user; missing required documents prevent submission with clear list of missing items
+- **Visa Status Transitions**: Only valid status transitions allowed (can't skip from Draft to Approved); status change confirmations prevent accidental updates; rejection requires entering at least one reason
+- **Visa Fee Calculation**: Missing PEM shows estimated fee with "pending budget" note; fee updates automatically when budget is added; college-specific formulas applied correctly
+- **Incomplete Visa Submission**: Submit button disabled when validation fails; tooltip explains specific blocking issues (missing documents, unmet requirements, validation errors); clear visual indicators (red badges, warning icons) highlight incomplete sections
+- **Visa Without Project**: Global visa manager accessible from dashboard works without project context; project dropdown allows association after creation; warning shown if creating visa without project link
 
 ## Design Direction
 
@@ -199,10 +218,12 @@ Animations should feel **precise and purposeful** - like the movement of draftin
 - Add/Create: Plus, PlusCircle
 - Stakeholders: Users, UserCircle, Briefcase
 - Phases: CheckCircle, Circle, Clock
-- Documents: File, FileText, FolderOpen
+- Documents: File, FileText, FolderOpen, Upload
 - Search: MagnifyingGlass
 - Settings: Gear
 - Regulations: BookOpen, Scales
+- Visa/Administrative: Stamp, PaperPlaneTilt (submit), Certificate
+- Status: CheckCircle (approved), WarningCircle (required/error), Clock (pending)
 
 **Spacing**:
 - Card padding: p-6 (24px)

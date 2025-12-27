@@ -345,3 +345,112 @@ export const BUDGET_ITEM_TYPE_LABELS: Record<BudgetItemType, string> = {
   'labor': 'Mano de obra',
   'machinery': 'Maquinaria'
 }
+
+export type ProfessionalCollege = 'COAM' | 'COACM' | 'COAG' | 'OTHER'
+
+export type VisaStatus = 
+  | 'draft'
+  | 'pending-submission'
+  | 'submitted'
+  | 'under-review'
+  | 'required'
+  | 'pending-payment'
+  | 'pending-pickup'
+  | 'approved'
+  | 'rejected'
+
+export type VisaDocumentType = 
+  | 'memoria-descriptiva'
+  | 'memoria-constructiva'
+  | 'pliego-condiciones'
+  | 'presupuesto'
+  | 'planos-situacion'
+  | 'planos-arquitectonicos'
+  | 'planos-estructuras'
+  | 'planos-instalaciones'
+  | 'estudio-seguridad'
+  | 'estudio-gestion-residuos'
+  | 'eficiencia-energetica'
+  | 'anexo-calculo'
+  | 'otro'
+
+export interface VisaDocument {
+  id: string
+  type: VisaDocumentType
+  name: string
+  fileSize: number
+  uploadedAt: number
+  isRequired: boolean
+  isValid: boolean
+  validationErrors: string[]
+  documentId?: string
+}
+
+export interface VisaValidationRule {
+  id: string
+  name: string
+  description: string
+  validator: (doc: VisaDocument, visa: VisaApplication) => { isValid: boolean; errors: string[] }
+  applicableDocumentTypes: VisaDocumentType[]
+}
+
+export interface VisaRequirement {
+  id: string
+  description: string
+  isMet: boolean
+  evidence?: string
+  notes?: string
+}
+
+export interface VisaApplication {
+  id: string
+  projectId: string
+  college: ProfessionalCollege
+  status: VisaStatus
+  applicationNumber?: string
+  submittedAt?: number
+  phases: ProjectPhase[]
+  documents: VisaDocument[]
+  requirements: VisaRequirement[]
+  estimatedFee?: number
+  paymentReference?: string
+  rejectionReasons?: string[]
+  notes?: string
+  createdAt: number
+  updatedAt: number
+}
+
+export const PROFESSIONAL_COLLEGE_LABELS: Record<ProfessionalCollege, string> = {
+  'COAM': 'Colegio Oficial de Arquitectos de Madrid',
+  'COACM': 'Colegio Oficial de Arquitectos de Castilla-La Mancha',
+  'COAG': 'Colexio Oficial de Arquitectos de Galicia',
+  'OTHER': 'Otro Colegio'
+}
+
+export const VISA_STATUS_LABELS: Record<VisaStatus, string> = {
+  'draft': 'Borrador',
+  'pending-submission': 'Pendiente de Presentación',
+  'submitted': 'Presentado',
+  'under-review': 'En Revisión',
+  'required': 'Requerido',
+  'pending-payment': 'Pendiente de Pago',
+  'pending-pickup': 'Pendiente de Retirar',
+  'approved': 'Visado Concedido',
+  'rejected': 'Rechazado'
+}
+
+export const VISA_DOCUMENT_TYPE_LABELS: Record<VisaDocumentType, string> = {
+  'memoria-descriptiva': 'Memoria Descriptiva',
+  'memoria-constructiva': 'Memoria Constructiva',
+  'pliego-condiciones': 'Pliego de Condiciones',
+  'presupuesto': 'Presupuesto',
+  'planos-situacion': 'Planos de Situación',
+  'planos-arquitectonicos': 'Planos Arquitectónicos',
+  'planos-estructuras': 'Planos de Estructuras',
+  'planos-instalaciones': 'Planos de Instalaciones',
+  'estudio-seguridad': 'Estudio de Seguridad y Salud',
+  'estudio-gestion-residuos': 'Estudio de Gestión de Residuos',
+  'eficiencia-energetica': 'Certificado de Eficiencia Energética',
+  'anexo-calculo': 'Anexo de Cálculo',
+  'otro': 'Otro Documento'
+}

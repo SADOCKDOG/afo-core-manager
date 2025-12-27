@@ -6,11 +6,12 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { ArrowLeft, CheckCircle, Circle, Clock, Pencil, Folder, ListChecks } from '@phosphor-icons/react'
+import { ArrowLeft, CheckCircle, Circle, Clock, Pencil, Folder, ListChecks, Stamp } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
 import { DocumentManager } from './DocumentManager'
 import { ComplianceChecklistView } from './ComplianceChecklistView'
 import { BudgetManager } from './BudgetManager'
+import { VisaManager } from './VisaManager'
 
 interface ProjectDetailProps {
   project: Project
@@ -81,6 +82,7 @@ export function ProjectDetail({ project, stakeholders, onBack, onEdit, onUpdateP
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <VisaManager project={project} />
           <BudgetManager projectId={project.id} projectName={project.title} />
           <Button onClick={onEdit} variant="outline" className="gap-2">
             <Pencil size={16} />
