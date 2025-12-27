@@ -1,11 +1,14 @@
+import { useState } from 'react'
 import { Project, PHASE_LABELS, Stakeholder } from '@/lib/types'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Progress } from '@/components/ui/progress'
-import { ArrowLeft, CheckCircle, Circle, Clock, Pencil } from '@phosphor-icons/react'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { ArrowLeft, CheckCircle, Circle, Clock, Pencil, Folder } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
+import { DocumentManager } from './DocumentManager'
 
 interface ProjectDetailProps {
   project: Project
@@ -13,9 +16,11 @@ interface ProjectDetailProps {
   onBack: () => void
   onEdit: () => void
   onUpdatePhaseStatus: (phaseIndex: number, status: 'pending' | 'in-progress' | 'completed') => void
+  onProjectUpdate: (project: Partial<Project>) => void
 }
 
-export function ProjectDetail({ project, stakeholders, onBack, onEdit, onUpdatePhaseStatus }: ProjectDetailProps) {
+export function ProjectDetail({ project, stakeholders, onBack, onEdit, onUpdatePhaseStatus, onProjectUpdate }: ProjectDetailProps) {
+  const [activeTab, setActiveTab] = useState<'overview' | 'phases' | 'stakeholders' | 'documents'>('overview')
   const projectStakeholders = stakeholders.filter(s => project.stakeholders.includes(s.id))
   
   const statusColors = {
@@ -79,137 +84,185 @@ export function ProjectDetail({ project, stakeholders, onBack, onEdit, onUpdateP
         </Button>
       </div>
 
-      {project.description && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Descripción</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground leading-relaxed">{project.description}</p>
-          </CardContent>
-        </Card>
-      )}
+      <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as typeof activeTab)}>
+        <TabsList>
+          <TabsTrigger value="overview">Resumen</TabsTrigger>
+          <TabsTrigger value="phases">Fases</TabsTrigger>
+          <TabsTrigger value="stakeholders">Intervinientes</TabsTrigger>
+          <TabsTrigger value="documents" className="gap-2">
+            <Folder size={16} weight="duotone" />
+            Documentos
+          </TabsTrigger>
+        </TabsList>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg">Fases del Proyecto</CardTitle>
-              <CardDescription className="mt-1">
-                {completedPhases} de {totalPhases} fases completadas
-              </CardDescription>
-            </div>
-            <span className="text-2xl font-bold font-mono">{Math.round(progressPercentage)}%</span>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Progress value={progressPercentage} className="h-3" />
-          
-          <div className="space-y-3">
-            {project.phases.map((phase, index) => (
-              <div key={phase.phase} className="flex items-center gap-4 p-4 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors">
-                <PhaseIcon status={phase.status} />
-                <div className="flex-1">
-                  <div className="flex items-center gap-3">
-                    <h4 className="font-medium">{PHASE_LABELS[phase.phase]}</h4>
-                    <span className={`text-sm font-mono ${phaseStatusColors[phase.status]}`}>
-                      {phase.percentage}%
-                    </span>
-                  </div>
+        <TabsContent value="overview" className="space-y-6 mt-6">
+          {project.description && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Descripción</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground leading-relaxed">{project.description}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg">Progreso del Proyecto</CardTitle>
+                  <CardDescription className="mt-1">
+                    {completedPhases} de {totalPhases} fases completadas
+                  </CardDescription>
                 </div>
-                <div className="flex gap-2">
-                  {phase.status !== 'completed' && (
-                    <>
-                      {phase.status === 'pending' && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => onUpdatePhaseStatus(index, 'in-progress')}
-                        >
-                          Iniciar
-                        </Button>
-                      )}
-                      {phase.status === 'in-progress' && (
-                        <Button
-                          size="sm"
-                          onClick={() => onUpdatePhaseStatus(index, 'completed')}
-                        >
-                          Completar
-                        </Button>
-                      )}
-                    </>
-                  )}
-                  {phase.status === 'completed' && (
-                    <Badge variant="outline" className="border-primary text-primary">
-                      Completada
-                    </Badge>
-                  )}
+                <span className="text-2xl font-bold font-mono">{Math.round(progressPercentage)}%</span>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Progress value={progressPercentage} className="h-3" />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Información del Proyecto</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-muted-foreground mb-1">Fecha de Creación</p>
+                  <p className="font-medium">{new Date(project.createdAt).toLocaleDateString('es-ES', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground mb-1">Última Actualización</p>
+                  <p className="font-medium">{new Date(project.updatedAt).toLocaleDateString('es-ES', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}</p>
                 </div>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      {projectStakeholders.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Intervinientes</CardTitle>
-            <CardDescription>
-              Personas y entidades asociadas al proyecto
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {projectStakeholders.map(stakeholder => (
-                <div key={stakeholder.id} className="flex items-start gap-4 p-4 rounded-lg border">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-medium">{stakeholder.name}</h4>
-                      <Badge variant="outline" className="text-xs">
-                        {stakeholder.type === 'promotor' ? 'Promotor' : stakeholder.type === 'architect' ? 'Arquitecto' : 'Técnico'}
-                      </Badge>
+        <TabsContent value="phases" className="space-y-6 mt-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg">Fases del Proyecto</CardTitle>
+                  <CardDescription className="mt-1">
+                    {completedPhases} de {totalPhases} fases completadas
+                  </CardDescription>
+                </div>
+                <span className="text-2xl font-bold font-mono">{Math.round(progressPercentage)}%</span>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Progress value={progressPercentage} className="h-3" />
+              
+              <div className="space-y-3">
+                {project.phases.map((phase, index) => (
+                  <div key={phase.phase} className="flex items-center gap-4 p-4 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors">
+                    <PhaseIcon status={phase.status} />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3">
+                        <h4 className="font-medium">{PHASE_LABELS[phase.phase]}</h4>
+                        <span className={`text-sm font-mono ${phaseStatusColors[phase.status]}`}>
+                          {phase.percentage}%
+                        </span>
+                      </div>
                     </div>
-                    <div className="text-sm text-muted-foreground space-y-1">
-                      <p>NIF/CIF: {stakeholder.nif}</p>
-                      {stakeholder.email && <p>Email: {stakeholder.email}</p>}
-                      {stakeholder.phone && <p>Teléfono: {stakeholder.phone}</p>}
-                      {stakeholder.collegiateNumber && <p>Nº Colegiado: {stakeholder.collegiateNumber}</p>}
-                      {stakeholder.qualification && <p>Titulación: {stakeholder.qualification}</p>}
+                    <div className="flex gap-2">
+                      {phase.status !== 'completed' && (
+                        <>
+                          {phase.status === 'pending' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => onUpdatePhaseStatus(index, 'in-progress')}
+                            >
+                              Iniciar
+                            </Button>
+                          )}
+                          {phase.status === 'in-progress' && (
+                            <Button
+                              size="sm"
+                              onClick={() => onUpdatePhaseStatus(index, 'completed')}
+                            >
+                              Completar
+                            </Button>
+                          )}
+                        </>
+                      )}
+                      {phase.status === 'completed' && (
+                        <Badge variant="outline" className="border-primary text-primary">
+                          Completada
+                        </Badge>
+                      )}
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Información del Proyecto</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <p className="text-muted-foreground mb-1">Fecha de Creación</p>
-              <p className="font-medium">{new Date(project.createdAt).toLocaleDateString('es-ES', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground mb-1">Última Actualización</p>
-              <p className="font-medium">{new Date(project.updatedAt).toLocaleDateString('es-ES', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        <TabsContent value="stakeholders" className="space-y-6 mt-6">
+          {projectStakeholders.length > 0 ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Intervinientes del Proyecto</CardTitle>
+                <CardDescription>
+                  Personas y entidades asociadas al proyecto
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {projectStakeholders.map(stakeholder => (
+                    <div key={stakeholder.id} className="flex items-start gap-4 p-4 rounded-lg border">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-medium">{stakeholder.name}</h4>
+                          <Badge variant="outline" className="text-xs">
+                            {stakeholder.type === 'promotor' ? 'Promotor' : stakeholder.type === 'architect' ? 'Arquitecto' : 'Técnico'}
+                          </Badge>
+                        </div>
+                        <div className="text-sm text-muted-foreground space-y-1">
+                          <p>NIF/CIF: {stakeholder.nif}</p>
+                          {stakeholder.email && <p>Email: {stakeholder.email}</p>}
+                          {stakeholder.phone && <p>Teléfono: {stakeholder.phone}</p>}
+                          {stakeholder.collegiateNumber && <p>Nº Colegiado: {stakeholder.collegiateNumber}</p>}
+                          {stakeholder.qualification && <p>Titulación: {stakeholder.qualification}</p>}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="py-16 text-center">
+                <p className="text-muted-foreground">No hay intervinientes asignados a este proyecto</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="documents" className="mt-6">
+          <DocumentManager 
+            project={project} 
+            onProjectUpdate={onProjectUpdate}
+          />
+        </TabsContent>
+      </Tabs>
     </motion.div>
   )
 }

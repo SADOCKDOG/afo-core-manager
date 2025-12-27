@@ -35,11 +35,20 @@ function App() {
     setProjects(currentProjects => {
       const projectsList = currentProjects || []
       if (projectData.id) {
-        return projectsList.map(p => 
+        const updated = projectsList.map(p => 
           p.id === projectData.id 
             ? { ...p, ...projectData, updatedAt: Date.now() } as Project
             : p
         )
+        
+        if (selectedProject?.id === projectData.id) {
+          const updatedProject = updated.find(p => p.id === projectData.id)
+          if (updatedProject) {
+            setSelectedProject(updatedProject)
+          }
+        }
+        
+        return updated
       } else {
         const newProject: Project = {
           id: Date.now().toString(),
@@ -49,6 +58,7 @@ function App() {
           status: projectData.status || 'active',
           phases: projectData.phases || [],
           stakeholders: projectData.stakeholders || [],
+          folderStructure: projectData.folderStructure,
           createdAt: Date.now(),
           updatedAt: Date.now()
         }
@@ -57,8 +67,7 @@ function App() {
       }
     })
     
-    if (projectData.id && selectedProject?.id === projectData.id) {
-      setSelectedProject({ ...selectedProject, ...projectData } as Project)
+    if (projectData.id) {
       toast.success('Proyecto actualizado correctamente')
     }
   }
@@ -286,6 +295,7 @@ function App() {
               onBack={handleBackToDashboard}
               onEdit={handleEditProject}
               onUpdatePhaseStatus={handleUpdatePhaseStatus}
+              onProjectUpdate={(updates) => handleSaveProject({ ...updates, id: selectedProject.id })}
             />
           )
         )}
