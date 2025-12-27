@@ -11,7 +11,9 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { ComplianceGeneratorDialog } from './ComplianceGeneratorDialog'
+import { MunicipalComplianceManager } from './MunicipalComplianceManager'
 import { generateComplianceChecksForProject, COMPLIANCE_CATEGORIES } from '@/lib/compliance-data'
+import { Municipality, EXAMPLE_MUNICIPALITIES, getMunicipalRequirementsForProject } from '@/lib/municipal-compliance'
 import { 
   CheckCircle, 
   Circle, 
@@ -22,7 +24,8 @@ import {
   MagnifyingGlass,
   FunnelSimple,
   Download,
-  ArrowLeft
+  ArrowLeft,
+  MapPin
 } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
@@ -34,6 +37,7 @@ interface ComplianceChecklistViewProps {
 
 export function ComplianceChecklistView({ project, onBack }: ComplianceChecklistViewProps) {
   const [checklists, setChecklists] = useKV<Record<string, ComplianceChecklist>>('compliance-checklists', {})
+  const [municipalities] = useKV<Municipality[]>('municipalities', EXAMPLE_MUNICIPALITIES)
   const [generatorOpen, setGeneratorOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
@@ -49,6 +53,7 @@ export function ComplianceChecklistView({ project, onBack }: ComplianceChecklist
     buildingSurface?: number
     buildingHeight?: number
     climateZone?: string
+    municipalityId?: string
   }) => {
     const checks = generateComplianceChecksForProject(
       project.id,
@@ -57,6 +62,32 @@ export function ComplianceChecklistView({ project, onBack }: ComplianceChecklist
       data.buildingSurface,
       data.buildingHeight
     )
+
+    if (data.municipalityId) {
+      const municipalReqs = getMunicipalRequirementsForProject(
+        data.municipalityId,
+        municipalities || [],
+        data.buildingType,
+        data.buildingUse
+      )
+
+      const municipalChecks: ComplianceCheck[] = municipalReqs.map(req => ({
+        id: `${project.id}-${req.id}-${Date.now()}`,
+        projectId: project.id,
+        checkType: req.checkType,
+        category: req.category,
+        requirement: req.requirement,
+        regulatoryReference: req.customReference,
+        status: 'pending' as const,
+        priority: req.priority,
+        evidence: undefined,
+        notes: req.notes,
+        checkedAt: undefined,
+        checkedBy: undefined
+      }))
+
+      checks.push(...municipalChecks)
+    }
 
     const newChecklist: ComplianceChecklist = {
       id: `checklist-${project.id}`,
@@ -77,7 +108,15 @@ export function ComplianceChecklistView({ project, onBack }: ComplianceChecklist
       [project.id]: newChecklist
     }))
 
-    toast.success(`Checklist generado con ${checks.length} requisitos de cumplimiento`)
+    const municipalityName = data.municipalityId 
+      ? municipalities?.find(m => m.id === data.municipalityId)?.name 
+      : null
+
+    toast.success(
+      municipalityName
+        ? `Checklist generado con ${checks.length} requisitos (incluyendo ${municipalities?.find(m => m.id === data.municipalityId)?.requirements.length || 0} requisitos de ${municipalityName})`
+        : `Checklist generado con ${checks.length} requisitos de cumplimiento`
+    )
   }
 
   const handleUpdateCheck = (checkId: string, updates: Partial<ComplianceCheck>) => {
@@ -217,16 +256,19 @@ export function ComplianceChecklistView({ project, onBack }: ComplianceChecklist
           <h2 className="text-3xl font-bold mb-3">Checklist de Cumplimiento Normativo</h2>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
             Genere automáticamente una lista de verificación completa de cumplimiento normativo para este proyecto.
-            El sistema incluirá requisitos del CTE, RITE, REBT y normativa urbanística aplicable.
+            El sistema incluirá requisitos del CTE, RITE, REBT, normativa urbanística y requisitos municipales específicos.
           </p>
-          <Button
-            size="lg"
-            onClick={() => setGeneratorOpen(true)}
-            className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90"
-          >
-            <Sparkle size={20} weight="fill" />
-            Generar Checklist Automático
-          </Button>
+          <div className="flex gap-3 justify-center">
+            <Button
+              size="lg"
+              onClick={() => setGeneratorOpen(true)}
+              className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90"
+            >
+              <Sparkle size={20} weight="fill" />
+              Generar Checklist Automático
+            </Button>
+            <MunicipalComplianceManager projectId={project.id} />
+          </div>
 
           <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
             <div className="p-6 rounded-lg border bg-card">
@@ -283,10 +325,13 @@ export function ComplianceChecklistView({ project, onBack }: ComplianceChecklist
             <p className="text-sm text-muted-foreground">{project.title}</p>
           </div>
         </div>
-        <Button variant="outline" onClick={exportChecklist} className="gap-2">
-          <Download size={18} />
-          Exportar CSV
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" onClick={exportChecklist} className="gap-2">
+            <Download size={18} />
+            Exportar CSV
+          </Button>
+          <MunicipalComplianceManager projectId={project.id} />
+        </div>
       </div>
 
       <Card>

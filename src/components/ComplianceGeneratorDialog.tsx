@@ -1,13 +1,16 @@
 import { useState } from 'react'
+import { useKV } from '@github/spark/hooks'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { Sparkle, ArrowRight } from '@phosphor-icons/react'
+import { Separator } from '@/components/ui/separator'
+import { Sparkle, ArrowRight, MapPin } from '@phosphor-icons/react'
 import { BuildingType, BuildingUse } from '@/lib/types'
 import { BUILDING_TYPE_LABELS, BUILDING_USE_LABELS, CLIMATE_ZONES } from '@/lib/compliance-data'
+import { Municipality, EXAMPLE_MUNICIPALITIES } from '@/lib/municipal-compliance'
 
 interface ComplianceGeneratorDialogProps {
   open: boolean
@@ -18,6 +21,7 @@ interface ComplianceGeneratorDialogProps {
     buildingSurface?: number
     buildingHeight?: number
     climateZone?: string
+    municipalityId?: string
   }) => void
   projectTitle: string
 }
@@ -28,11 +32,15 @@ export function ComplianceGeneratorDialog({
   onGenerate,
   projectTitle
 }: ComplianceGeneratorDialogProps) {
+  const [municipalities] = useKV<Municipality[]>('municipalities', EXAMPLE_MUNICIPALITIES)
   const [buildingType, setBuildingType] = useState<BuildingType>('vivienda-unifamiliar')
   const [buildingUse, setBuildingUse] = useState<BuildingUse>('residencial-vivienda')
   const [buildingSurface, setBuildingSurface] = useState('')
   const [buildingHeight, setBuildingHeight] = useState('')
   const [climateZone, setClimateZone] = useState('')
+  const [municipalityId, setMunicipalityId] = useState('')
+
+  const selectedMunicipality = municipalities?.find(m => m.id === municipalityId)
 
   const handleGenerate = () => {
     onGenerate({
@@ -40,7 +48,8 @@ export function ComplianceGeneratorDialog({
       buildingUse,
       buildingSurface: buildingSurface ? parseFloat(buildingSurface) : undefined,
       buildingHeight: buildingHeight ? parseFloat(buildingHeight) : undefined,
-      climateZone: climateZone || undefined
+      climateZone: climateZone || undefined,
+      municipalityId: municipalityId || undefined
     })
     onOpenChange(false)
   }
@@ -122,22 +131,58 @@ export function ComplianceGeneratorDialog({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="climate-zone">Zona Climática</Label>
-            <Select value={climateZone} onValueChange={setClimateZone}>
-              <SelectTrigger id="climate-zone">
-                <SelectValue placeholder="Seleccionar zona climática" />
-              </SelectTrigger>
-              <SelectContent>
-                {CLIMATE_ZONES.map(zone => (
-                  <SelectItem key={zone.value} value={zone.value}>
-                    {zone.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">Opcional: Para requisitos energéticos específicos</p>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="climate-zone">Zona Climática</Label>
+              <Select value={climateZone} onValueChange={setClimateZone}>
+                <SelectTrigger id="climate-zone">
+                  <SelectValue placeholder="Seleccionar zona climática" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CLIMATE_ZONES.map(zone => (
+                    <SelectItem key={zone.value} value={zone.value}>
+                      {zone.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">Opcional: Requisitos energéticos</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="municipality">Municipio</Label>
+              <Select value={municipalityId} onValueChange={setMunicipalityId}>
+                <SelectTrigger id="municipality">
+                  <SelectValue placeholder="Sin municipio específico" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Ninguno</SelectItem>
+                  {(municipalities || []).map(municipality => (
+                    <SelectItem key={municipality.id} value={municipality.id}>
+                      {municipality.name} ({municipality.province})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">Opcional: Requisitos locales</p>
+            </div>
           </div>
+
+          {selectedMunicipality && (
+            <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-2">
+              <div className="flex items-center gap-2 text-primary">
+                <MapPin size={18} weight="duotone" />
+                <h4 className="font-semibold text-sm">
+                  Requisitos Municipales: {selectedMunicipality.name}
+                </h4>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Se añadirán {selectedMunicipality.requirements.length} requisitos específicos de {selectedMunicipality.name}, {selectedMunicipality.province}
+              </p>
+            </div>
+          )}
+
+          <Separator />
 
           <div className="rounded-lg bg-muted/50 p-4 space-y-3">
             <h4 className="font-semibold text-sm flex items-center gap-2">
