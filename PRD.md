@@ -75,6 +75,13 @@ This MVP focuses on core project management functionality with client tracking, 
 - **Progression**: Open template library → Browse by category (Memorias, Planos, Administrativo, Presupuestos, Cálculos) or search → Select template → Fill required fields (promotor, arquitecto, ubicación, etc.) → Preview document structure → Confirm → System generates document with populated fields and downloads automatically → Document added to project with metadata
 - **Success criteria**: 8+ professional templates covering essential deliverables (Memoria Básico, Memoria Ejecución, Justificación CTE-HE, Pliego Condiciones, Mediciones y Presupuesto, Gestión Residuos, Carátula Planos, Certificado Final), all fields properly replaced with user input, generated documents follow ISO19650-2 naming, documents automatically added to correct folder structure, instant download of generated content
 
+### AI-Powered Document Content Generation
+- **Functionality**: Advanced AI content generation for customizing individual sections of document templates with professionally-written, context-aware, normative-compliant content
+- **Purpose**: Enable architects to generate high-quality, technically precise content for complex document sections using AI, incorporating project context and regulatory references automatically
+- **Trigger**: User selects template → clicks "Generar con IA" button on any document section
+- **Progression**: Select document template → Fill required fields → For any section, click "Generar con IA" → AI generator dialog opens with section context → User describes content requirements → Select tone (Formal, Descriptivo, Conciso, Normativo) and length (Breve, Media, Detallada) → AI generates content using project context (title, location, phase) → Review generated content → Regenerate if needed → Copy or apply to section → Repeat for other sections as needed → Generate final document with AI-customized sections
+- **Success criteria**: AI generates architecturally sound, technically precise Spanish text with appropriate terminology; incorporates project context seamlessly; includes relevant normative references (CTE, RITE, etc.); respects selected tone and length preferences; allows regeneration and editing; generated sections integrate perfectly with template structure; clear visual distinction between default template content and AI-generated content; supports generating content for multiple sections independently
+
 ## Edge Case Handling
 
 - **Empty States**: Dashboard shows helpful onboarding message with "Create First Project" CTA when no projects exist; document manager guides user through folder structure setup before first upload
@@ -87,9 +94,12 @@ This MVP focuses on core project management functionality with client tracking, 
 - **Bulk Upload Errors**: Individual files that fail validation show error messages inline; valid files can proceed while invalid files are highlighted; users can remove invalid files before uploading
 - **Large File Handling**: Visual progress indicators for each file during bulk upload; system gracefully handles mixed success/failure states in batch uploads
 - **Drag-and-Drop States**: Clear visual feedback when dragging files over drop zone (highlighted border, background color change); supports both drag-and-drop and traditional file picker
-- **Template Selection**: Template library organized by category with visual cards showing section count and discipline; search functionality filters templates in real-time; selected template shows expandable section preview with placeholder fields highlighted
+- **Template Selection**: Template library organized by category with visual cards showing section count and discipline; AI badge indicates AI-generation capability; search functionality filters templates in real-time; selected template shows expandable section preview with placeholder fields highlighted
 - **Template Form**: Required fields clearly marked with asterisks; form validates all required fields before allowing document generation; field labels use clear Spanish architectural terminology (Promotor, Arquitecto, Zona Climática)
-- **Generated Documents**: Plain text format with clear section headers; all placeholder fields [CAMPO] replaced with user input; automatic download initiates immediately; document added to project with complete metadata
+- **Generated Documents**: Plain text format with clear section headers; all placeholder fields [CAMPO] replaced with user input; AI-generated sections seamlessly integrated; automatic download initiates immediately; document added to project with complete metadata noting AI-generated sections
+- **AI Generation States**: Loading state with animated sparkle icon during content generation; error handling with retry option if generation fails; empty state prompting user to describe content needs; regeneration preserves current settings but creates new content; copy-to-clipboard for generated content
+- **AI Content Management**: Visual badges indicate which sections have AI-generated content; ability to restore default template content for any section; expanded sections show editable textarea with generated content; collapsible sections to manage complex documents; section count badges show number of AI-customized sections
+- **AI Context Integration**: Project context (title, location, description, phase) automatically provided to AI; context displayed clearly in generator dialog; AI uses context to personalize generated content; missing context handled gracefully with generic but professional content
 
 ## Design Direction
 

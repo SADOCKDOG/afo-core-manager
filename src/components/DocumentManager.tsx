@@ -23,9 +23,10 @@ import { DocumentVersionDialog } from './DocumentVersionDialog'
 import { FolderStructureDialog } from './FolderStructureDialog'
 import { DocumentSearch, DocumentFilters } from './DocumentSearch'
 import { BulkDocumentUpload } from './BulkDocumentUpload'
-import { DocumentTemplateDialog } from './DocumentTemplateDialog'
+import { DocumentTemplateWithAI } from './DocumentTemplateWithAI'
 import { formatFileSize, sortVersions } from '@/lib/document-utils'
 import { toast } from 'sonner'
+import { PHASE_LABELS } from '@/lib/types'
 
 interface DocumentManagerProps {
   project: Project
@@ -111,11 +112,11 @@ export function DocumentManager({ project, onProjectUpdate }: DocumentManagerPro
     setStructureDialogOpen(true)
   }
 
-  const handleTemplateSelect = (template: DocumentTemplate, customFields: Record<string, string>) => {
+  const handleTemplateSelect = (template: DocumentTemplate, customFields: Record<string, string>, customSections: Record<string, string>) => {
     let content = ''
     
     template.sections.forEach((section) => {
-      let sectionContent = section.content
+      let sectionContent = customSections[section.id] || section.content
       
       Object.entries(customFields).forEach(([key, value]) => {
         const placeholder = `[${key.toUpperCase()}]`
@@ -141,7 +142,7 @@ export function DocumentManager({ project, onProjectUpdate }: DocumentManagerPro
           uploadedAt: Date.now(),
           uploadedBy: 'Usuario',
           status: 'draft',
-          notes: `Documento generado desde plantilla: ${template.name}`
+          notes: `Documento generado desde plantilla con IA: ${template.name}`
         }
       ],
       createdAt: Date.now(),
@@ -150,7 +151,7 @@ export function DocumentManager({ project, onProjectUpdate }: DocumentManagerPro
         discipline: template.discipline,
         description: template.description,
         format: 'text/plain',
-        application: 'AFO CORE MANAGER - Plantillas'
+        application: 'AFO CORE MANAGER - Plantillas IA'
       }
     }
 
@@ -166,7 +167,12 @@ export function DocumentManager({ project, onProjectUpdate }: DocumentManagerPro
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
     
-    toast.success('Documento generado desde plantilla y descargado')
+    const hasAIContent = Object.keys(customSections).length > 0
+    toast.success(
+      hasAIContent 
+        ? `Documento generado con ${Object.keys(customSections).length} sección${Object.keys(customSections).length !== 1 ? 'es' : ''} personalizada${Object.keys(customSections).length !== 1 ? 's' : ''} por IA`
+        : 'Documento generado desde plantilla'
+    )
   }
 
   const getStatusIcon = (status: string) => {
@@ -464,10 +470,18 @@ export function DocumentManager({ project, onProjectUpdate }: DocumentManagerPro
         }}
       />
 
-      <DocumentTemplateDialog
+      <DocumentTemplateWithAI
         open={templateDialogOpen}
         onOpenChange={setTemplateDialogOpen}
         onSelectTemplate={handleTemplateSelect}
+        projectContext={{
+          title: project.title,
+          location: project.location,
+          description: project.description,
+          phase: project.phases.length > 0 
+            ? PHASE_LABELS[project.phases[0].phase] 
+            : undefined
+        }}
       />
     </div>
   )
