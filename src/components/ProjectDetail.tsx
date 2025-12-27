@@ -10,6 +10,7 @@ import { ArrowLeft, CheckCircle, Circle, Clock, Pencil, Folder, ListChecks } fro
 import { motion } from 'framer-motion'
 import { DocumentManager } from './DocumentManager'
 import { ComplianceChecklistView } from './ComplianceChecklistView'
+import { BudgetManager } from './BudgetManager'
 
 interface ProjectDetailProps {
   project: Project
@@ -79,10 +80,13 @@ export function ProjectDetail({ project, stakeholders, onBack, onEdit, onUpdateP
             <p className="text-muted-foreground">{project.location}</p>
           </div>
         </div>
-        <Button onClick={onEdit} variant="outline" className="gap-2">
-          <Pencil size={16} />
-          Editar
-        </Button>
+        <div className="flex items-center gap-2">
+          <BudgetManager projectId={project.id} projectName={project.title} />
+          <Button onClick={onEdit} variant="outline" className="gap-2">
+            <Pencil size={16} />
+            Editar
+          </Button>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as typeof activeTab)}>

@@ -248,3 +248,100 @@ export interface ComplianceCategory {
   code: RegulatoryCode
   priority: 'high' | 'medium' | 'low'
 }
+
+export type UnitType = 
+  | 'm'
+  | 'm2'
+  | 'm3'
+  | 'ud'
+  | 'kg'
+  | 'l'
+  | 'h'
+  | 'pa'
+
+export type BudgetItemType = 
+  | 'chapter'
+  | 'unit'
+  | 'material'
+  | 'labor'
+  | 'machinery'
+
+export interface BudgetPrice {
+  id: string
+  code: string
+  description: string
+  unit: UnitType
+  unitPrice: number
+  type: 'material' | 'labor' | 'machinery' | 'unit'
+  category?: string
+  subcategory?: string
+  lastUpdated: number
+  source?: string
+}
+
+export interface BudgetItem {
+  id: string
+  code: string
+  type: BudgetItemType
+  description: string
+  unit?: UnitType
+  quantity?: number
+  unitPrice?: number
+  totalPrice?: number
+  parentId?: string
+  children?: BudgetItem[]
+  resources?: BudgetResource[]
+  order: number
+}
+
+export interface BudgetResource {
+  id: string
+  priceId: string
+  code: string
+  description: string
+  type: 'material' | 'labor' | 'machinery'
+  unit: UnitType
+  quantity: number
+  unitPrice: number
+  totalPrice: number
+  yield?: number
+}
+
+export interface Budget {
+  id: string
+  projectId: string
+  name: string
+  description?: string
+  version: string
+  items: BudgetItem[]
+  totalPEM: number
+  totalGG: number
+  totalBI: number
+  totalIVA: number
+  totalPresupuesto: number
+  percentageGG: number
+  percentageBI: number
+  percentageIVA: number
+  createdAt: number
+  updatedAt: number
+  status: 'draft' | 'approved' | 'archived'
+}
+
+export const UNIT_TYPE_LABELS: Record<UnitType, string> = {
+  'm': 'Metro lineal',
+  'm2': 'Metro cuadrado',
+  'm3': 'Metro cúbico',
+  'ud': 'Unidad',
+  'kg': 'Kilogramo',
+  'l': 'Litro',
+  'h': 'Hora',
+  'pa': 'Partida alzada'
+}
+
+export const BUDGET_ITEM_TYPE_LABELS: Record<BudgetItemType, string> = {
+  'chapter': 'Capítulo',
+  'unit': 'Unidad de obra',
+  'material': 'Material',
+  'labor': 'Mano de obra',
+  'machinery': 'Maquinaria'
+}
