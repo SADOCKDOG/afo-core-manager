@@ -97,6 +97,7 @@ export function ComplianceChecklistView({ project, onBack }: ComplianceChecklist
       buildingSurface: data.buildingSurface,
       buildingHeight: data.buildingHeight,
       climateZone: data.climateZone,
+      municipalityId: data.municipalityId,
       checks,
       generatedAt: Date.now(),
       lastUpdated: Date.now(),
@@ -117,6 +118,82 @@ export function ComplianceChecklistView({ project, onBack }: ComplianceChecklist
         ? `Checklist generado con ${checks.length} requisitos (incluyendo ${municipalities?.find(m => m.id === data.municipalityId)?.requirements.length || 0} requisitos de ${municipalityName})`
         : `Checklist generado con ${checks.length} requisitos de cumplimiento`
     )
+  }
+
+  const handleApplyMunicipalRequirements = (municipalityId: string) => {
+    if (!currentChecklist) {
+      toast.error('Primero debes generar un checklist base para el proyecto')
+      return
+    }
+
+    const municipality = municipalities?.find(m => m.id === municipalityId)
+    if (!municipality) {
+      toast.error('Municipio no encontrado')
+      return
+    }
+
+    const municipalReqs = getMunicipalRequirementsForProject(
+      municipalityId,
+      municipalities || [],
+      currentChecklist.buildingType,
+      currentChecklist.buildingUse
+    )
+
+    const existingReqIds = new Set(currentChecklist.checks.map(c => c.regulatoryReference))
+    const newMunicipalChecks: ComplianceCheck[] = municipalReqs
+      .filter(req => !existingReqIds.has(req.customReference))
+      .map(req => ({
+        id: `${project.id}-${req.id}-${Date.now()}-${Math.random()}`,
+        projectId: project.id,
+        checkType: req.checkType,
+        category: req.category,
+        requirement: req.requirement,
+        regulatoryReference: req.customReference,
+        status: 'pending' as const,
+        priority: req.priority,
+        evidence: undefined,
+        notes: req.notes,
+        checkedAt: undefined,
+        checkedBy: undefined
+      }))
+
+    if (newMunicipalChecks.length === 0) {
+      const alreadyAppliedCount = municipalReqs.length
+      if (alreadyAppliedCount > 0) {
+        toast.info(`Los requisitos de ${municipality.name} ya están aplicados al checklist`, {
+          description: `${alreadyAppliedCount} requisitos municipales ya incluidos`
+        })
+      } else {
+        toast.info(`No hay requisitos aplicables de ${municipality.name} para este tipo de proyecto`)
+      }
+      return
+    }
+
+    const updatedChecks = [...currentChecklist.checks, ...newMunicipalChecks]
+
+    setChecklists(current => ({
+      ...current,
+      [project.id]: {
+        ...currentChecklist,
+        municipalityId,
+        checks: updatedChecks,
+        lastUpdated: Date.now()
+      }
+    }))
+
+    const categoryBreakdown = newMunicipalChecks.reduce((acc, check) => {
+      acc[check.category] = (acc[check.category] || 0) + 1
+      return acc
+    }, {} as Record<string, number>)
+
+    const categorySummary = Object.entries(categoryBreakdown)
+      .map(([cat, count]) => `${count} de ${cat}`)
+      .slice(0, 3)
+      .join(', ')
+
+    toast.success(`Requisitos municipales aplicados al checklist`, {
+      description: `${newMunicipalChecks.length} requisitos de ${municipality.name} añadidos: ${categorySummary}${Object.keys(categoryBreakdown).length > 3 ? '...' : ''}`
+    })
   }
 
   const handleUpdateCheck = (checkId: string, updates: Partial<ComplianceCheck>) => {
@@ -267,6 +344,12 @@ export function ComplianceChecklistView({ project, onBack }: ComplianceChecklist
               <Sparkle size={20} weight="fill" />
               Generar Checklist Automático
             </Button>
+          </div>
+          
+          <p className="text-sm text-muted-foreground text-center mt-4">
+            O primero añade requisitos municipales específicos:
+          </p>
+          <div className="flex justify-center mt-2">
             <MunicipalComplianceManager projectId={project.id} />
           </div>
 
@@ -330,18 +413,40 @@ export function ComplianceChecklistView({ project, onBack }: ComplianceChecklist
             <Download size={18} />
             Exportar CSV
           </Button>
-          <MunicipalComplianceManager projectId={project.id} />
+          <MunicipalComplianceManager 
+            projectId={project.id} 
+            onSelectMunicipality={handleApplyMunicipalRequirements}
+          />
         </div>
       </div>
 
       <Card>
         <CardHeader>
           <div className="flex items-start justify-between">
-            <div>
+            <div className="flex-1">
               <CardTitle>Progreso General</CardTitle>
               <CardDescription>
                 {currentChecklist.checks.filter(c => c.status === 'compliant' || c.status === 'not-applicable').length} de {currentChecklist.checks.length} requisitos cumplidos
               </CardDescription>
+              {currentChecklist.municipalityId && municipalities && (() => {
+                const municipality = municipalities.find(m => m.id === currentChecklist.municipalityId)
+                if (!municipality) return null
+                const municipalChecks = currentChecklist.checks.filter(check => 
+                  check.category.includes('Municipal') || 
+                  check.category.includes('Local') || 
+                  check.category.includes('Urbanismo') ||
+                  check.regulatoryReference?.includes('PGOU') ||
+                  check.regulatoryReference?.includes('Plan General')
+                )
+                return (
+                  <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-primary/10 border border-primary/20">
+                    <MapPin size={16} weight="fill" className="text-primary" />
+                    <span className="text-sm font-medium text-primary">
+                      {municipality.name} • {municipality.province} ({municipalChecks.length} requisitos municipales)
+                    </span>
+                  </div>
+                )
+              })()}
             </div>
             <div className="text-right">
               <div className="text-3xl font-bold text-primary">{currentChecklist.completionPercentage}%</div>
@@ -436,6 +541,12 @@ export function ComplianceChecklistView({ project, onBack }: ComplianceChecklist
                                   {check.category}
                                 </Badge>
                                 {getPriorityBadge(check.priority)}
+                                {(check.category.includes('Municipal') || check.category.includes('Local') || check.category.includes('Urbanismo')) && (
+                                  <Badge variant="outline" className="text-xs gap-1 border-primary/30 text-primary">
+                                    <MapPin size={12} weight="fill" />
+                                    Municipal
+                                  </Badge>
+                                )}
                               </div>
                               <p className="font-medium">{check.requirement}</p>
                               {check.regulatoryReference && (

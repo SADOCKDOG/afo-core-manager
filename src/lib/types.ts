@@ -234,6 +234,7 @@ export interface ComplianceChecklist {
   buildingHeight?: number
   occupancyLoad?: number
   climateZone?: string
+  municipalityId?: string
   checks: ComplianceCheck[]
   generatedAt: number
   lastUpdated: number

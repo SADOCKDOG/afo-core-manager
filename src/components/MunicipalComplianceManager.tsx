@@ -118,11 +118,11 @@ export function MunicipalComplianceManager({ projectId, onSelectMunicipality }: 
   }
 
   const handleApplyToProject = () => {
-    if (!selectedMunicipality) return
+    if (!selectedMunicipality || !projectId) return
     if (onSelectMunicipality) {
       onSelectMunicipality(selectedMunicipality.id)
       setOpen(false)
-      toast.success(`Municipio ${selectedMunicipality.name} aplicado al proyecto`)
+      toast.success(`${selectedMunicipality.requirements.length} requisitos de ${selectedMunicipality.name} aplicados al proyecto`)
     }
   }
 
