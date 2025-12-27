@@ -47,6 +47,16 @@ export function DocumentUploadDialog({
   const [fileSize, setFileSize] = useState(1000000)
   const [useStandardNaming, setUseStandardNaming] = useState(true)
 
+  const commonDisciplines = [
+    'ARQ',
+    'EST',
+    'INS',
+    'MEP',
+    'URB',
+    'PYS',
+    'SEG'
+  ]
+
   const handleUpload = () => {
     const nameValidation = validateFileName(name)
     if (!nameValidation.valid) {
@@ -180,14 +190,29 @@ export function DocumentUploadDialog({
 
           <div className="space-y-2">
             <Label htmlFor="discipline">Disciplina (opcional)</Label>
-            <Input
-              id="discipline"
-              placeholder="Ej: ARQ, EST, INS"
-              value={discipline}
-              onChange={(e) => setDiscipline(e.target.value)}
-            />
+            <div className="flex gap-2">
+              <Input
+                id="discipline"
+                placeholder="Ej: ARQ, EST, INS"
+                value={discipline}
+                onChange={(e) => setDiscipline(e.target.value.toUpperCase())}
+                className="flex-1"
+              />
+              <Select value={discipline} onValueChange={setDiscipline}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Común" />
+                </SelectTrigger>
+                <SelectContent>
+                  {commonDisciplines.map((d) => (
+                    <SelectItem key={d} value={d}>
+                      {d}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <p className="text-xs text-muted-foreground">
-              Usado para nomenclatura estandarizada según ISO 19650-2
+              Usado para nomenclatura estandarizada según ISO 19650-2. ARQ=Arquitectura, EST=Estructura, INS=Instalaciones
             </p>
           </div>
 

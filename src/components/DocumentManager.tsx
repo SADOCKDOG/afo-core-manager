@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { Document, Project, FOLDER_STRUCTURES, DOCUMENT_TYPE_LABELS } from '@/lib/types'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -20,6 +20,7 @@ import { motion } from 'framer-motion'
 import { DocumentUploadDialog } from './DocumentUploadDialog'
 import { DocumentVersionDialog } from './DocumentVersionDialog'
 import { FolderStructureDialog } from './FolderStructureDialog'
+import { DocumentSearch, DocumentFilters } from './DocumentSearch'
 import { formatFileSize, sortVersions } from '@/lib/document-utils'
 
 interface DocumentManagerProps {
@@ -33,7 +34,13 @@ export function DocumentManager({ project, onProjectUpdate }: DocumentManagerPro
   const [versionDialogOpen, setVersionDialogOpen] = useState(false)
   const [structureDialogOpen, setStructureDialogOpen] = useState(false)
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null)
-  const [selectedFolder, setSelectedFolder] = useState<string>('all')
+  const [filters, setFilters] = useState<DocumentFilters>({
+    searchQuery: '',
+    type: 'all',
+    status: 'all',
+    discipline: 'all',
+    folder: 'all'
+  })
   
   const projectDocuments = (documents || []).filter(doc => doc.projectId === project.id)
   
@@ -43,9 +50,51 @@ export function DocumentManager({ project, onProjectUpdate }: DocumentManagerPro
 
   const folders = folderStructure?.folders || []
   
-  const filteredDocuments = selectedFolder === 'all'
-    ? projectDocuments
-    : projectDocuments.filter(doc => doc.folder === selectedFolder)
+  const availableDisciplines = useMemo(() => {
+    const disciplines = new Set<string>()
+    projectDocuments.forEach(doc => {
+      if (doc.metadata.discipline) {
+        disciplines.add(doc.metadata.discipline)
+      }
+    })
+    return Array.from(disciplines).sort()
+  }, [projectDocuments])
+
+  const filteredDocuments = useMemo(() => {
+    return projectDocuments.filter(doc => {
+      const latestVersion = sortVersions(doc.versions)[0]
+      
+      if (filters.searchQuery) {
+        const query = filters.searchQuery.toLowerCase()
+        const matchesName = doc.name.toLowerCase().includes(query)
+        const matchesDescription = doc.metadata.description?.toLowerCase().includes(query)
+        const matchesDiscipline = doc.metadata.discipline?.toLowerCase().includes(query)
+        const matchesType = DOCUMENT_TYPE_LABELS[doc.type].toLowerCase().includes(query)
+        
+        if (!matchesName && !matchesDescription && !matchesDiscipline && !matchesType) {
+          return false
+        }
+      }
+      
+      if (filters.type !== 'all' && doc.type !== filters.type) {
+        return false
+      }
+      
+      if (filters.status !== 'all' && latestVersion.status !== filters.status) {
+        return false
+      }
+      
+      if (filters.discipline !== 'all' && doc.metadata.discipline !== filters.discipline) {
+        return false
+      }
+      
+      if (filters.folder !== 'all' && doc.folder !== filters.folder) {
+        return false
+      }
+      
+      return true
+    })
+  }, [projectDocuments, filters])
 
   const handleDocumentClick = (doc: Document) => {
     setSelectedDocument(doc)
@@ -183,110 +232,120 @@ export function DocumentManager({ project, onProjectUpdate }: DocumentManagerPro
         </div>
       </div>
 
-      <Tabs value={selectedFolder} onValueChange={setSelectedFolder}>
-        <ScrollArea className="w-full">
-          <TabsList className="inline-flex">
-            <TabsTrigger value="all">
-              Todos ({projectDocuments.length})
-            </TabsTrigger>
-            {folders.map(folder => {
-              const count = projectDocuments.filter(doc => doc.folder === folder).length
-              return (
-                <TabsTrigger key={folder} value={folder}>
-                  {folder} ({count})
-                </TabsTrigger>
-              )
-            })}
-          </TabsList>
-        </ScrollArea>
+      <DocumentSearch
+        filters={filters}
+        onFiltersChange={setFilters}
+        availableFolders={folders}
+        availableDisciplines={availableDisciplines}
+        documentCount={projectDocuments.length}
+        filteredCount={filteredDocuments.length}
+      />
 
-        <TabsContent value={selectedFolder} className="mt-6">
-          {filteredDocuments.length > 0 ? (
-            <div className="grid grid-cols-1 gap-4">
-              {filteredDocuments.map((doc, index) => {
-                const latestVersion = sortVersions(doc.versions)[0]
-                return (
-                  <motion.div
-                    key={doc.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.03 }}
-                  >
-                    <Card 
-                      className="cursor-pointer hover:shadow-md hover:border-accent/50 transition-all"
-                      onClick={() => handleDocumentClick(doc)}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-4">
-                          <div className="p-3 rounded-lg bg-primary/10 text-primary shrink-0">
-                            <File size={24} weight="duotone" />
-                          </div>
+      {filteredDocuments.length > 0 ? (
+        <div className="grid grid-cols-1 gap-4">
+          {filteredDocuments.map((doc, index) => {
+            const latestVersion = sortVersions(doc.versions)[0]
+            return (
+              <motion.div
+                key={doc.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.03 }}
+              >
+                <Card 
+                  className="cursor-pointer hover:shadow-md hover:border-accent/50 transition-all"
+                  onClick={() => handleDocumentClick(doc)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-4">
+                      <div className="p-3 rounded-lg bg-primary/10 text-primary shrink-0">
+                        <File size={24} weight="duotone" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-3 mb-2">
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-3 mb-2">
-                              <div className="flex-1 min-w-0">
-                                <h3 className="font-semibold truncate">{doc.name}</h3>
-                                <p className="text-sm text-muted-foreground">
-                                  {DOCUMENT_TYPE_LABELS[doc.type]}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-2 shrink-0">
-                                {getStatusIcon(latestVersion.status)}
-                                <Badge variant="outline">
-                                  {latestVersion.version}
-                                </Badge>
-                              </div>
-                            </div>
-                            
-                            {doc.metadata.description && (
-                              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                                {doc.metadata.description}
-                              </p>
-                            )}
-
-                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                              <span>{doc.versions.length} versiones</span>
+                            <h3 className="font-semibold truncate">{doc.name}</h3>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span>{DOCUMENT_TYPE_LABELS[doc.type]}</span>
+                              {doc.metadata.discipline && (
+                                <>
+                                  <span>•</span>
+                                  <span>{doc.metadata.discipline}</span>
+                                </>
+                              )}
                               <span>•</span>
-                              <span>{formatFileSize(latestVersion.fileSize)}</span>
-                              <span>•</span>
-                              <span>
-                                {new Date(latestVersion.uploadedAt).toLocaleDateString('es-ES')}
-                              </span>
-                              <span className="ml-auto">
-                                {getStatusLabel(latestVersion.status)}
-                              </span>
+                              <span className="text-xs">{doc.folder}</span>
                             </div>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            {getStatusIcon(latestVersion.status)}
+                            <Badge variant="outline">
+                              {latestVersion.version}
+                            </Badge>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                )
-              })}
-            </div>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center py-16"
-            >
-              <div className="inline-flex p-4 rounded-full bg-muted mb-4">
-                <FolderOpen size={48} className="text-muted-foreground" weight="duotone" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">No hay documentos</h3>
-              <p className="text-muted-foreground mb-6">
-                {selectedFolder === 'all' 
-                  ? 'Comience subiendo su primer documento al proyecto'
-                  : `No hay documentos en la carpeta ${selectedFolder}`
-                }
-              </p>
-              <Button onClick={() => setUploadDialogOpen(true)} className="gap-2">
-                <Plus size={18} weight="bold" />
-                Subir Documento
-              </Button>
-            </motion.div>
+                        
+                        {doc.metadata.description && (
+                          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                            {doc.metadata.description}
+                          </p>
+                        )}
+
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                          <span>{doc.versions.length} versiones</span>
+                          <span>•</span>
+                          <span>{formatFileSize(latestVersion.fileSize)}</span>
+                          <span>•</span>
+                          <span>
+                            {new Date(latestVersion.uploadedAt).toLocaleDateString('es-ES')}
+                          </span>
+                          {doc.metadata.format && (
+                            <>
+                              <span>•</span>
+                              <span className="uppercase">{doc.metadata.format}</span>
+                            </>
+                          )}
+                          <span className="ml-auto">
+                            {getStatusLabel(latestVersion.status)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )
+          })}
+        </div>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center py-16"
+        >
+          <div className="inline-flex p-4 rounded-full bg-muted mb-4">
+            <FolderOpen size={48} className="text-muted-foreground" weight="duotone" />
+          </div>
+          <h3 className="text-xl font-semibold mb-2">
+            {projectDocuments.length === 0 
+              ? 'No hay documentos' 
+              : 'No se encontraron documentos'
+            }
+          </h3>
+          <p className="text-muted-foreground mb-6">
+            {projectDocuments.length === 0
+              ? 'Comience subiendo su primer documento al proyecto'
+              : 'Intente ajustar los filtros de búsqueda'
+            }
+          </p>
+          {projectDocuments.length === 0 && (
+            <Button onClick={() => setUploadDialogOpen(true)} className="gap-2">
+              <Plus size={18} weight="bold" />
+              Subir Documento
+            </Button>
           )}
-        </TabsContent>
-      </Tabs>
+        </motion.div>
+      )}
 
       <DocumentUploadDialog
         open={uploadDialogOpen}

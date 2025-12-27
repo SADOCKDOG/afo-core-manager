@@ -47,13 +47,29 @@ This MVP focuses on core project management functionality with client tracking, 
 - **Progression**: Enter search term (e.g., "escaleras contrahuella") → View filtered results → Click result → See regulation excerpt with reference
 - **Success criteria**: Search returns relevant results within 1 second, references are accurate and clearly cited
 
+### Document Management with Automated Organization
+- **Functionality**: Organize project documents with automated folder structures, version control, and comprehensive search/filtering
+- **Purpose**: Maintain ISO19650-2 compliant document organization with instant retrieval and metadata tracking
+- **Trigger**: User navigates to Documents tab in project detail view
+- **Progression**: Select folder structure type → Upload documents with metadata (discipline, type, description) → Version documents automatically → Search/filter by metadata, discipline, status, or folder → View version history
+- **Success criteria**: Documents persist with complete metadata, version numbering follows standard (P01, P02, C01), search returns relevant results instantly, filters narrow results effectively
+
+### Advanced Document Search & Filtering
+- **Functionality**: Multi-criteria search across document name, description, discipline, and metadata with visual filter management
+- **Purpose**: Enable rapid document retrieval in large project repositories through intelligent filtering
+- **Trigger**: User enters search query or opens filter panel in document manager
+- **Progression**: Enter search text → Apply filters (type, status, discipline, folder) → View active filter badges → Clear individual or all filters → See result count update in real-time
+- **Success criteria**: Search responds instantly as user types, filters combine logically (AND operation), active filters display as removable badges, empty states provide clear guidance
+
 ## Edge Case Handling
 
-- **Empty States**: Dashboard shows helpful onboarding message with "Create First Project" CTA when no projects exist
+- **Empty States**: Dashboard shows helpful onboarding message with "Create First Project" CTA when no projects exist; document manager guides user through folder structure setup before first upload
 - **Validation Errors**: Form fields highlight specific issues with inline error messages (e.g., invalid NIF format, phase percentages don't total correctly)
 - **Duplicate Prevention**: Warn user when creating stakeholder with existing NIF/CIF, offer to use existing record
 - **Data Loss Prevention**: Auto-save draft project data, warn before navigating away from unsaved forms
 - **Long Content**: Project names and descriptions gracefully truncate with tooltips, tables paginate or scroll
+- **Search with No Results**: Clear empty state message explaining no documents match current filters, with option to clear filters
+- **Filter Combinations**: All filters work together (AND logic), real-time count shows how many documents match current criteria
 
 ## Design Direction
 
