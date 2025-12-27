@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { ArrowLeft, CheckCircle, Circle, Clock, Pencil, Folder, ListChecks } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
 import { DocumentManager } from './DocumentManager'
-import { ComplianceChecker } from './ComplianceChecker'
+import { ComplianceChecklistView } from './ComplianceChecklistView'
 
 interface ProjectDetailProps {
   project: Project
@@ -269,7 +269,7 @@ export function ProjectDetail({ project, stakeholders, onBack, onEdit, onUpdateP
         </TabsContent>
 
         <TabsContent value="compliance" className="mt-6">
-          <ComplianceChecker project={project} />
+          <ComplianceChecklistView project={project} onBack={() => setActiveTab('overview')} />
         </TabsContent>
       </Tabs>
     </motion.div>

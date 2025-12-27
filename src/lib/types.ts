@@ -200,9 +200,50 @@ export interface ComplianceCheck {
   checkType: 'automatic' | 'manual'
   category: string
   requirement: string
+  regulatoryReference?: string
   status: 'compliant' | 'non-compliant' | 'pending' | 'not-applicable'
   evidence?: string
   notes?: string
   checkedAt?: number
   checkedBy?: string
+  priority?: 'high' | 'medium' | 'low'
+}
+
+export type BuildingType = 
+  | 'vivienda-unifamiliar'
+  | 'vivienda-colectiva'
+  | 'vivienda-plurifamiliar'
+  | 'rehabilitacion'
+  | 'ampliacion'
+
+export type BuildingUse = 
+  | 'residencial-vivienda'
+  | 'residencial-publico'
+  | 'administrativo'
+  | 'sanitario'
+  | 'docente'
+  | 'comercial'
+  | 'aparcamiento'
+
+export interface ComplianceChecklist {
+  id: string
+  projectId: string
+  buildingType: BuildingType
+  buildingUse: BuildingUse
+  buildingSurface?: number
+  buildingHeight?: number
+  occupancyLoad?: number
+  climateZone?: string
+  checks: ComplianceCheck[]
+  generatedAt: number
+  lastUpdated: number
+  completionPercentage: number
+}
+
+export interface ComplianceCategory {
+  id: string
+  name: string
+  description: string
+  code: RegulatoryCode
+  priority: 'high' | 'medium' | 'low'
 }
