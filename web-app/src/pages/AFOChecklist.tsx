@@ -1,4 +1,4 @@
-import { ComplianceChecklist } from '../features/compliance/ComplianceChecklist'
+import { AFOChecklist } from '../features/compliance/AFOChecklist'
 
 export function AFOChecklistPage() {
     return (
@@ -8,7 +8,7 @@ export function AFOChecklistPage() {
                 <h1>Checklist AFO y Licencias Municipales</h1>
             </div>
             <div className="grid two">
-                <ComplianceChecklist />
+                <AFOChecklist />
 
                 <div className="card">
                     <div className="card-head">

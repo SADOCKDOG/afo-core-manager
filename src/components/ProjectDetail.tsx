@@ -6,13 +6,14 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { ArrowLeft, CheckCircle, Circle, Clock, Pencil, Folder, ListChecks, Stamp } from '@phosphor-icons/react'
+import { ArrowLeft, CheckCircle, Circle, Clock, Pencil, Folder, ListChecks, Stamp, Download } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
 import { DocumentManager } from './DocumentManager'
 import { ComplianceChecklistView } from './ComplianceChecklistView'
 import { BudgetManager } from './BudgetManager'
 import { VisaManager } from './VisaManager'
 import { InvoiceManager } from './InvoiceManager'
+import { ProjectExportDialog } from './ProjectExportDialog'
 
 interface ProjectDetailProps {
   project: Project
@@ -25,6 +26,7 @@ interface ProjectDetailProps {
 
 export function ProjectDetail({ project, stakeholders, onBack, onEdit, onUpdatePhaseStatus, onProjectUpdate }: ProjectDetailProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'phases' | 'stakeholders' | 'documents' | 'compliance'>('overview')
+  const [exportDialogOpen, setExportDialogOpen] = useState(false)
   const projectStakeholders = stakeholders.filter(s => project.stakeholders.includes(s.id))
   
   const statusColors = {
@@ -83,6 +85,14 @@ export function ProjectDetail({ project, stakeholders, onBack, onEdit, onUpdateP
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            onClick={() => setExportDialogOpen(true)}
+            variant="outline"
+            className="gap-2"
+          >
+            <Download size={16} weight="duotone" />
+            Exportar
+          </Button>
           <InvoiceManager project={project} />
           <VisaManager project={project} />
           <BudgetManager projectId={project.id} projectName={project.title} />
@@ -280,6 +290,12 @@ export function ProjectDetail({ project, stakeholders, onBack, onEdit, onUpdateP
           <ComplianceChecklistView project={project} stakeholders={stakeholders} onBack={() => setActiveTab('overview')} />
         </TabsContent>
       </Tabs>
+
+      <ProjectExportDialog
+        open={exportDialogOpen}
+        onOpenChange={setExportDialogOpen}
+        project={project}
+      />
     </motion.div>
   )
 }

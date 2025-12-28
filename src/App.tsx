@@ -15,10 +15,11 @@ import { EmailConfigDialog } from '@/components/EmailConfigDialog'
 import { EmailLogsDialog } from '@/components/EmailLogsDialog'
 import { ProjectImportDialog } from '@/components/ProjectImportDialog'
 import { BulkProjectImportDialog } from '@/components/BulkProjectImportDialog'
+import { BulkProjectExportDialog } from '@/components/BulkProjectExportDialog'
 import { ClientManager } from '@/components/ClientManager'
 import { BillingManager } from '@/components/BillingManager'
 import { AutoInvoiceConfirmDialog } from '@/components/AutoInvoiceConfirmDialog'
-import { Plus, Buildings, Users, BookOpen, Gear, EnvelopeSimple, ClockCounterClockwise, Upload, FolderOpen } from '@phosphor-icons/react'
+import { Plus, Buildings, Users, BookOpen, Gear, EnvelopeSimple, ClockCounterClockwise, Upload, FolderOpen, DownloadSimple } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
 import { Toaster, toast } from 'sonner'
 import { useEmailConfig } from '@/lib/email-service'
@@ -43,6 +44,7 @@ function App() {
   const [emailLogsDialogOpen, setEmailLogsDialogOpen] = useState(false)
   const [projectImportDialogOpen, setProjectImportDialogOpen] = useState(false)
   const [bulkProjectImportDialogOpen, setBulkProjectImportDialogOpen] = useState(false)
+  const [bulkProjectExportDialogOpen, setBulkProjectExportDialogOpen] = useState(false)
   const [editingProject, setEditingProject] = useState<Project | undefined>()
   const [autoInvoiceDialogOpen, setAutoInvoiceDialogOpen] = useState(false)
   const [pendingInvoiceData, setPendingInvoiceData] = useState<{
@@ -342,6 +344,15 @@ function App() {
                   Importación Múltiple
                 </Button>
                 <Button
+                  variant="outline"
+                  className="gap-2"
+                  onClick={() => setBulkProjectExportDialogOpen(true)}
+                  disabled={(projects || []).length === 0}
+                >
+                  <DownloadSimple size={18} weight="duotone" />
+                  Exportar Proyectos
+                </Button>
+                <Button
                   className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 shadow-md hover:shadow-lg transition-all"
                   onClick={() => {
                     setEditingProject(undefined)
@@ -532,6 +543,11 @@ function App() {
         open={bulkProjectImportDialogOpen}
         onOpenChange={setBulkProjectImportDialogOpen}
         onImportComplete={handleBulkImportComplete}
+      />
+
+      <BulkProjectExportDialog
+        open={bulkProjectExportDialogOpen}
+        onOpenChange={setBulkProjectExportDialogOpen}
       />
 
       {pendingInvoiceData && (
