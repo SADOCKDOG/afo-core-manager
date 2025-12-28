@@ -37,6 +37,7 @@ import { performComplianceCheck, generateComplianceReport } from '@/lib/ai-regul
 import { Project } from '@/lib/types'
 import { motion, AnimatePresence } from 'framer-motion'
 import { marked } from 'marked'
+import { ComplianceReportGenerator } from './ComplianceReportGenerator'
 
 interface ComplianceCheckerProps {
   project: Project
@@ -48,8 +49,6 @@ export function ComplianceChecker({ project }: ComplianceCheckerProps) {
   const [selectedCheck, setSelectedCheck] = useState<ComplianceCheck | null>(null)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [reportDialogOpen, setReportDialogOpen] = useState(false)
-  const [report, setReport] = useState('')
-  const [isGeneratingReport, setIsGeneratingReport] = useState(false)
   const [filterStatus, setFilterStatus] = useState<string>('all')
 
   const handleGenerateChecks = async () => {
@@ -106,18 +105,8 @@ export function ComplianceChecker({ project }: ComplianceCheckerProps) {
     toast.success('Verificación actualizada')
   }
 
-  const handleGenerateReport = async () => {
-    setIsGeneratingReport(true)
+  const handleGenerateReport = () => {
     setReportDialogOpen(true)
-    try {
-      const reportContent = await generateComplianceReport(project.title, checks || [])
-      setReport(reportContent)
-    } catch (error) {
-      console.error('Error generating report:', error)
-      toast.error('Error al generar informe')
-    } finally {
-      setIsGeneratingReport(false)
-    }
   }
 
   const allChecks = checks || []
@@ -376,34 +365,12 @@ export function ComplianceChecker({ project }: ComplianceCheckerProps) {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
-        <DialogContent className="max-w-4xl h-[85vh] flex flex-col">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FileText size={24} weight="duotone" />
-              Informe de Cumplimiento Normativo
-            </DialogTitle>
-            <DialogDescription>
-              {project.title}
-            </DialogDescription>
-          </DialogHeader>
-          <ScrollArea className="flex-1 pr-4">
-            {isGeneratingReport ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="text-center">
-                  <Sparkle size={48} className="mx-auto mb-4 animate-spin text-primary" />
-                  <p className="text-sm text-muted-foreground">Generando informe con IA...</p>
-                </div>
-              </div>
-            ) : (
-              <div 
-                className="prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: marked.parse(report) }}
-              />
-            )}
-          </ScrollArea>
-        </DialogContent>
-      </Dialog>
+      <ComplianceReportGenerator
+        open={reportDialogOpen}
+        onOpenChange={setReportDialogOpen}
+        project={project}
+        checks={allChecks}
+      />
     </div>
   )
 }
