@@ -112,7 +112,7 @@ export function InvoiceManager({ project }: InvoiceManagerProps) {
                 </div>
                 <h3 className="text-lg font-semibold mb-2">Sin facturas</h3>
                 <p className="text-sm text-muted-foreground mb-6">
-                  Las facturas se generan automáticamente cuando se aprueban visados
+                  Las facturas se generan automáticamente al completar fases del proyecto o aprobar visados
                 </p>
               </div>
             </Card>
@@ -147,6 +147,11 @@ export function InvoiceManager({ project }: InvoiceManagerProps) {
                           <Badge variant="secondary">
                             {INVOICE_TYPE_LABELS[invoice.type]}
                           </Badge>
+                          {invoice.type === 'phase-payment' && (
+                            <Badge className="bg-accent/20 text-accent-foreground border border-accent/30">
+                              Auto-generada
+                            </Badge>
+                          )}
                         </div>
 
                         <div className="flex items-center gap-4 text-sm">

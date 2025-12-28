@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useKV } from '@github/spark/hooks'
-import { Project, Stakeholder } from '@/lib/types'
+import { Project, Stakeholder, Invoice, Client, Budget, PHASE_LABELS } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ProjectCard } from '@/components/ProjectCard'
@@ -17,16 +17,21 @@ import { ProjectImportDialog } from '@/components/ProjectImportDialog'
 import { BulkProjectImportDialog } from '@/components/BulkProjectImportDialog'
 import { ClientManager } from '@/components/ClientManager'
 import { BillingManager } from '@/components/BillingManager'
+import { AutoInvoiceConfirmDialog } from '@/components/AutoInvoiceConfirmDialog'
 import { Plus, Buildings, Users, BookOpen, Gear, EnvelopeSimple, ClockCounterClockwise, Upload, FolderOpen } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
 import { Toaster, toast } from 'sonner'
 import { useEmailConfig } from '@/lib/email-service'
+import { generatePhaseCompletionInvoice } from '@/lib/invoice-utils'
 
 type ViewMode = 'dashboard' | 'detail'
 
 function App() {
   const [projects, setProjects] = useKV<Project[]>('projects', [])
   const [stakeholders, setStakeholders] = useKV<Stakeholder[]>('stakeholders', [])
+  const [invoices, setInvoices] = useKV<Invoice[]>('invoices', [])
+  const [clients, setClients] = useKV<Client[]>('clients', [])
+  const [budgets, setBudgets] = useKV<Budget[]>('budgets', [])
   const { isConfigured } = useEmailConfig()
   
   const [activeTab, setActiveTab] = useState<'all' | 'active' | 'archived'>('all')
@@ -39,6 +44,14 @@ function App() {
   const [projectImportDialogOpen, setProjectImportDialogOpen] = useState(false)
   const [bulkProjectImportDialogOpen, setBulkProjectImportDialogOpen] = useState(false)
   const [editingProject, setEditingProject] = useState<Project | undefined>()
+  const [autoInvoiceDialogOpen, setAutoInvoiceDialogOpen] = useState(false)
+  const [pendingInvoiceData, setPendingInvoiceData] = useState<{
+    invoiceData: Partial<Invoice>
+    projectTitle: string
+    phaseLabel: string
+    client?: Client
+    projectBudget?: Budget
+  } | null>(null)
 
   const filteredProjects = (projects || []).filter(project => {
     if (activeTab === 'all') return true
@@ -178,6 +191,10 @@ function App() {
   const handleUpdatePhaseStatus = (phaseIndex: number, status: 'pending' | 'in-progress' | 'completed') => {
     if (!selectedProject) return
     
+    const phase = selectedProject.phases[phaseIndex]
+    const wasNotCompleted = phase.status !== 'completed'
+    const isNowCompleted = status === 'completed'
+    
     const updatedProject = {
       ...selectedProject,
       phases: selectedProject.phases.map((phase, idx) => 
@@ -191,6 +208,64 @@ function App() {
     )
     setSelectedProject(updatedProject)
     toast.success('Estado de la fase actualizado')
+    
+    if (wasNotCompleted && isNowCompleted) {
+      const projectClient = (clients || []).find(c => c.id === selectedProject.clientId)
+      const projectBudget = (budgets || []).find(b => b.projectId === selectedProject.id && b.status === 'approved')
+      
+      const phaseLabel = PHASE_LABELS[phase.phase]
+      
+      const invoiceData = generatePhaseCompletionInvoice(
+        selectedProject.id,
+        selectedProject.title,
+        {
+          phase: phase.phase,
+          percentage: phase.percentage,
+          phaseLabel
+        },
+        projectClient?.razonSocial || projectClient?.nombre || 'Cliente',
+        projectClient?.nif || '',
+        projectClient?.direccion,
+        projectBudget?.totalPEM
+      )
+      
+      setPendingInvoiceData({
+        invoiceData,
+        projectTitle: selectedProject.title,
+        phaseLabel,
+        client: projectClient,
+        projectBudget
+      })
+      
+      setAutoInvoiceDialogOpen(true)
+    }
+  }
+
+  const handleConfirmAutoInvoice = (invoiceData: Partial<Invoice>, issueImmediately: boolean) => {
+    const finalInvoice: Invoice = {
+      ...invoiceData,
+      id: Date.now().toString(),
+      status: issueImmediately ? 'issued' : 'draft',
+      taxRate: invoiceData.taxRate || 21
+    } as Invoice
+    
+    setInvoices(currentInvoices => [...(currentInvoices || []), finalInvoice])
+    
+    toast.success(
+      issueImmediately ? 'Factura generada y emitida correctamente' : 'Factura guardada como borrador',
+      {
+        description: `Número de factura: ${finalInvoice.invoiceNumber}`
+      }
+    )
+    
+    setPendingInvoiceData(null)
+  }
+
+  const handleCancelAutoInvoice = () => {
+    toast.info('Factura no generada', {
+      description: 'Puedes crear la factura manualmente desde el gestor de facturas'
+    })
+    setPendingInvoiceData(null)
   }
 
   const hasProjects = (projects || []).length > 0
@@ -457,6 +532,20 @@ function App() {
         onOpenChange={setBulkProjectImportDialogOpen}
         onImportComplete={handleBulkImportComplete}
       />
+
+      {pendingInvoiceData && (
+        <AutoInvoiceConfirmDialog
+          open={autoInvoiceDialogOpen}
+          onOpenChange={setAutoInvoiceDialogOpen}
+          onConfirm={handleConfirmAutoInvoice}
+          onCancel={handleCancelAutoInvoice}
+          invoiceData={pendingInvoiceData.invoiceData}
+          projectTitle={pendingInvoiceData.projectTitle}
+          phaseLabel={pendingInvoiceData.phaseLabel}
+          client={pendingInvoiceData.client}
+          projectBudget={pendingInvoiceData.projectBudget}
+        />
+      )}
     </div>
   )
 }

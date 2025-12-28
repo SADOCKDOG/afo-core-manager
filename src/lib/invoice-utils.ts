@@ -113,3 +113,51 @@ export function formatCurrency(amount: number): string {
     currency: 'EUR'
   }).format(amount)
 }
+
+export function generatePhaseCompletionInvoice(
+  projectId: string,
+  projectTitle: string,
+  phaseData: { phase: string; percentage: number; phaseLabel: string },
+  clientName: string,
+  clientNIF: string,
+  clientAddress?: string,
+  projectPEM?: number
+): Partial<Invoice> {
+  const baseAmount = projectPEM 
+    ? (projectPEM * phaseData.percentage / 100)
+    : (10000 * phaseData.percentage / 100)
+  
+  const lineItem: InvoiceLineItem = {
+    id: Date.now().toString(),
+    description: `${phaseData.phaseLabel} - ${projectTitle}`,
+    quantity: 1,
+    unitPrice: baseAmount,
+    totalPrice: baseAmount,
+    taxRate: STANDARD_TAX_RATE,
+    phaseId: phaseData.phase
+  }
+  
+  const totals = calculateInvoiceTotals([lineItem])
+  const now = Date.now()
+  const dueDate = now + (30 * 24 * 60 * 60 * 1000)
+  
+  return {
+    invoiceNumber: generateInvoiceNumber('phase-payment'),
+    type: 'phase-payment',
+    projectId,
+    clientName,
+    clientNIF,
+    clientAddress,
+    status: 'draft',
+    lineItems: [lineItem],
+    subtotal: totals.subtotal,
+    taxAmount: totals.taxAmount,
+    taxRate: STANDARD_TAX_RATE,
+    total: totals.total,
+    issuedDate: now,
+    dueDate,
+    notes: `Factura generada automáticamente al completar la fase: ${phaseData.phaseLabel} (${phaseData.percentage}% del proyecto)`,
+    createdAt: now,
+    updatedAt: now
+  }
+}
