@@ -151,12 +151,12 @@ export function ComplianceGeneratorDialog({
 
             <div className="space-y-2">
               <Label htmlFor="municipality">Municipio</Label>
-              <Select value={municipalityId} onValueChange={setMunicipalityId}>
+              <Select value={municipalityId || undefined} onValueChange={(value) => setMunicipalityId(value === 'none' ? '' : value)}>
                 <SelectTrigger id="municipality">
                   <SelectValue placeholder="Sin municipio específico" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Ninguno</SelectItem>
+                  <SelectItem value="none">Ninguno</SelectItem>
                   {(municipalities || []).map(municipality => (
                     <SelectItem key={municipality.id} value={municipality.id}>
                       {municipality.name} ({municipality.province})
