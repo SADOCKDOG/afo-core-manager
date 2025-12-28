@@ -15,6 +15,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   PaperPlaneRight,
   EnvelopeSimple,
@@ -23,10 +24,19 @@ import {
   CheckCircle,
   Sparkle,
   Plus,
-  X
+  X,
+  Gear,
+  Warning
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { Project, Stakeholder } from '@/lib/types'
+import { 
+  emailService, 
+  useEmailConfig, 
+  useEmailLogs, 
+  useScheduledEmails,
+  EmailSchedule 
+} from '@/lib/email-service'
 
 interface ComplianceReport {
   id: string
@@ -61,7 +71,7 @@ interface ComplianceReportEmailDialogProps {
   stakeholders: Stakeholder[]
 }
 
-interface EmailSchedule {
+interface EmailScheduleConfig {
   enabled: boolean
   frequency: 'daily' | 'weekly' | 'monthly'
   dayOfWeek?: number
@@ -75,6 +85,10 @@ export function ComplianceReportEmailDialog({
   project,
   stakeholders
 }: ComplianceReportEmailDialogProps) {
+  const { isConfigured } = useEmailConfig()
+  const { addLog } = useEmailLogs()
+  const { addScheduledEmail } = useScheduledEmails()
+  
   const projectStakeholders = stakeholders.filter(s => 
     project.stakeholders.includes(s.id) && s.email
   )
@@ -98,11 +112,12 @@ export function ComplianceReportEmailDialog({
   const [includeReportPDF, setIncludeReportPDF] = useState(true)
   const [includeSummary, setIncludeSummary] = useState(true)
   const [isSending, setIsSending] = useState(false)
-  const [schedule, setSchedule] = useState<EmailSchedule>({
+  const [schedule, setSchedule] = useState<EmailScheduleConfig>({
     enabled: false,
     frequency: 'weekly',
     dayOfWeek: 1
   })
+  const [showConfigWarning, setShowConfigWarning] = useState(!isConfigured)
 
   const handleAddCustomRecipient = () => {
     if (!customEmail || !customName) {
@@ -137,6 +152,12 @@ export function ComplianceReportEmailDialog({
   }
 
   const handleSendEmail = async () => {
+    if (!isConfigured) {
+      toast.error('Por favor, configure el servicio de email primero')
+      setShowConfigWarning(true)
+      return
+    }
+
     if (recipients.length === 0) {
       toast.error('Por favor, añade al menos un destinatario')
       return
@@ -150,26 +171,77 @@ export function ComplianceReportEmailDialog({
     setIsSending(true)
 
     try {
-      await sendComplianceReportEmail({
-        recipients: recipients.map(r => ({ email: r.email, name: r.name })),
-        subject,
+      const emailHTML = generateEmailHTML({
         message,
         report,
         project,
-        includeReportPDF,
-        includeSummary,
-        schedule: schedule.enabled ? schedule : undefined
+        includeSummary
       })
 
-      toast.success(
-        schedule.enabled 
-          ? 'Entrega automática configurada correctamente'
-          : `Email enviado correctamente a ${recipients.length} destinatario(s)`
-      )
+      const emailParams = {
+        to: recipients.map(r => ({ email: r.email, name: r.name })),
+        subject,
+        html: emailHTML,
+        text: emailService.generateTextFromHTML(emailHTML)
+      }
+
+      if (schedule.enabled) {
+        addScheduledEmail({
+          schedule: {
+            enabled: true,
+            frequency: schedule.frequency,
+            dayOfWeek: schedule.dayOfWeek,
+            dayOfMonth: schedule.dayOfMonth,
+            hour: 9
+          },
+          emailParams,
+          projectId: project.id,
+          reportType: 'Informe de Cumplimiento Normativo',
+          active: true
+        })
+
+        addLog({
+          to: recipients.map(r => r.email),
+          subject,
+          status: 'pending',
+          provider: emailService.getConfig()?.provider || 'unknown'
+        })
+
+        toast.success('Entrega automática configurada correctamente')
+      } else {
+        const result = await emailService.sendEmail(emailParams)
+
+        addLog({
+          to: recipients.map(r => r.email),
+          subject,
+          status: result.success ? 'sent' : 'failed',
+          provider: emailService.getConfig()?.provider || 'unknown',
+          messageId: result.messageId,
+          error: result.error
+        })
+
+        if (result.success) {
+          toast.success(`Email enviado correctamente a ${recipients.length} destinatario(s)`)
+        } else {
+          toast.error(result.error || 'Error al enviar el email')
+          return
+        }
+      }
+
       onOpenChange(false)
     } catch (error) {
       console.error('Error sending email:', error)
-      toast.error('Error al enviar el email. Por favor, inténtelo de nuevo.')
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      
+      addLog({
+        to: recipients.map(r => r.email),
+        subject,
+        status: 'failed',
+        provider: emailService.getConfig()?.provider || 'unknown',
+        error: errorMessage
+      })
+      
+      toast.error(`Error al enviar el email: ${errorMessage}`)
     } finally {
       setIsSending(false)
     }
@@ -190,6 +262,15 @@ export function ComplianceReportEmailDialog({
 
         <ScrollArea className="max-h-[calc(90vh-200px)] pr-4">
           <div className="space-y-6">
+            {showConfigWarning && !isConfigured && (
+              <Alert className="border-destructive/50 bg-destructive/5">
+                <Warning size={18} className="text-destructive" weight="duotone" />
+                <AlertDescription className="text-sm">
+                  <strong>Servicio de email no configurado.</strong> Por favor, configure SendGrid o AWS SES en la configuración de email antes de enviar.
+                </AlertDescription>
+              </Alert>
+            )}
+
             <div>
               <div className="flex items-center justify-between mb-3">
                 <Label className="text-base font-semibold">Destinatarios</Label>
@@ -468,53 +549,6 @@ export function ComplianceReportEmailDialog({
       </DialogContent>
     </Dialog>
   )
-}
-
-async function sendComplianceReportEmail(params: {
-  recipients: { email: string; name: string }[]
-  subject: string
-  message: string
-  report: ComplianceReport
-  project: Project
-  includeReportPDF: boolean
-  includeSummary: boolean
-  schedule?: EmailSchedule
-}) {
-  const {
-    recipients,
-    subject,
-    message,
-    report,
-    project,
-    includeReportPDF,
-    includeSummary,
-    schedule
-  } = params
-
-  await new Promise(resolve => setTimeout(resolve, 1500))
-
-  const emailHTML = generateEmailHTML({
-    message,
-    report,
-    project,
-    includeSummary
-  })
-
-  console.log('Email enviado:', {
-    to: recipients.map(r => r.email).join(', '),
-    subject,
-    includesPDF: includeReportPDF,
-    includesSummary: includeSummary,
-    schedule,
-    html: emailHTML
-  })
-
-  return {
-    success: true,
-    messageId: Date.now().toString(),
-    recipients: recipients.length,
-    scheduledDelivery: schedule?.enabled
-  }
 }
 
 function generateEmailHTML(params: {

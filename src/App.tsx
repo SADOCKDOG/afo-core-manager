@@ -11,21 +11,27 @@ import { AIRegulatoryAssistant } from '@/components/AIRegulatoryAssistant'
 import { MunicipalComplianceManager } from '@/components/MunicipalComplianceManager'
 import { VisaManager } from '@/components/VisaManager'
 import { InvoiceManager } from '@/components/InvoiceManager'
-import { Plus, Buildings, Users, BookOpen } from '@phosphor-icons/react'
+import { EmailConfigDialog } from '@/components/EmailConfigDialog'
+import { EmailLogsDialog } from '@/components/EmailLogsDialog'
+import { Plus, Buildings, Users, BookOpen, Gear, EnvelopeSimple, ClockCounterClockwise } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
 import { Toaster, toast } from 'sonner'
+import { useEmailConfig } from '@/lib/email-service'
 
 type ViewMode = 'dashboard' | 'detail'
 
 function App() {
   const [projects, setProjects] = useKV<Project[]>('projects', [])
   const [stakeholders, setStakeholders] = useKV<Stakeholder[]>('stakeholders', [])
+  const { isConfigured } = useEmailConfig()
   
   const [activeTab, setActiveTab] = useState<'all' | 'active' | 'archived'>('all')
   const [viewMode, setViewMode] = useState<ViewMode>('dashboard')
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [projectDialogOpen, setProjectDialogOpen] = useState(false)
   const [stakeholderDialogOpen, setStakeholderDialogOpen] = useState(false)
+  const [emailConfigDialogOpen, setEmailConfigDialogOpen] = useState(false)
+  const [emailLogsDialogOpen, setEmailLogsDialogOpen] = useState(false)
   const [editingProject, setEditingProject] = useState<Project | undefined>()
 
   const filteredProjects = (projects || []).filter(project => {
@@ -159,6 +165,27 @@ function App() {
             
             {viewMode === 'dashboard' && (
               <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setEmailLogsDialogOpen(true)}
+                  title="Registro de emails"
+                >
+                  <ClockCounterClockwise size={20} weight="duotone" />
+                </Button>
+                <Button
+                  variant={isConfigured ? "ghost" : "outline"}
+                  size="icon"
+                  onClick={() => setEmailConfigDialogOpen(true)}
+                  title={isConfigured ? "Configuración de email" : "Configurar servicio de email"}
+                  className={!isConfigured ? "border-primary/50 bg-primary/5" : ""}
+                >
+                  {isConfigured ? (
+                    <EnvelopeSimple size={20} weight="duotone" />
+                  ) : (
+                    <Gear size={20} weight="duotone" className="text-primary" />
+                  )}
+                </Button>
                 <InvoiceManager />
                 <MunicipalComplianceManager />
                 <VisaManager />
@@ -320,6 +347,16 @@ function App() {
         open={stakeholderDialogOpen}
         onOpenChange={setStakeholderDialogOpen}
         onSave={handleSaveStakeholder}
+      />
+
+      <EmailConfigDialog
+        open={emailConfigDialogOpen}
+        onOpenChange={setEmailConfigDialogOpen}
+      />
+
+      <EmailLogsDialog
+        open={emailLogsDialogOpen}
+        onOpenChange={setEmailLogsDialogOpen}
       />
     </div>
   )
