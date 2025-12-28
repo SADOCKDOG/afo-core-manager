@@ -764,6 +764,481 @@ Fdo.: [NOMBRE_ARQUITECTO]
         required: true
       }
     ]
+  },
+  {
+    id: 'acta-replanteo',
+    name: 'Acta de Replanteo',
+    description: 'Acta de comprobación del replanteo previo al inicio de la obra',
+    category: 'administrativo',
+    type: 'administrativo',
+    folder: '05_Administrativo',
+    requiredFields: ['promotor', 'direccion_obra', 'arquitecto', 'constructor'],
+    sections: [
+      {
+        id: 'acta',
+        title: 'ACTA DE COMPROBACIÓN DEL REPLANTEO',
+        content: `En [LUGAR], a [FECHA]
+
+REUNIDOS:
+
+D./Dª [NOMBRE_PROMOTOR], con NIF [NIF_PROMOTOR], en representación de [PROMOTOR], en su calidad de PROMOTOR.
+
+D./Dª [NOMBRE_ARQUITECTO], con NIF [NIF_ARQUITECTO], Colegiado nº [NUM_COLEGIADO] del [COLEGIO], actuando como ARQUITECTO DIRECTOR DE OBRA.
+
+D./Dª [NOMBRE_APAREJADOR], con NIF [NIF_APAREJADOR], Colegiado nº [NUM_COLEGIADO_AP], actuando como ARQUITECTO TÉCNICO DIRECTOR DE EJECUCIÓN DE OBRA.
+
+D./Dª [NOMBRE_CONSTRUCTOR], con NIF [NIF_CONSTRUCTOR], en representación de [CONSTRUCTOR], con CIF [CIF_CONSTRUCTOR], como CONSTRUCTOR.
+
+OBJETO:
+
+Dar cumplimiento a lo establecido en el artículo 12.3.a) de la Ley 38/1999 de Ordenación de la Edificación, procediendo a la comprobación del replanteo de las obras del proyecto "[NOMBRE_PROYECTO]", situadas en [DIRECCION_OBRA].
+
+DOCUMENTACIÓN TÉCNICA:
+
+El proyecto ha sido redactado por [PROYECTISTA] y visado por el [COLEGIO] con fecha [FECHA_VISADO], expediente nº [NUM_EXPEDIENTE].
+
+COMPROBACIONES REALIZADAS:
+
+1. Se ha comprobado la realidad geométrica de la obra proyectada y la disponibilidad de los terrenos necesarios para su normal ejecución.
+
+2. Se ha verificado que las características del suelo son las adecuadas y compatibles con las previstas en el proyecto, conforme al estudio geotécnico [REFERENCIA_GEOTECNICO].
+
+3. Se han comprobado las alineaciones y rasantes señaladas en el proyecto, así como los elementos de replanteo necesarios para su correcta ejecución.
+
+4. Se ha verificado la idoneidad de los accesos, puntos de acometida de servicios y espacios para acopio de materiales.
+
+RESULTADO:
+
+Realizadas las comprobaciones anteriores, los reunidos declaran que:
+☐ El replanteo es CONFORME y se autoriza el inicio de las obras
+☐ El replanteo NO ES CONFORME y es necesario subsanar: [DEFICIENCIAS]
+
+Y para que conste, firman la presente acta todos los comparecientes.
+
+[FIRMAS]`,
+        order: 1,
+        required: true
+      }
+    ]
+  },
+  {
+    id: 'libro-ordenes',
+    name: 'Libro de Órdenes y Asistencias',
+    description: 'Plantilla para registro de órdenes y asistencias en obra',
+    category: 'administrativo',
+    type: 'administrativo',
+    folder: '05_Administrativo',
+    requiredFields: ['proyecto', 'direccion_obra'],
+    sections: [
+      {
+        id: 'orden',
+        title: 'ASIENTO DE LIBRO DE ÓRDENES',
+        content: `PROYECTO: [NOMBRE_PROYECTO]
+SITUACIÓN: [DIRECCION_OBRA]
+
+Orden nº: [NUMERO_ORDEN]
+Fecha: [FECHA]
+Firmante: [NOMBRE_FIRMANTE]
+Cargo: [CARGO]
+
+DESCRIPCIÓN DE LA ORDEN:
+
+[DESCRIPCION_ORDEN]
+
+UNIDAD DE OBRA AFECTADA:
+[UNIDAD_OBRA]
+
+PLAZO DE EJECUCIÓN:
+[PLAZO]
+
+OBSERVACIONES:
+[OBSERVACIONES]
+
+Fdo.: [NOMBRE_FIRMANTE]`,
+        order: 1,
+        required: true
+      }
+    ]
+  },
+  {
+    id: 'certificacion-obra',
+    name: 'Certificación de Obra',
+    description: 'Certificación mensual de obra ejecutada',
+    category: 'presupuesto',
+    type: 'presupuesto',
+    folder: '03_Presupuestos',
+    requiredFields: ['promotor', 'proyecto', 'arquitecto'],
+    sections: [
+      {
+        id: 'certificacion',
+        title: 'CERTIFICACIÓN DE OBRA',
+        content: `CERTIFICACIÓN Nº [NUM_CERTIFICACION]
+
+PROYECTO: [NOMBRE_PROYECTO]
+SITUACIÓN: [DIRECCION_OBRA]
+PROMOTOR: [PROMOTOR]
+CONSTRUCTOR: [CONSTRUCTOR]
+
+El que suscribe, [NOMBRE_ARQUITECTO], Arquitecto Director de Obra,
+
+CERTIFICA:
+
+Que en las obras de referencia se han ejecutado durante el periodo comprendido entre [FECHA_INICIO] y [FECHA_FIN], las siguientes unidades de obra:
+
+RELACIÓN VALORADA:
+
+[RELACION_VALORADA]
+
+RESUMEN:
+
+Certificación anterior ................. [CERT_ANTERIOR] €
+Obra ejecutada en este periodo .......... [OBRA_PERIODO] €
+TOTAL OBRA EJECUTADA .................... [TOTAL_EJECUTADA] €
+Porcentaje sobre PEM .................... [PORCENTAJE] %
+
+PRESUPUESTO EJECUCIÓN MATERIAL (PEM) .... [PEM_PERIODO] €
+13% Gastos Generales .................... [GG] €
+6% Beneficio Industrial ................. [BI] €
+SUMA ........................................ [SUMA] €
+21% I.V.A. .................................. [IVA] €
+TOTAL A CERTIFICAR .......................... [TOTAL] €
+
+Y para que conste y surta los efectos oportunos, expido la presente certificación en [LUGAR], a [FECHA].
+
+Fdo.: [NOMBRE_ARQUITECTO]
+      Arquitecto Director de Obra`,
+        order: 1,
+        required: true
+      }
+    ]
+  },
+  {
+    id: 'licencia-primera-ocupacion',
+    name: 'Solicitud de Licencia de Primera Ocupación',
+    description: 'Documento para solicitar la licencia de primera ocupación',
+    category: 'administrativo',
+    type: 'administrativo',
+    folder: '05_Administrativo',
+    requiredFields: ['promotor', 'direccion_obra', 'arquitecto'],
+    sections: [
+      {
+        id: 'solicitud',
+        title: 'SOLICITUD DE LICENCIA DE PRIMERA OCUPACIÓN',
+        content: `AL AYUNTAMIENTO DE [MUNICIPIO]
+
+D./Dª [NOMBRE_PROMOTOR], con DNI/NIE/CIF [NIF_PROMOTOR], con domicilio a efectos de notificaciones en [DOMICILIO_NOTIFICACIONES], teléfono [TELEFONO] y correo electrónico [EMAIL],
+
+EXPONE:
+
+Que siendo propietario/a del inmueble sito en [DIRECCION_OBRA], con referencia catastral [REF_CATASTRAL], sobre el que se han ejecutado obras de [TIPO_OBRA] al amparo de la licencia municipal de obras nº [NUM_LICENCIA] de fecha [FECHA_LICENCIA].
+
+Que las citadas obras han finalizado y cuentan con el correspondiente Certificado Final de Obra expedido por la Dirección Facultativa con fecha [FECHA_CFO].
+
+Que se adjunta la siguiente documentación:
+
+1. Certificado Final de Obra
+2. Certificado de Eficiencia Energética
+3. Certificado de instalaciones (electricidad, fontanería, gas, etc.)
+4. Libro del Edificio
+5. Licencia de obras
+6. Proyecto visado
+7. Justificante de pago del ICIO
+8. [OTROS_DOCUMENTOS]
+
+Por todo ello, SOLICITA:
+
+Que se sirva conceder LICENCIA DE PRIMERA OCUPACIÓN para el inmueble descrito.
+
+En [LUGAR], a [FECHA]
+
+Fdo.: [NOMBRE_PROMOTOR]`,
+        order: 1,
+        required: true
+      }
+    ]
+  },
+  {
+    id: 'memoria-calidad',
+    name: 'Memoria de Control de Calidad',
+    description: 'Memoria del control de calidad de la obra',
+    category: 'administrativo',
+    type: 'administrativo',
+    folder: '05_Administrativo',
+    requiredFields: ['proyecto', 'direccion_obra'],
+    sections: [
+      {
+        id: 'plan-control',
+        title: '1. PLAN DE CONTROL DE CALIDAD',
+        content: `1.1. OBJETO
+
+El presente documento tiene por objeto establecer el Plan de Control de Calidad de las obras correspondientes al proyecto "[NOMBRE_PROYECTO]", de conformidad con el Código Técnico de la Edificación y el Decreto 462/1971 sobre normas de edificación.
+
+1.2. AGENTES INTERVINIENTES
+
+Promotor: [PROMOTOR]
+Dirección Facultativa: [DIRECCION_FACULTATIVA]
+Constructor: [CONSTRUCTOR]
+Entidad de Control: [ENTIDAD_CONTROL]
+
+1.3. ÁMBITO DE APLICACIÓN
+
+Control de recepción en obra de productos
+Control de ejecución de la obra
+Control de la obra terminada`,
+        order: 1,
+        required: true
+      },
+      {
+        id: 'control-materiales',
+        title: '2. CONTROL DE MATERIALES',
+        content: `2.1. CONTROL DEL HORMIGÓN
+
+Nivel de control: [NIVEL_CONTROL]
+Cantidad de hormigón: [CANTIDAD_HORMIGON] m³
+Número de lotes: [NUM_LOTES]
+Ensayos a realizar: [ENSAYOS_HORMIGON]
+
+2.2. CONTROL DEL ACERO
+
+Tipo de acero: [TIPO_ACERO]
+Cantidad: [CANTIDAD_ACERO] kg
+Ensayos a realizar: [ENSAYOS_ACERO]
+
+2.3. CONTROL DE OTROS MATERIALES
+
+[OTROS_MATERIALES]`,
+        order: 2,
+        required: true
+      },
+      {
+        id: 'control-ejecucion',
+        title: '3. CONTROL DE EJECUCIÓN',
+        content: `3.1. CIMENTACIÓN
+
+Comprobación de replanteo
+Control de excavación
+Control de hormigonado
+Ensayos de recepción
+
+3.2. ESTRUCTURA
+
+Control de armaduras
+Control de hormigonado
+Control dimensional
+Ensayos de información
+
+3.3. CERRAMIENTOS E INSTALACIONES
+
+[CONTROLES_CERRAMIENTOS]`,
+        order: 3,
+        required: true
+      },
+      {
+        id: 'resultados',
+        title: '4. RESULTADOS Y CONCLUSIONES',
+        content: `4.1. RESUMEN DE ENSAYOS REALIZADOS
+
+[TABLA_ENSAYOS]
+
+4.2. INCIDENCIAS Y CORRECCIONES
+
+[INCIDENCIAS]
+
+4.3. CONCLUSIÓN
+
+Los materiales empleados y la ejecución de las obras cumplen con las especificaciones del proyecto y la normativa vigente.
+
+En [LUGAR], a [FECHA]
+
+Fdo.: [NOMBRE_DIRECTOR_OBRA]
+      Director de Obra`,
+        order: 4,
+        required: true
+      }
+    ]
+  },
+  {
+    id: 'declaracion-conformidad-obra',
+    name: 'Declaración de Conformidad de la Obra',
+    description: 'Declaración de conformidad de obra ejecutada',
+    category: 'administrativo',
+    type: 'administrativo',
+    folder: '05_Administrativo',
+    requiredFields: ['promotor', 'proyecto', 'arquitecto', 'constructor'],
+    sections: [
+      {
+        id: 'declaracion',
+        title: 'DECLARACIÓN DE CONFORMIDAD',
+        content: `D./Dª [NOMBRE_PROMOTOR], con NIF [NIF_PROMOTOR], como PROMOTOR de las obras "[NOMBRE_PROYECTO]", situadas en [DIRECCION_OBRA],
+
+DECLARA:
+
+Que las obras referenciadas han sido ejecutadas por [CONSTRUCTOR], CIF [CIF_CONSTRUCTOR], bajo la dirección facultativa de:
+
+- Director de Obra: [DIRECTOR_OBRA]
+- Director de Ejecución: [DIRECTOR_EJECUCION]
+
+Que las obras se han ejecutado conforme al proyecto técnico visado por el [COLEGIO_PROFESIONAL] el [FECHA_VISADO], expediente nº [NUM_EXPEDIENTE].
+
+Que se ha respetado el Código Técnico de la Edificación y el resto de normativa de aplicación.
+
+Que se ha seguido el Plan de Control de Calidad establecido.
+
+Que se dispone del Certificado Final de Obra expedido por la Dirección Facultativa.
+
+Que se han efectuado las pruebas de servicio de las instalaciones con resultado satisfactorio.
+
+Que se han subsanado todas las deficiencias detectadas durante la ejecución.
+
+Y para que conste, firma la presente declaración en [LUGAR], a [FECHA].
+
+Fdo.: [NOMBRE_PROMOTOR]`,
+        order: 1,
+        required: true
+      }
+    ]
+  },
+  {
+    id: 'informe-patologia',
+    name: 'Informe de Patologías',
+    description: 'Informe técnico sobre patologías detectadas en edificación',
+    category: 'memoria',
+    type: 'memoria',
+    discipline: 'Arquitectura',
+    folder: '02_Memorias',
+    requiredFields: ['ubicacion', 'arquitecto'],
+    sections: [
+      {
+        id: 'datos-generales',
+        title: '1. DATOS GENERALES',
+        content: `1.1. OBJETO DEL INFORME
+
+Análisis de las patologías detectadas en el inmueble sito en [DIRECCION].
+
+1.2. PROPIEDAD
+
+Propietario: [PROPIETARIO]
+NIF: [NIF_PROPIETARIO]
+
+1.3. TÉCNICO REDACTOR
+
+Arquitecto: [NOMBRE_ARQUITECTO]
+Nº Colegiado: [NUM_COLEGIADO]
+Colegio: [COLEGIO_PROFESIONAL]
+
+1.4. FECHA DE INSPECCIÓN
+
+[FECHA_INSPECCION]`,
+        order: 1,
+        required: true
+      },
+      {
+        id: 'descripcion-inmueble',
+        title: '2. DESCRIPCIÓN DEL INMUEBLE',
+        content: `2.1. CARACTERÍSTICAS GENERALES
+
+Tipología: [TIPOLOGIA]
+Año de construcción: [ANNO_CONSTRUCCION]
+Superficie construida: [SUPERFICIE] m²
+Número de plantas: [NUM_PLANTAS]
+
+2.2. SISTEMA CONSTRUCTIVO
+
+Cimentación: [CIMENTACION]
+Estructura: [ESTRUCTURA]
+Fachadas: [FACHADAS]
+Cubierta: [CUBIERTA]`,
+        order: 2,
+        required: true
+      },
+      {
+        id: 'patologias-detectadas',
+        title: '3. PATOLOGÍAS DETECTADAS',
+        content: `3.1. LESIONES EN ESTRUCTURA
+
+[DESCRIPCION_LESIONES_ESTRUCTURA]
+
+Gravedad: ☐ Leve  ☐ Moderada  ☐ Grave  ☐ Muy grave
+
+3.2. LESIONES EN FACHADAS
+
+[DESCRIPCION_LESIONES_FACHADAS]
+
+Gravedad: ☐ Leve  ☐ Moderada  ☐ Grave  ☐ Muy grave
+
+3.3. LESIONES EN CUBIERTAS
+
+[DESCRIPCION_LESIONES_CUBIERTAS]
+
+Gravedad: ☐ Leve  ☐ Moderada  ☐ Grave  ☐ Muy grave
+
+3.4. HUMEDADES
+
+Tipo: ☐ Filtración  ☐ Capilaridad  ☐ Condensación  ☐ Accidental
+Ubicación: [UBICACION_HUMEDADES]
+Descripción: [DESCRIPCION_HUMEDADES]
+
+3.5. OTRAS LESIONES
+
+[OTRAS_LESIONES]`,
+        order: 3,
+        required: true
+      },
+      {
+        id: 'causas',
+        title: '4. ANÁLISIS DE CAUSAS',
+        content: `4.1. CAUSAS FÍSICAS
+
+[CAUSAS_FISICAS]
+
+4.2. CAUSAS MECÁNICAS
+
+[CAUSAS_MECANICAS]
+
+4.3. CAUSAS QUÍMICAS
+
+[CAUSAS_QUIMICAS]
+
+4.4. DEFECTOS DE PROYECTO O EJECUCIÓN
+
+[DEFECTOS]`,
+        order: 4,
+        required: true
+      },
+      {
+        id: 'recomendaciones',
+        title: '5. RECOMENDACIONES Y PROPUESTA DE INTERVENCIÓN',
+        content: `5.1. MEDIDAS URGENTES
+
+[MEDIDAS_URGENTES]
+
+5.2. INTERVENCIONES A CORTO PLAZO
+
+[INTERVENCIONES_CORTO]
+
+5.3. INTERVENCIONES A MEDIO PLAZO
+
+[INTERVENCIONES_MEDIO]
+
+5.4. PRESUPUESTO ESTIMADO
+
+[PRESUPUESTO_ESTIMADO]`,
+        order: 5,
+        required: true
+      },
+      {
+        id: 'conclusion',
+        title: '6. CONCLUSIONES',
+        content: `[CONCLUSIONES]
+
+En [LUGAR], a [FECHA]
+
+Fdo.: [NOMBRE_ARQUITECTO]
+      Arquitecto Colegiado nº [NUM_COLEGIADO]`,
+        order: 6,
+        required: true
+      }
+    ]
   }
 ]
 

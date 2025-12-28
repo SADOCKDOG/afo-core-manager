@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { CTE_SECTIONS, getChecklist, getCTEProgress, toggleChecklistItem } from '../../lib/services/compliance'
 
-export function ComplianceChecklist() {
-    const [state, setState] = useState(getChecklist('cte'))
+interface ComplianceChecklistProps { projectId?: string }
+
+export function ComplianceChecklist({ projectId }: ComplianceChecklistProps) {
+    const [state, setState] = useState(getChecklist('cte', projectId))
 
     useEffect(() => {
-        setState(getChecklist('cte'))
-    }, [])
+        setState(getChecklist('cte', projectId))
+    }, [projectId])
 
     const progress = getCTEProgress(state)
 
@@ -46,7 +48,7 @@ export function ComplianceChecklist() {
                                     <input
                                         type="checkbox"
                                         checked={!!state[item.id]}
-                                        onChange={() => setState(toggleChecklistItem('cte', item.id))}
+                                        onChange={() => setState(toggleChecklistItem('cte', item.id, projectId))}
                                     />
                                 </li>
                             ))}

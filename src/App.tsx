@@ -19,7 +19,8 @@ import { BulkProjectExportDialog } from '@/components/BulkProjectExportDialog'
 import { ClientManager } from '@/components/ClientManager'
 import { BillingManager } from '@/components/BillingManager'
 import { AutoInvoiceConfirmDialog } from '@/components/AutoInvoiceConfirmDialog'
-import { Plus, Buildings, Users, BookOpen, Gear, EnvelopeSimple, ClockCounterClockwise, Upload, FolderOpen, DownloadSimple } from '@phosphor-icons/react'
+import { DocumentTemplateLibrary } from '@/components/DocumentTemplateLibrary'
+import { Plus, Buildings, Users, BookOpen, Gear, EnvelopeSimple, ClockCounterClockwise, Upload, FolderOpen, DownloadSimple, Files } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
 import { Toaster, toast } from 'sonner'
 import { useEmailConfig } from '@/lib/email-service'
@@ -319,6 +320,7 @@ function App() {
                 <MunicipalComplianceManager />
                 <VisaManager />
                 <AIRegulatoryAssistant />
+                <DocumentTemplateLibrary />
                 <Button
                   variant="outline"
                   className="gap-2"

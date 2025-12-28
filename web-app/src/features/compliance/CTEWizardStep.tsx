@@ -5,14 +5,15 @@ interface CTEWizardStepProps {
     code: string
     title: string
     description?: string
+    projectId?: string
 }
 
-export function CTEWizardStep({ code, title, description }: CTEWizardStepProps) {
-    const [state, setState] = useState(getChecklist('cte'))
+export function CTEWizardStep({ code, title, description, projectId }: CTEWizardStepProps) {
+    const [state, setState] = useState(getChecklist('cte', projectId))
 
     useEffect(() => {
-        setState(getChecklist('cte'))
-    }, [])
+        setState(getChecklist('cte', projectId))
+    }, [projectId])
 
     const sectionProgress = getCTEProgress(state).find(p => p.code === code)
 

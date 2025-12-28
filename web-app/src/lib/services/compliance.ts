@@ -51,20 +51,22 @@ export const AFO_ITEMS: { id: string; text: string; reference?: string }[] = [
     { id: 'afo-04', text: 'Situación fuera de ordenación documentada' }
 ]
 
-export function getChecklist(key: 'cte' | 'afo'): ChecklistState {
-    const storeKey = key === 'cte' ? CTE_KEY : AFO_KEY
+export function getChecklist(key: 'cte' | 'afo', projectId?: string): ChecklistState {
+    const suffix = projectId ? `-${projectId}` : ''
+    const storeKey = (key === 'cte' ? CTE_KEY : AFO_KEY) + suffix
     return storage.get<ChecklistState>(storeKey, {})
 }
 
-export function setChecklist(key: 'cte' | 'afo', state: ChecklistState) {
-    const storeKey = key === 'cte' ? CTE_KEY : AFO_KEY
+export function setChecklist(key: 'cte' | 'afo', state: ChecklistState, projectId?: string) {
+    const suffix = projectId ? `-${projectId}` : ''
+    const storeKey = (key === 'cte' ? CTE_KEY : AFO_KEY) + suffix
     storage.set(storeKey, state)
 }
 
-export function toggleChecklistItem(key: 'cte' | 'afo', itemId: string): ChecklistState {
-    const current = getChecklist(key)
+export function toggleChecklistItem(key: 'cte' | 'afo', itemId: string, projectId?: string): ChecklistState {
+    const current = getChecklist(key, projectId)
     const next: ChecklistState = { ...current, [itemId]: !current[itemId] }
-    setChecklist(key, next)
+    setChecklist(key, next, projectId)
     return next
 }
 

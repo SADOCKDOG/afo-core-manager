@@ -1,6 +1,14 @@
+import { useMemo } from 'react'
+import { useProjectContext } from '../../lib/context/ProjectContext'
 import { mockDocuments } from '../../lib/data/mockDocuments'
+import { listDocuments } from '../../lib/services/documents'
 
 export function DocumentList() {
+    const { projectId } = useProjectContext()
+    const docs = useMemo(() => {
+        const stored = listDocuments(projectId)
+        return stored.length ? stored : mockDocuments
+    }, [projectId])
     return (
         <div className="card">
             <div className="card-head">
@@ -14,7 +22,7 @@ export function DocumentList() {
             </div>
             <div className="card-body">
                 <ul className="list">
-                    {mockDocuments.slice(0, 5).map(doc => (
+                    {docs.slice(0, 5).map(doc => (
                         <li key={doc.id} className="list-row">
                             <div>
                                 <div className="strong">{doc.name}</div>

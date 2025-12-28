@@ -3,12 +3,14 @@ import { storage } from './storage'
 
 const DOCS_KEY = 'documents'
 
-export function listDocuments(): DocumentItem[] {
-    return storage.get<DocumentItem[]>(DOCS_KEY, [])
+export function listDocuments(projectId?: string): DocumentItem[] {
+    const suffix = projectId ? `-${projectId}` : ''
+    return storage.get<DocumentItem[]>(DOCS_KEY + suffix, [])
 }
 
-export function saveDocuments(docs: DocumentItem[]) {
-    storage.set(DOCS_KEY, docs)
+export function saveDocuments(docs: DocumentItem[], projectId?: string) {
+    const suffix = projectId ? `-${projectId}` : ''
+    storage.set(DOCS_KEY + suffix, docs)
 }
 
 export function getNextVersion(base: string): string {

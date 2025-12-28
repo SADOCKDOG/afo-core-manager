@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { AFO_ITEMS, getChecklist, toggleChecklistItem } from '../../lib/services/compliance'
 
-export function AFOChecklist() {
-    const [state, setState] = useState(getChecklist('afo'))
+interface AFOChecklistProps { projectId?: string }
+
+export function AFOChecklist({ projectId }: AFOChecklistProps) {
+    const [state, setState] = useState(getChecklist('afo', projectId))
 
     useEffect(() => {
-        setState(getChecklist('afo'))
-    }, [])
+        setState(getChecklist('afo', projectId))
+    }, [projectId])
 
     const total = AFO_ITEMS.length
     const done = AFO_ITEMS.filter(i => state[i.id]).length
@@ -39,7 +41,7 @@ export function AFOChecklist() {
                             <input
                                 type="checkbox"
                                 checked={!!state[item.id]}
-                                onChange={() => setState(toggleChecklistItem('afo', item.id))}
+                                onChange={() => setState(toggleChecklistItem('afo', item.id, projectId))}
                             />
                         </li>
                     ))}
