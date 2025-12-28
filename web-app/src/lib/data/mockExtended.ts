@@ -1,5 +1,4 @@
 import { Milestone, Notification, Task, VisadoState } from '../types-extended'
-import { mockProjects } from './mockProjects'
 
 export const mockMilestones: Milestone[] = [
     {

@@ -19,7 +19,7 @@ export function ProjectCard({ project, visadoState, onClick }: ProjectCardProps)
 
     const getVisadoBadge = (state?: VisadoState) => {
         if (!state) return null
-        
+
         const badges: Record<string, { label: string; class: string }> = {
             'tramitacion': { label: 'En tramitación', class: 'badge-tramitacion' },
             'requerido': { label: 'Requerido', class: 'badge-requerido' },
@@ -27,7 +27,7 @@ export function ProjectCard({ project, visadoState, onClick }: ProjectCardProps)
             'pendiente-retirar': { label: 'Pendiente retirar', class: 'badge-retirar' },
             'completado': { label: 'Completado', class: 'badge-completado' }
         }
-        
+
         const badge = badges[state.status]
         return badge ? <span className={`visado-badge ${badge.class}`}>{badge.label}</span> : null
     }
@@ -54,13 +54,13 @@ export function ProjectCard({ project, visadoState, onClick }: ProjectCardProps)
                     {project.status}
                 </span>
             </div>
-            
+
             <div className="project-card-body">
                 <div className="project-phase">
                     <span className="label">Fase actual:</span>
                     <span className="value">{getCurrentPhase()}</span>
                 </div>
-                
+
                 {visadoState && (
                     <div className="project-visado">
                         <span className="label">Visado:</span>

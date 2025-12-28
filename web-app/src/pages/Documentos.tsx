@@ -1,6 +1,7 @@
 import { Card } from '../components/common/Card'
 import { Section } from '../components/common/Section'
-import { mockDocuments } from '../lib/data/mockDocuments'
+import { DocumentList } from '../features/documents/DocumentList'
+import { DocumentUpload } from '../features/documents/DocumentUpload'
 
 export function DocumentosPage() {
     return (
@@ -11,18 +12,16 @@ export function DocumentosPage() {
             </div>
             <Section title="Listado" description="Disciplinas y versiones P/C">
                 <div className="grid two">
-                    {mockDocuments.map(doc => (
-                        <Card key={doc.id} title={doc.name} subtitle={`${doc.discipline} • ${doc.type}`}>
-                            <div className="pill-row">
-                                <span className="pill">{doc.version}</span>
-                                <span className="pill">{doc.status}</span>
-                            </div>
-                        </Card>
-                    ))}
+                    <DocumentList />
                 </div>
             </Section>
             <Section title="Pendientes" description="Importador inteligente de proyectos heredados">
-                <div className="callout">Analizar carpetas, metadatos PDF y asignar disciplina/tipo automáticamente.</div>
+                <div className="grid two">
+                    <DocumentUpload />
+                    <Card title="Importador inteligente" subtitle="Proyectos heredados">
+                        <div className="callout">Analizar carpetas, metadatos PDF y asignar disciplina/tipo automáticamente.</div>
+                    </Card>
+                </div>
             </Section>
         </div>
     )

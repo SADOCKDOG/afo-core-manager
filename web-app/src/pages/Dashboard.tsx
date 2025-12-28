@@ -1,14 +1,32 @@
+import { useState } from 'react'
 import { Card } from '../components/common/Card'
 import { Section } from '../components/common/Section'
-import { mockCompliance } from '../lib/data/mockCompliance'
-import { mockDocuments } from '../lib/data/mockDocuments'
-import { mockFinance } from '../lib/data/mockFinance'
+import { MilestoneCalendar } from '../components/dashboard/MilestoneCalendar'
+import { NotificationFeed } from '../components/dashboard/NotificationFeed'
+import { TaskList } from '../components/dashboard/TaskList'
+import { ProjectCard } from '../components/projects/ProjectCard'
 import { mockProjects } from '../lib/data/mockProjects'
+import { mockCompliance } from '../lib/data/mockCompliance'
+import { mockFinance } from '../lib/data/mockFinance'
+import {
+    mockMilestones,
+    mockNotifications,
+    mockTasks,
+    mockVisadoStates
+} from '../lib/data/mockExtended'
 
 export function DashboardPage() {
-    const active = mockProjects.filter(p => p.status === 'active')
+    const [notifications, setNotifications] = useState(mockNotifications)
+    const activeProjects = mockProjects.filter(p => p.status === 'active')
     const pendingInvoices = mockFinance.filter(f => f.status === 'pending')
     const urgentCompliance = mockCompliance.filter(c => c.priority === 'high')
+    const upcomingMilestones = mockMilestones.filter(m => !m.completed)
+
+    const handleMarkAsRead = (id: string) => {
+        setNotifications(prev =>
+            prev.map(n => (n.id === id ? { ...n, read: true } : n))
+        )
+    }
 
     return (
         <div className="page">
@@ -18,20 +36,40 @@ export function DashboardPage() {
                     <h1>Visión general del estudio</h1>
                 </div>
             </div>
-            <div className="grid">
-                <Card title="Proyectos activos" subtitle="Seguimiento resumido">
-                    <ul className="list">
-                        {active.map(p => (
-                            <li key={p.id} className="list-row">
-                                <div>
-                                    <div className="strong">{p.title}</div>
-                                    <div className="muted">{p.client} • {p.location}</div>
-                                </div>
-                                <div className="pill">{p.nextMilestone}</div>
-                            </li>
-                        ))}
-                    </ul>
+
+            {/* Sección de proyectos activos */}
+            <Section title="Proyectos activos" description="Estado y avance de expedientes">
+                <div className="projects-grid">
+                    {activeProjects.map(project => (
+                        <ProjectCard
+                            key={project.id}
+                            project={project}
+                            visadoState={mockVisadoStates[project.id]}
+                        />
+                    ))}
+                </div>
+            </Section>
+
+            {/* Fila de columnas: Tareas, Calendario, Notificaciones */}
+            <div className="dashboard-columns">
+                <Card title="Tareas pendientes" subtitle={`${mockTasks.filter(t => !t.completed).length} activas`}>
+                    <TaskList tasks={mockTasks} />
                 </Card>
+
+                <Card title="Próximos hitos" subtitle="Calendario de entregas">
+                    <MilestoneCalendar milestones={upcomingMilestones} />
+                </Card>
+
+                <Card title="Notificaciones" subtitle={`${notifications.filter(n => !n.read).length} sin leer`}>
+                    <NotificationFeed
+                        notifications={notifications}
+                        onMarkAsRead={handleMarkAsRead}
+                    />
+                </Card>
+            </div>
+
+            {/* Fila de alertas y finanzas */}
+            <div className="grid two">
                 <Card title="Alertas normativas" subtitle="Prioridad alta">
                     <ul className="list">
                         {urgentCompliance.map(item => (
@@ -45,19 +83,7 @@ export function DashboardPage() {
                         ))}
                     </ul>
                 </Card>
-                <Card title="Documentos recientes" subtitle="ISO19650-2" >
-                    <ul className="list">
-                        {mockDocuments.slice(0, 3).map(doc => (
-                            <li key={doc.id} className="list-row">
-                                <div>
-                                    <div className="strong">{doc.name}</div>
-                                    <div className="muted">{doc.discipline} • {doc.type}</div>
-                                </div>
-                                <div className="pill">{doc.version}</div>
-                            </li>
-                        ))}
-                    </ul>
-                </Card>
+
                 <Card title="Cobros pendientes" subtitle="Facturación por hitos">
                     <ul className="list">
                         {pendingInvoices.map(inv => (
@@ -66,19 +92,17 @@ export function DashboardPage() {
                                     <div className="strong">{inv.concept}</div>
                                     <div className="muted">Proyecto {inv.projectId}</div>
                                 </div>
-                                <div className="pill">{inv.amount.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</div>
+                                <div className="pill">
+                                    {inv.amount.toLocaleString('es-ES', {
+                                        style: 'currency',
+                                        currency: 'EUR'
+                                    })}
+                                </div>
                             </li>
                         ))}
                     </ul>
                 </Card>
             </div>
-
-            <Section title="Próximos pasos" description="Hitos y acciones rápidas" >
-                <div className="grid two">
-                    <div className="callout">Añadir calendario de hitos y feed de notificaciones.</div>
-                    <div className="callout">Integrar checklist AFO y licencias municipales.</div>
-                </div>
-            </Section>
         </div>
     )
 }

@@ -1,5 +1,5 @@
-import { Task } from '../../lib/types-extended'
 import { mockProjects } from '../../lib/data/mockProjects'
+import { Task } from '../../lib/types-extended'
 
 interface TaskListProps {
     tasks: Task[]
@@ -25,7 +25,7 @@ export function TaskList({ tasks, onToggleComplete }: TaskListProps) {
         const now = Date.now()
         const diff = date.getTime() - now
         const days = Math.ceil(diff / 86400000)
-        
+
         if (days < 0) return <span className="overdue">Vencida</span>
         if (days === 0) return <span className="today">Hoy</span>
         if (days === 1) return <span className="tomorrow">Mañana</span>

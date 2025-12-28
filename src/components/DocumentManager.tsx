@@ -15,7 +15,10 @@ import {
   ShareNetwork,
   Folder,
   TreeStructure,
-  FileText
+  FileText,
+  Wrench,
+  Table,
+  ChartBar
 } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
 import { DocumentUploadDialog } from './DocumentUploadDialog'
@@ -24,6 +27,7 @@ import { FolderStructureDialog } from './FolderStructureDialog'
 import { DocumentSearch, DocumentFilters } from './DocumentSearch'
 import { BulkDocumentUpload } from './BulkDocumentUpload'
 import { DocumentTemplateWithAI } from './DocumentTemplateWithAI'
+import { DocumentUtilities } from './DocumentUtilities'
 import { formatFileSize, sortVersions } from '@/lib/document-utils'
 import { toast } from 'sonner'
 import { PHASE_LABELS } from '@/lib/types'
@@ -40,7 +44,9 @@ export function DocumentManager({ project, onProjectUpdate }: DocumentManagerPro
   const [versionDialogOpen, setVersionDialogOpen] = useState(false)
   const [structureDialogOpen, setStructureDialogOpen] = useState(false)
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false)
+  const [utilitiesDialogOpen, setUtilitiesDialogOpen] = useState(false)
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null)
+  const [viewMode, setViewMode] = useState<'list' | 'folders' | 'stats'>('list')
   const [filters, setFilters] = useState<DocumentFilters>({
     searchQuery: '',
     type: 'all',
@@ -287,10 +293,18 @@ export function DocumentManager({ project, onProjectUpdate }: DocumentManagerPro
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Gestor de Documentos</h2>
           <p className="text-muted-foreground">
-            Estructura: {folderStructure?.name}
+            Estructura: {folderStructure?.name} • {projectDocuments.length} documentos
           </p>
         </div>
         <div className="flex gap-3">
+          <Button 
+            variant="outline" 
+            onClick={() => setUtilitiesDialogOpen(true)} 
+            className="gap-2"
+          >
+            <Wrench size={18} weight="duotone" />
+            Utilidades
+          </Button>
           <Button variant="outline" onClick={handleSetupStructure} className="gap-2">
             <TreeStructure size={18} weight="duotone" />
             Cambiar Estructura
@@ -319,82 +333,278 @@ export function DocumentManager({ project, onProjectUpdate }: DocumentManagerPro
         filteredCount={filteredDocuments.length}
       />
 
-      {filteredDocuments.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4">
-          {filteredDocuments.map((doc, index) => {
-            const latestVersion = sortVersions(doc.versions)[0]
-            return (
-              <motion.div
-                key={doc.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.03 }}
+      <Card className="border-primary/20 bg-card/50">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex gap-2">
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className="gap-2"
               >
-                <Card 
-                  className="cursor-pointer hover:shadow-md hover:border-accent/50 transition-all"
-                  onClick={() => handleDocumentClick(doc)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-4">
-                      <div className="p-3 rounded-lg bg-primary/10 text-primary shrink-0">
-                        <File size={24} weight="duotone" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-3 mb-2">
+                <File size={16} />
+                Lista
+              </Button>
+              <Button
+                variant={viewMode === 'folders' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('folders')}
+                className="gap-2"
+              >
+                <Folder size={16} />
+                Por Carpeta
+              </Button>
+              <Button
+                variant={viewMode === 'stats' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('stats')}
+                className="gap-2"
+              >
+                <ChartBar size={16} />
+                Estadísticas
+              </Button>
+            </div>
+            
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="gap-1">
+                  <Clock size={12} />
+                  {projectDocuments.filter(d => sortVersions(d.versions)[0].status === 'draft').length} Borradores
+                </Badge>
+                <Badge variant="outline" className="gap-1">
+                  <ShareNetwork size={12} />
+                  {projectDocuments.filter(d => sortVersions(d.versions)[0].status === 'shared').length} Compartidos
+                </Badge>
+                <Badge variant="outline" className="gap-1">
+                  <CheckCircle size={12} />
+                  {projectDocuments.filter(d => sortVersions(d.versions)[0].status === 'approved').length} Aprobados
+                </Badge>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {filteredDocuments.length > 0 ? (
+        <>
+          {viewMode === 'list' && (
+            <div className="grid grid-cols-1 gap-4">
+              {filteredDocuments.map((doc, index) => {
+                const latestVersion = sortVersions(doc.versions)[0]
+                return (
+                  <motion.div
+                    key={doc.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.03 }}
+                  >
+                    <Card 
+                      className="cursor-pointer hover:shadow-md hover:border-accent/50 transition-all"
+                      onClick={() => handleDocumentClick(doc)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-4">
+                          <div className="p-3 rounded-lg bg-primary/10 text-primary shrink-0">
+                            <File size={24} weight="duotone" />
+                          </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold truncate">{doc.name}</h3>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span>{DOCUMENT_TYPE_LABELS[doc.type]}</span>
-                              {doc.metadata.discipline && (
+                            <div className="flex items-start justify-between gap-3 mb-2">
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-semibold truncate">{doc.name}</h3>
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                  <span>{DOCUMENT_TYPE_LABELS[doc.type]}</span>
+                                  {doc.metadata.discipline && (
+                                    <>
+                                      <span>•</span>
+                                      <span>{doc.metadata.discipline}</span>
+                                    </>
+                                  )}
+                                  <span>•</span>
+                                  <span className="text-xs">{doc.folder}</span>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                {getStatusIcon(latestVersion.status)}
+                                <Badge variant="outline">
+                                  {latestVersion.version}
+                                </Badge>
+                              </div>
+                            </div>
+                            
+                            {doc.metadata.description && (
+                              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                                {doc.metadata.description}
+                              </p>
+                            )}
+
+                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                              <span>{doc.versions.length} versiones</span>
+                              <span>•</span>
+                              <span>{formatFileSize(latestVersion.fileSize)}</span>
+                              <span>•</span>
+                              <span>
+                                {new Date(latestVersion.uploadedAt).toLocaleDateString('es-ES')}
+                              </span>
+                              {doc.metadata.format && (
                                 <>
                                   <span>•</span>
-                                  <span>{doc.metadata.discipline}</span>
+                                  <span className="uppercase">{doc.metadata.format}</span>
                                 </>
                               )}
-                              <span>•</span>
-                              <span className="text-xs">{doc.folder}</span>
+                              <span className="ml-auto">
+                                {getStatusLabel(latestVersion.status)}
+                              </span>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            {getStatusIcon(latestVersion.status)}
-                            <Badge variant="outline">
-                              {latestVersion.version}
-                            </Badge>
-                          </div>
                         </div>
-                        
-                        {doc.metadata.description && (
-                          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                            {doc.metadata.description}
-                          </p>
-                        )}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )
+              })}
+            </div>
+          )}
 
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                          <span>{doc.versions.length} versiones</span>
-                          <span>•</span>
-                          <span>{formatFileSize(latestVersion.fileSize)}</span>
-                          <span>•</span>
-                          <span>
-                            {new Date(latestVersion.uploadedAt).toLocaleDateString('es-ES')}
-                          </span>
-                          {doc.metadata.format && (
-                            <>
-                              <span>•</span>
-                              <span className="uppercase">{doc.metadata.format}</span>
-                            </>
-                          )}
-                          <span className="ml-auto">
-                            {getStatusLabel(latestVersion.status)}
-                          </span>
-                        </div>
-                      </div>
+          {viewMode === 'folders' && (
+            <div className="space-y-6">
+              {folders.map((folder) => {
+                const folderDocs = filteredDocuments.filter(d => d.folder === folder)
+                if (folderDocs.length === 0) return null
+                
+                return (
+                  <div key={folder} className="space-y-3">
+                    <div className="flex items-center gap-2 text-lg font-semibold">
+                      <Folder size={20} weight="duotone" className="text-primary" />
+                      {folder}
+                      <Badge variant="secondary" className="ml-2">
+                        {folderDocs.length}
+                      </Badge>
                     </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )
-          })}
-        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pl-6">
+                      {folderDocs.map((doc) => {
+                        const latestVersion = sortVersions(doc.versions)[0]
+                        return (
+                          <Card 
+                            key={doc.id}
+                            className="cursor-pointer hover:shadow-md hover:border-accent/50 transition-all"
+                            onClick={() => handleDocumentClick(doc)}
+                          >
+                            <CardContent className="p-3">
+                              <div className="flex items-start gap-2 mb-2">
+                                <File size={20} weight="duotone" className="text-primary shrink-0 mt-0.5" />
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-medium text-sm truncate">{doc.name}</h4>
+                                  <p className="text-xs text-muted-foreground">
+                                    {DOCUMENT_TYPE_LABELS[doc.type]}
+                                  </p>
+                                </div>
+                                {getStatusIcon(latestVersion.status)}
+                              </div>
+                              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                <span>{latestVersion.version}</span>
+                                <span>{formatFileSize(latestVersion.fileSize)}</span>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          {viewMode === 'stats' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Por Tipo de Documento</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {Object.entries(DOCUMENT_TYPE_LABELS).map(([type, label]) => {
+                    const count = projectDocuments.filter(d => d.type === type).length
+                    if (count === 0) return null
+                    return (
+                      <div key={type} className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">{label}</span>
+                        <Badge variant="secondary">{count}</Badge>
+                      </div>
+                    )
+                  })}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Por Estado</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground flex items-center gap-2">
+                      <Clock size={14} />
+                      Borradores
+                    </span>
+                    <Badge variant="secondary">
+                      {projectDocuments.filter(d => sortVersions(d.versions)[0].status === 'draft').length}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground flex items-center gap-2">
+                      <ShareNetwork size={14} />
+                      Compartidos
+                    </span>
+                    <Badge variant="secondary">
+                      {projectDocuments.filter(d => sortVersions(d.versions)[0].status === 'shared').length}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground flex items-center gap-2">
+                      <CheckCircle size={14} />
+                      Aprobados
+                    </span>
+                    <Badge variant="secondary">
+                      {projectDocuments.filter(d => sortVersions(d.versions)[0].status === 'approved').length}
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Información General</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Total Documentos</span>
+                    <Badge variant="secondary">{projectDocuments.length}</Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Total Versiones</span>
+                    <Badge variant="secondary">
+                      {projectDocuments.reduce((acc, doc) => acc + doc.versions.length, 0)}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Tamaño Total</span>
+                    <Badge variant="secondary">
+                      {formatFileSize(
+                        projectDocuments.reduce((acc, doc) => 
+                          acc + sortVersions(doc.versions)[0].fileSize, 0
+                        )
+                      )}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Disciplinas Únicas</span>
+                    <Badge variant="secondary">{availableDisciplines.length}</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </>
       ) : (
         <motion.div
           initial={{ opacity: 0 }}
@@ -482,6 +692,11 @@ export function DocumentManager({ project, onProjectUpdate }: DocumentManagerPro
             ? PHASE_LABELS[project.phases[0].phase] 
             : undefined
         }}
+      />
+
+      <DocumentUtilities
+        open={utilitiesDialogOpen}
+        onOpenChange={setUtilitiesDialogOpen}
       />
     </div>
   )
