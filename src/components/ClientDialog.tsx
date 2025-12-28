@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
-import { Client } from '@/lib/types'
+import { Client, PaymentTerms, PAYMENT_TERMS_LABELS } from '@/lib/types'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { User, Buildings } from '@phosphor-icons/react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
+import { User, Buildings, Percent, CalendarBlank } from '@phosphor-icons/react'
 
 interface ClientDialogProps {
   open: boolean
@@ -27,6 +29,10 @@ export function ClientDialog({ open, onOpenChange, onSave, client }: ClientDialo
   const [telefono, setTelefono] = useState('')
   const [representante, setRepresentante] = useState('')
   const [notas, setNotas] = useState('')
+  const [customTaxRate, setCustomTaxRate] = useState<string>('')
+  const [paymentTerms, setPaymentTerms] = useState<PaymentTerms>('30-days')
+  const [customPaymentDays, setCustomPaymentDays] = useState<string>('')
+  const [earlyPaymentDiscount, setEarlyPaymentDiscount] = useState<string>('')
 
   useEffect(() => {
     if (client) {
@@ -41,6 +47,10 @@ export function ClientDialog({ open, onOpenChange, onSave, client }: ClientDialo
       setTelefono(client.telefono || '')
       setRepresentante(client.representante || '')
       setNotas(client.notas || '')
+      setCustomTaxRate(client.customTaxRate !== undefined ? client.customTaxRate.toString() : '')
+      setPaymentTerms(client.paymentTerms || '30-days')
+      setCustomPaymentDays(client.customPaymentDays !== undefined ? client.customPaymentDays.toString() : '')
+      setEarlyPaymentDiscount(client.earlyPaymentDiscount !== undefined ? client.earlyPaymentDiscount.toString() : '')
     } else {
       resetForm()
     }
@@ -58,6 +68,10 @@ export function ClientDialog({ open, onOpenChange, onSave, client }: ClientDialo
     setTelefono('')
     setRepresentante('')
     setNotas('')
+    setCustomTaxRate('')
+    setPaymentTerms('30-days')
+    setCustomPaymentDays('')
+    setEarlyPaymentDiscount('')
   }
 
   const handleSave = () => {
@@ -76,6 +90,25 @@ export function ClientDialog({ open, onOpenChange, onSave, client }: ClientDialo
       return
     }
 
+    const parsedCustomTaxRate = customTaxRate.trim() ? parseFloat(customTaxRate) : undefined
+    const parsedCustomPaymentDays = customPaymentDays.trim() ? parseInt(customPaymentDays) : undefined
+    const parsedEarlyPaymentDiscount = earlyPaymentDiscount.trim() ? parseFloat(earlyPaymentDiscount) : undefined
+
+    if (parsedCustomTaxRate !== undefined && (isNaN(parsedCustomTaxRate) || parsedCustomTaxRate < 0 || parsedCustomTaxRate > 100)) {
+      alert('El tipo de IVA personalizado debe ser un número entre 0 y 100')
+      return
+    }
+
+    if (paymentTerms === 'custom' && parsedCustomPaymentDays !== undefined && (isNaN(parsedCustomPaymentDays) || parsedCustomPaymentDays <= 0)) {
+      alert('Los días de pago personalizados deben ser un número positivo')
+      return
+    }
+
+    if (parsedEarlyPaymentDiscount !== undefined && (isNaN(parsedEarlyPaymentDiscount) || parsedEarlyPaymentDiscount < 0 || parsedEarlyPaymentDiscount > 100)) {
+      alert('El descuento por pronto pago debe ser un número entre 0 y 100')
+      return
+    }
+
     const clientData: Partial<Client> = {
       id: client?.id,
       type,
@@ -88,7 +121,11 @@ export function ClientDialog({ open, onOpenChange, onSave, client }: ClientDialo
       email: email.trim() || undefined,
       telefono: telefono.trim() || undefined,
       representante: type === 'persona-juridica' ? representante.trim() || undefined : undefined,
-      notas: notas.trim() || undefined
+      notas: notas.trim() || undefined,
+      customTaxRate: parsedCustomTaxRate,
+      paymentTerms,
+      customPaymentDays: paymentTerms === 'custom' ? parsedCustomPaymentDays : undefined,
+      earlyPaymentDiscount: parsedEarlyPaymentDiscount
     }
 
     onSave(clientData)
@@ -200,6 +237,83 @@ export function ClientDialog({ open, onOpenChange, onSave, client }: ClientDialo
                   rows={3}
                 />
               </div>
+
+              <div className="col-span-2">
+                <Separator className="my-2" />
+                <div className="flex items-center gap-2 mb-4">
+                  <Percent size={20} weight="duotone" className="text-primary" />
+                  <h3 className="font-semibold text-sm">Configuración de Facturación</h3>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="customTaxRate" className="flex items-center gap-2">
+                  <Percent size={14} />
+                  Tipo de IVA Personalizado (%)
+                </Label>
+                <Input
+                  id="customTaxRate"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  value={customTaxRate}
+                  onChange={(e) => setCustomTaxRate(e.target.value)}
+                  placeholder="21 (dejar vacío para usar el predeterminado)"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Si se especifica, se usará este tipo en lugar del IVA general (21%)</p>
+              </div>
+
+              <div>
+                <Label htmlFor="earlyPaymentDiscount" className="flex items-center gap-2">
+                  <Percent size={14} />
+                  Descuento Pronto Pago (%)
+                </Label>
+                <Input
+                  id="earlyPaymentDiscount"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  value={earlyPaymentDiscount}
+                  onChange={(e) => setEarlyPaymentDiscount(e.target.value)}
+                  placeholder="2.5"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Descuento aplicado si el pago se realiza antes de tiempo</p>
+              </div>
+
+              <div>
+                <Label htmlFor="paymentTerms" className="flex items-center gap-2">
+                  <CalendarBlank size={14} />
+                  Plazo de Pago
+                </Label>
+                <Select value={paymentTerms} onValueChange={(val) => setPaymentTerms(val as PaymentTerms)}>
+                  <SelectTrigger id="paymentTerms">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(PAYMENT_TERMS_LABELS).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {paymentTerms === 'custom' && (
+                <div>
+                  <Label htmlFor="customPaymentDays">Días de Pago Personalizados</Label>
+                  <Input
+                    id="customPaymentDays"
+                    type="number"
+                    min="1"
+                    value={customPaymentDays}
+                    onChange={(e) => setCustomPaymentDays(e.target.value)}
+                    placeholder="45"
+                  />
+                </div>
+              )}
             </div>
           </TabsContent>
 
@@ -276,6 +390,83 @@ export function ClientDialog({ open, onOpenChange, onSave, client }: ClientDialo
                   rows={3}
                 />
               </div>
+
+              <div className="col-span-2">
+                <Separator className="my-2" />
+                <div className="flex items-center gap-2 mb-4">
+                  <Percent size={20} weight="duotone" className="text-primary" />
+                  <h3 className="font-semibold text-sm">Configuración de Facturación</h3>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="customTaxRate-juridica" className="flex items-center gap-2">
+                  <Percent size={14} />
+                  Tipo de IVA Personalizado (%)
+                </Label>
+                <Input
+                  id="customTaxRate-juridica"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  value={customTaxRate}
+                  onChange={(e) => setCustomTaxRate(e.target.value)}
+                  placeholder="21 (dejar vacío para usar el predeterminado)"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Si se especifica, se usará este tipo en lugar del IVA general (21%)</p>
+              </div>
+
+              <div>
+                <Label htmlFor="earlyPaymentDiscount-juridica" className="flex items-center gap-2">
+                  <Percent size={14} />
+                  Descuento Pronto Pago (%)
+                </Label>
+                <Input
+                  id="earlyPaymentDiscount-juridica"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  value={earlyPaymentDiscount}
+                  onChange={(e) => setEarlyPaymentDiscount(e.target.value)}
+                  placeholder="2.5"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Descuento aplicado si el pago se realiza antes de tiempo</p>
+              </div>
+
+              <div>
+                <Label htmlFor="paymentTerms-juridica" className="flex items-center gap-2">
+                  <CalendarBlank size={14} />
+                  Plazo de Pago
+                </Label>
+                <Select value={paymentTerms} onValueChange={(val) => setPaymentTerms(val as PaymentTerms)}>
+                  <SelectTrigger id="paymentTerms-juridica">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(PAYMENT_TERMS_LABELS).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {paymentTerms === 'custom' && (
+                <div>
+                  <Label htmlFor="customPaymentDays-juridica">Días de Pago Personalizados</Label>
+                  <Input
+                    id="customPaymentDays-juridica"
+                    type="number"
+                    min="1"
+                    value={customPaymentDays}
+                    onChange={(e) => setCustomPaymentDays(e.target.value)}
+                    placeholder="45"
+                  />
+                </div>
+              )}
             </div>
           </TabsContent>
         </Tabs>

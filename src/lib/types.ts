@@ -460,6 +460,14 @@ export const VISA_DOCUMENT_TYPE_LABELS: Record<VisaDocumentType, string> = {
   'otro': 'Otro Documento'
 }
 
+export type PaymentTerms = 
+  | 'immediate'
+  | '15-days'
+  | '30-days'
+  | '60-days'
+  | '90-days'
+  | 'custom'
+
 export interface Client {
   id: string
   type: 'persona-fisica' | 'persona-juridica'
@@ -473,8 +481,21 @@ export interface Client {
   telefono?: string
   representante?: string
   notas?: string
+  customTaxRate?: number
+  paymentTerms?: PaymentTerms
+  customPaymentDays?: number
+  earlyPaymentDiscount?: number
   createdAt: number
   updatedAt: number
+}
+
+export const PAYMENT_TERMS_LABELS: Record<PaymentTerms, string> = {
+  'immediate': 'Inmediato',
+  '15-days': '15 días',
+  '30-days': '30 días',
+  '60-days': '60 días',
+  '90-days': '90 días',
+  'custom': 'Personalizado'
 }
 
 export type PaymentMethod = 'transferencia' | 'efectivo' | 'tarjeta' | 'cheque' | 'otros'

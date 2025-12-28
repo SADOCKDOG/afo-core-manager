@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { useKV } from '@github/spark/hooks'
-import { Client } from '@/lib/types'
+import { Client, PAYMENT_TERMS_LABELS } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Users, Plus, Pencil, Trash, MagnifyingGlass } from '@phosphor-icons/react'
+import { Users, Plus, Pencil, Trash, MagnifyingGlass, Percent, CalendarBlank } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
 import { ClientDialog } from './ClientDialog'
 import { toast } from 'sonner'
@@ -56,6 +56,10 @@ export function ClientManager() {
           telefono: clientData.telefono,
           representante: clientData.representante,
           notas: clientData.notas,
+          customTaxRate: clientData.customTaxRate,
+          paymentTerms: clientData.paymentTerms,
+          customPaymentDays: clientData.customPaymentDays,
+          earlyPaymentDiscount: clientData.earlyPaymentDiscount,
           createdAt: Date.now(),
           updatedAt: Date.now()
         }
@@ -88,6 +92,14 @@ export function ClientManager() {
       return client.razonSocial || 'Sin nombre'
     }
     return `${client.nombre || ''} ${client.apellido1 || ''} ${client.apellido2 || ''}`.trim() || 'Sin nombre'
+  }
+
+  const getPaymentTermsLabel = (client: Client) => {
+    if (!client.paymentTerms) return '30 días'
+    if (client.paymentTerms === 'custom' && client.customPaymentDays) {
+      return `${client.customPaymentDays} días`
+    }
+    return PAYMENT_TERMS_LABELS[client.paymentTerms]
   }
 
   return (
@@ -165,7 +177,7 @@ export function ClientManager() {
                 )}
               </motion.div>
             ) : (
-              <div className="border rounded-lg">
+              <div className="border rounded-lg overflow-hidden">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -174,6 +186,18 @@ export function ClientManager() {
                       <TableHead>Nombre/Razón Social</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Teléfono</TableHead>
+                      <TableHead className="text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <Percent size={14} />
+                          IVA
+                        </div>
+                      </TableHead>
+                      <TableHead className="text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <CalendarBlank size={14} />
+                          Plazo
+                        </div>
+                      </TableHead>
                       <TableHead className="text-right">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -196,6 +220,25 @@ export function ClientManager() {
                         </TableCell>
                         <TableCell className="text-sm">{client.email || '-'}</TableCell>
                         <TableCell className="text-sm">{client.telefono || '-'}</TableCell>
+                        <TableCell className="text-center text-sm">
+                          {client.customTaxRate !== undefined ? (
+                            <Badge variant="outline" className="font-mono">
+                              {client.customTaxRate}%
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">21%</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center text-sm">
+                          <div className="flex flex-col items-center gap-1">
+                            <span>{getPaymentTermsLabel(client)}</span>
+                            {client.earlyPaymentDiscount !== undefined && client.earlyPaymentDiscount > 0 && (
+                              <Badge variant="secondary" className="text-xs">
+                                -{client.earlyPaymentDiscount}% PP
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-2">
                             <Button

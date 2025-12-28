@@ -226,7 +226,8 @@ function App() {
         projectClient?.razonSocial || projectClient?.nombre || 'Cliente',
         projectClient?.nif || '',
         projectClient?.direccion,
-        projectBudget?.totalPEM
+        projectBudget?.totalPEM,
+        projectClient
       )
       
       setPendingInvoiceData({

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
-import { Invoice, InvoiceLineItem, Client, Project, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, PAYMENT_METHOD_LABELS, PaymentMethod, InvoiceType, InvoiceStatus } from '@/lib/types'
+import { Invoice, InvoiceLineItem, Client, Project, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, PAYMENT_METHOD_LABELS, PAYMENT_TERMS_LABELS, PaymentMethod, InvoiceType, InvoiceStatus } from '@/lib/types'
+import { getClientTaxRate, getClientPaymentDays } from '@/lib/invoice-utils'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,7 +9,8 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Plus, Trash } from '@phosphor-icons/react'
+import { Badge } from '@/components/ui/badge'
+import { Plus, Trash, Info } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 
 interface InvoiceDialogProps {
@@ -64,6 +66,16 @@ export function InvoiceDialog({ open, onOpenChange, onSave, invoice, projectId, 
   useEffect(() => {
     if (clientId) setSelectedClientId(clientId)
   }, [clientId])
+
+  useEffect(() => {
+    if (selectedClientId) {
+      const client = (clients || []).find(c => c.id === selectedClientId)
+      if (client?.customTaxRate !== undefined && !invoice) {
+        setTaxRate(client.customTaxRate)
+        setLineItems(lineItems.map(item => ({ ...item, taxRate: client.customTaxRate! })))
+      }
+    }
+  }, [selectedClientId, clients])
 
   const resetForm = () => {
     setInvoiceNumber('')
@@ -145,6 +157,28 @@ export function InvoiceDialog({ open, onOpenChange, onSave, invoice, projectId, 
       name,
       nif: client.nif,
       address: client.direccion || ''
+    }
+  }
+
+  const getSelectedClient = () => {
+    return (clients || []).find(c => c.id === selectedClientId)
+  }
+
+  const getClientTermsInfo = () => {
+    const client = getSelectedClient()
+    if (!client) return null
+
+    const taxRate = getClientTaxRate(client)
+    const paymentDays = getClientPaymentDays(client)
+    const hasCustomTax = client.customTaxRate !== undefined
+    const hasEarlyDiscount = client.earlyPaymentDiscount !== undefined && client.earlyPaymentDiscount > 0
+
+    return {
+      taxRate,
+      paymentDays,
+      hasCustomTax,
+      hasEarlyDiscount,
+      earlyPaymentDiscount: client.earlyPaymentDiscount
     }
   }
 
@@ -263,6 +297,29 @@ export function InvoiceDialog({ open, onOpenChange, onSave, invoice, projectId, 
                   })}
                 </SelectContent>
               </Select>
+              {selectedClientId && getClientTermsInfo() && (
+                <div className="mt-2 p-2 rounded-md bg-muted/50 border">
+                  <div className="flex items-start gap-2">
+                    <Info size={16} className="text-primary mt-0.5 flex-shrink-0" weight="duotone" />
+                    <div className="text-xs space-y-1">
+                      <p className="font-medium text-foreground">Configuración del cliente:</p>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant={getClientTermsInfo()?.hasCustomTax ? "default" : "outline"} className="text-xs">
+                          IVA: {getClientTermsInfo()?.taxRate}%
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          Plazo: {getClientTermsInfo()?.paymentDays} días
+                        </Badge>
+                        {getClientTermsInfo()?.hasEarlyDiscount && (
+                          <Badge variant="secondary" className="text-xs">
+                            Dto. PP: {getClientTermsInfo()?.earlyPaymentDiscount}%
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div>

@@ -4,10 +4,44 @@ import {
   InvoiceType,
   VisaApplication,
   ProfessionalCollege,
-  PROFESSIONAL_COLLEGE_LABELS 
+  PROFESSIONAL_COLLEGE_LABELS,
+  Client,
+  PaymentTerms
 } from './types'
 
 const STANDARD_TAX_RATE = 21
+
+export function getClientTaxRate(client?: Client): number {
+  if (client?.customTaxRate !== undefined) {
+    return client.customTaxRate
+  }
+  return STANDARD_TAX_RATE
+}
+
+export function getClientPaymentDays(client?: Client): number {
+  if (!client?.paymentTerms) return 30
+  
+  switch (client.paymentTerms) {
+    case 'immediate':
+      return 0
+    case '15-days':
+      return 15
+    case '30-days':
+      return 30
+    case '60-days':
+      return 60
+    case '90-days':
+      return 90
+    case 'custom':
+      return client.customPaymentDays || 30
+    default:
+      return 30
+  }
+}
+
+export function calculateDueDate(issuedDate: number, paymentDays: number): number {
+  return issuedDate + (paymentDays * 24 * 60 * 60 * 1000)
+}
 
 export function generateInvoiceNumber(type: InvoiceType): string {
   const year = new Date().getFullYear()
@@ -44,20 +78,29 @@ export function generateVisaFeeInvoice(
   projectId: string,
   clientName: string,
   clientNIF: string,
-  clientAddress?: string
+  clientAddress?: string,
+  client?: Client
 ): Partial<Invoice> {
+  const taxRate = getClientTaxRate(client)
+  const paymentDays = getClientPaymentDays(client)
+  
   const lineItem: InvoiceLineItem = {
     id: Date.now().toString(),
     description: `Tasa de Visado Colegial - ${PROFESSIONAL_COLLEGE_LABELS[visa.college]}`,
     quantity: 1,
     unitPrice: visa.estimatedFee || 0,
     totalPrice: visa.estimatedFee || 0,
-    taxRate: STANDARD_TAX_RATE
+    taxRate
   }
   
   const totals = calculateInvoiceTotals([lineItem])
   const now = Date.now()
-  const dueDate = now + (30 * 24 * 60 * 60 * 1000)
+  const dueDate = calculateDueDate(now, paymentDays)
+  
+  let notes = `Factura generada automáticamente por aprobación de visado ${visa.applicationNumber || ''}`
+  if (client?.earlyPaymentDiscount && client.earlyPaymentDiscount > 0) {
+    notes += `\n\nDescuento por pronto pago: ${client.earlyPaymentDiscount}% si se paga antes del vencimiento.`
+  }
   
   return {
     invoiceNumber: generateInvoiceNumber('visa-fee'),
@@ -71,10 +114,11 @@ export function generateVisaFeeInvoice(
     lineItems: [lineItem],
     subtotal: totals.subtotal,
     taxAmount: totals.taxAmount,
+    taxRate,
     total: totals.total,
     issuedDate: now,
     dueDate,
-    notes: `Factura generada automáticamente por aprobación de visado ${visa.applicationNumber || ''}`,
+    notes,
     createdAt: now,
     updatedAt: now
   }
@@ -121,8 +165,12 @@ export function generatePhaseCompletionInvoice(
   clientName: string,
   clientNIF: string,
   clientAddress?: string,
-  projectPEM?: number
+  projectPEM?: number,
+  client?: Client
 ): Partial<Invoice> {
+  const taxRate = getClientTaxRate(client)
+  const paymentDays = getClientPaymentDays(client)
+  
   const baseAmount = projectPEM 
     ? (projectPEM * phaseData.percentage / 100)
     : (10000 * phaseData.percentage / 100)
@@ -133,13 +181,18 @@ export function generatePhaseCompletionInvoice(
     quantity: 1,
     unitPrice: baseAmount,
     totalPrice: baseAmount,
-    taxRate: STANDARD_TAX_RATE,
+    taxRate,
     phaseId: phaseData.phase
   }
   
   const totals = calculateInvoiceTotals([lineItem])
   const now = Date.now()
-  const dueDate = now + (30 * 24 * 60 * 60 * 1000)
+  const dueDate = calculateDueDate(now, paymentDays)
+  
+  let notes = `Factura generada automáticamente al completar la fase: ${phaseData.phaseLabel} (${phaseData.percentage}% del proyecto)`
+  if (client?.earlyPaymentDiscount && client.earlyPaymentDiscount > 0) {
+    notes += `\n\nDescuento por pronto pago: ${client.earlyPaymentDiscount}% si se paga antes del vencimiento.`
+  }
   
   return {
     invoiceNumber: generateInvoiceNumber('phase-payment'),
@@ -152,11 +205,11 @@ export function generatePhaseCompletionInvoice(
     lineItems: [lineItem],
     subtotal: totals.subtotal,
     taxAmount: totals.taxAmount,
-    taxRate: STANDARD_TAX_RATE,
+    taxRate,
     total: totals.total,
     issuedDate: now,
     dueDate,
-    notes: `Factura generada automáticamente al completar la fase: ${phaseData.phaseLabel} (${phaseData.percentage}% del proyecto)`,
+    notes,
     createdAt: now,
     updatedAt: now
   }

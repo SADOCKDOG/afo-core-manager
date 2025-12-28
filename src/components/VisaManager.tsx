@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useKV } from '@github/spark/hooks'
-import { VisaApplication, Project, Invoice, Stakeholder, VISA_STATUS_LABELS, PROFESSIONAL_COLLEGE_LABELS } from '@/lib/types'
+import { VisaApplication, Project, Invoice, Stakeholder, Client, VISA_STATUS_LABELS, PROFESSIONAL_COLLEGE_LABELS } from '@/lib/types'
 import { generateVisaFeeInvoice } from '@/lib/invoice-utils'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
@@ -22,6 +22,7 @@ export function VisaManager({ project }: VisaManagerProps) {
   const [visaApplications, setVisaApplications] = useKV<VisaApplication[]>('visa-applications', [])
   const [invoices, setInvoices] = useKV<Invoice[]>('invoices', [])
   const [stakeholders] = useKV<Stakeholder[]>('stakeholders', [])
+  const [clients] = useKV<Client[]>('clients', [])
   const [selectedVisa, setSelectedVisa] = useState<VisaApplication | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [detailDialogOpen, setDetailDialogOpen] = useState(false)
@@ -89,14 +90,20 @@ export function VisaManager({ project }: VisaManagerProps) {
       return
     }
 
+    const projectClient = (clients || []).find(c => c.id === project.clientId)
+    
     const promotorIds = project.stakeholders || []
     const promotor = (stakeholders || []).find(s => 
       promotorIds.includes(s.id) && s.type === 'promotor'
     )
 
-    if (!promotor) {
-      toast.error('No se encontró un promotor en el proyecto', {
-        description: 'Añade un promotor al proyecto para generar la factura automáticamente'
+    const clientName = projectClient?.razonSocial || projectClient?.nombre || promotor?.name || 'Cliente'
+    const clientNIF = projectClient?.nif || promotor?.nif || ''
+    const clientAddress = projectClient?.direccion || promotor?.address
+
+    if (!clientNIF) {
+      toast.error('No se encontró información del cliente o promotor', {
+        description: 'Añade un cliente al proyecto o un promotor para generar la factura automáticamente'
       })
       return
     }
@@ -104,9 +111,10 @@ export function VisaManager({ project }: VisaManagerProps) {
     const invoiceData = generateVisaFeeInvoice(
       visa,
       project.id,
-      promotor.name,
-      promotor.nif,
-      promotor.address
+      clientName,
+      clientNIF,
+      clientAddress,
+      projectClient
     )
 
     const newInvoice: Invoice = {
