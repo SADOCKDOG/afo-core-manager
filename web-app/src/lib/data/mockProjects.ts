@@ -3,8 +3,10 @@ import { Project } from '../types'
 export const mockProjects: Project[] = [
     {
         id: 'p-001',
+        code: 'EXP-2025-0001',
         title: 'Vivienda Unifamiliar en Seseña',
         client: 'Promociones Seseña',
+        clientId: 'c-001',
         location: 'Seseña, Toledo',
         status: 'active',
         phases: [
@@ -16,8 +18,10 @@ export const mockProjects: Project[] = [
     },
     {
         id: 'p-002',
+        code: 'EXP-2025-0002',
         title: 'Reforma Local Comercial Lavapiés',
         client: 'BCN Retail',
+        clientId: 'c-002',
         location: 'Madrid',
         status: 'on-hold',
         phases: [

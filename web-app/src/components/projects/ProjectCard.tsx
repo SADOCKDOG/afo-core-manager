@@ -1,3 +1,4 @@
+import { mockClients } from '../../lib/data/mockClients'
 import { Project } from '../../lib/types'
 import { VisadoState } from '../../lib/types-extended'
 
@@ -48,7 +49,8 @@ export function ProjectCard({ project, visadoState, onClick }: ProjectCardProps)
             <div className="project-card-header">
                 <div>
                     <h3>{project.title}</h3>
-                    <p className="muted">{project.client} • {project.location}</p>
+                    <p className="muted">{(project.clientId ? mockClients.find(c => c.id === project.clientId)?.name : project.client) || project.client} • {project.location}</p>
+                    {project.code && <div className="pill">{project.code}</div>}
                 </div>
                 <span className={`status-badge ${getStatusColor(project.status)}`}>
                     {project.status}

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -20,9 +20,11 @@ import {
   Blueprint,
   Sparkle,
   CaretDown,
-  CaretUp
+  CaretUp,
+  Robot,
+  Lightning
 } from '@phosphor-icons/react'
-import { DocumentTemplate, TEMPLATE_CATEGORIES, TemplateCategory, TemplateSection } from '@/lib/types'
+import { DocumentTemplate, TEMPLATE_CATEGORIES, TemplateCategory, TemplateSection, Project, Stakeholder } from '@/lib/types'
 import { ARCHITECTURAL_TEMPLATES, getTemplatesByCategory } from '@/lib/document-templates'
 import { AIContentGenerator } from '@/components/AIContentGenerator'
 import { toast } from 'sonner'
@@ -38,13 +40,17 @@ interface DocumentTemplateWithAIProps {
     description?: string
     phase?: string
   }
+  project?: Project
+  stakeholders?: Stakeholder[]
 }
 
 export function DocumentTemplateWithAI({ 
   open, 
   onOpenChange, 
   onSelectTemplate,
-  projectContext 
+  projectContext,
+  project,
+  stakeholders 
 }: DocumentTemplateWithAIProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null)
@@ -54,6 +60,8 @@ export function DocumentTemplateWithAI({
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({})
   const [aiGeneratorOpen, setAiGeneratorOpen] = useState(false)
   const [currentSection, setCurrentSection] = useState<TemplateSection | null>(null)
+  const [isAutoFilling, setIsAutoFilling] = useState(false)
+  const [autoFilledFields, setAutoFilledFields] = useState<Set<string>>(new Set())
 
   const filteredTemplates = getTemplatesByCategory(selectedCategory).filter(template => {
     if (!searchQuery) return true
@@ -64,15 +72,88 @@ export function DocumentTemplateWithAI({
     )
   })
 
+  const autoFillFromProjectData = (template: DocumentTemplate): Record<string, string> => {
+    const fields: Record<string, string> = {}
+    const filled = new Set<string>()
+
+    if (!project) return fields
+
+    const projectStakeholders = stakeholders?.filter(s => project.stakeholders.includes(s.id)) || []
+    const promotor = projectStakeholders.find(s => s.type === 'promotor')
+    const arquitecto = projectStakeholders.find(s => s.type === 'architect')
+
+    template.requiredFields.forEach(field => {
+      switch (field) {
+        case 'promotor':
+          if (promotor) {
+            const name = promotor.razonSocial || `${promotor.name} ${promotor.apellido1 || ''} ${promotor.apellido2 || ''}`.trim()
+            fields[field] = name
+            filled.add(field)
+          }
+          break
+        case 'arquitecto':
+          if (arquitecto) {
+            const name = `${arquitecto.name} ${arquitecto.apellido1 || ''} ${arquitecto.apellido2 || ''}`.trim()
+            const collegiateInfo = arquitecto.collegiateNumber ? ` - Nº Col. ${arquitecto.collegiateNumber}` : ''
+            fields[field] = name + collegiateInfo
+            filled.add(field)
+          }
+          break
+        case 'ubicacion':
+        case 'direccion_obra':
+          if (project.location) {
+            fields[field] = project.location
+            filled.add(field)
+          }
+          break
+        case 'proyecto':
+          if (project.title) {
+            fields[field] = project.title
+            filled.add(field)
+          }
+          break
+        case 'superficie':
+        case 'superficie_util':
+          if (project.description && /\d+\s*m[2²]/.test(project.description)) {
+            const match = project.description.match(/(\d+(?:\.\d+)?)\s*m[2²]/)
+            if (match) {
+              fields[field] = match[1]
+              filled.add(field)
+            }
+          }
+          break
+        case 'uso':
+          if (project.description) {
+            const lowerDesc = project.description.toLowerCase()
+            if (lowerDesc.includes('vivienda')) fields[field] = 'Residencial Vivienda'
+            else if (lowerDesc.includes('comercial')) fields[field] = 'Comercial'
+            else if (lowerDesc.includes('oficina')) fields[field] = 'Administrativo'
+            else if (lowerDesc.includes('docente') || lowerDesc.includes('escuela')) fields[field] = 'Docente'
+            if (fields[field]) filled.add(field)
+          }
+          break
+        default:
+          fields[field] = ''
+      }
+    })
+
+    setAutoFilledFields(filled)
+    return fields
+  }
+
   const handleTemplateSelect = (template: DocumentTemplate) => {
     setSelectedTemplate(template)
-    const initialFields: Record<string, string> = {}
-    template.requiredFields.forEach(field => {
-      initialFields[field] = ''
-    })
-    setCustomFields(initialFields)
+    const autoFilledFields = autoFillFromProjectData(template)
+    setCustomFields(autoFilledFields)
     setCustomSections({})
     setExpandedSections({})
+    
+    const filledCount = Object.values(autoFilledFields).filter(v => v.trim()).length
+    if (filledCount > 0) {
+      toast.success(`${filledCount} campo${filledCount > 1 ? 's' : ''} auto-completado${filledCount > 1 ? 's' : ''} desde datos del proyecto`, {
+        description: 'Los campos restantes pueden completarse manualmente o con IA'
+      })
+    }
   }
 
   const handleBack = () => {
@@ -97,6 +178,79 @@ export function DocumentTemplateWithAI({
   const handleGenerateAI = (section: TemplateSection) => {
     setCurrentSection(section)
     setAiGeneratorOpen(true)
+  }
+
+  const handleAISmartFill = async () => {
+    if (!selectedTemplate || !project) return
+
+    setIsAutoFilling(true)
+    const emptyFields = selectedTemplate.requiredFields.filter(field => !customFields[field]?.trim())
+
+    if (emptyFields.length === 0) {
+      toast.info('Todos los campos ya están completados')
+      setIsAutoFilling(false)
+      return
+    }
+
+    try {
+      const projectContext = {
+        title: project.title,
+        location: project.location,
+        description: project.description,
+        phases: project.phases.map(p => p.phase).join(', '),
+        stakeholders: stakeholders?.filter(s => project.stakeholders.includes(s.id)).map(s => ({
+          type: s.type,
+          name: s.razonSocial || `${s.name} ${s.apellido1 || ''}`.trim(),
+          nif: s.nif
+        }))
+      }
+
+      const promptText = `Eres un asistente para arquitectos españoles. Basándote en los datos del proyecto, genera valores apropiados para los siguientes campos de una plantilla de documento arquitectónico.
+
+Datos del proyecto:
+- Título: ${projectContext.title}
+- Ubicación: ${projectContext.location}
+- Descripción: ${projectContext.description || 'No especificada'}
+- Fases: ${projectContext.phases}
+
+Campos a completar: ${emptyFields.join(', ')}
+
+Para cada campo, proporciona un valor profesional y apropiado basado en los datos del proyecto. Si un valor no puede deducirse, proporciona un placeholder descriptivo.
+
+IMPORTANTE: Devuelve SOLO un objeto JSON con los nombres de los campos como claves y los valores sugeridos. No incluyas explicaciones adicionales.
+
+Ejemplo de formato:
+{
+  "zona_climatica": "D3 (Toledo)",
+  "constructor": "[Por determinar - A asignar en fase de licitación]",
+  "escala": "1:100"
+}`
+
+      const result = await spark.llm(promptText, 'gpt-4o', true)
+      const suggestedValues = JSON.parse(result)
+
+      const newFields = { ...customFields }
+      let filledCount = 0
+
+      emptyFields.forEach(field => {
+        if (suggestedValues[field]) {
+          newFields[field] = suggestedValues[field]
+          filledCount++
+        }
+      })
+
+      setCustomFields(newFields)
+      toast.success(`${filledCount} campo${filledCount > 1 ? 's' : ''} completado${filledCount > 1 ? 's' : ''} con IA`, {
+        description: 'Revise y ajuste los valores sugeridos según sea necesario'
+      })
+    } catch (error) {
+      console.error('Error in AI smart fill:', error)
+      toast.error('Error al generar sugerencias con IA', {
+        description: 'Por favor, complete los campos manualmente'
+      })
+    } finally {
+      setIsAutoFilling(false)
+    }
   }
 
   const handleAIContentGenerated = (content: string) => {
@@ -275,21 +429,59 @@ export function DocumentTemplateWithAI({
               <ScrollArea className="h-[550px] px-6">
                 <div className="space-y-6 pb-6 pt-4">
                   <div>
-                    <h3 className="font-semibold mb-3 flex items-center gap-2">
-                      <Check size={18} className="text-primary" />
-                      Campos Obligatorios
-                    </h3>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-semibold flex items-center gap-2">
+                        <Check size={18} className="text-primary" />
+                        Campos Obligatorios
+                        {autoFilledFields.size > 0 && (
+                          <Badge variant="secondary" className="text-xs">
+                            <Lightning size={12} weight="fill" className="mr-1" />
+                            {autoFilledFields.size} auto-completado{autoFilledFields.size !== 1 ? 's' : ''}
+                          </Badge>
+                        )}
+                      </h3>
+                      <Button
+                        onClick={handleAISmartFill}
+                        disabled={isAutoFilling || !project}
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                      >
+                        {isAutoFilling ? (
+                          <>
+                            <Sparkle size={14} weight="fill" className="animate-pulse" />
+                            Completando...
+                          </>
+                        ) : (
+                          <>
+                            <Robot size={14} weight="duotone" />
+                            Completar con IA
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    {!project && (
+                      <div className="mb-4 p-3 rounded-lg bg-muted/50 border border-dashed">
+                        <p className="text-sm text-muted-foreground">
+                          💡 Para auto-completar campos automáticamente, abra las plantillas desde un proyecto específico
+                        </p>
+                      </div>
+                    )}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {selectedTemplate.requiredFields.map((field) => (
                         <div key={field} className="space-y-2">
-                          <Label htmlFor={field}>
+                          <Label htmlFor={field} className="flex items-center gap-2">
                             {fieldLabels[field] || field} *
+                            {autoFilledFields.has(field) && (
+                              <Lightning size={12} weight="fill" className="text-accent" />
+                            )}
                           </Label>
                           <Input
                             id={field}
                             value={customFields[field] || ''}
                             onChange={(e) => handleFieldChange(field, e.target.value)}
                             placeholder={`Ingrese ${fieldLabels[field]?.toLowerCase() || field}`}
+                            className={autoFilledFields.has(field) ? 'border-accent/50' : ''}
                           />
                         </div>
                       ))}

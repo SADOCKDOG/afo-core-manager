@@ -4,6 +4,7 @@ export const navItems = [
     { path: '/normativa', label: 'Normativa' },
     { path: '/documentos', label: 'Documentos' },
     { path: '/finanzas', label: 'Finanzas' },
+    { path: '/clientes', label: 'Clientes' },
     { path: '/afo', label: 'Checklist AFO' },
     { path: '/cte-wizard', label: 'Asistente CTE' },
     { path: '/visado', label: 'Visado Colegial' },

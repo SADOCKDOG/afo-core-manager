@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useKV } from '@github/spark/hooks'
-import { Document, Project, FOLDER_STRUCTURES, DOCUMENT_TYPE_LABELS, DocumentTemplate } from '@/lib/types'
+import { Document, Project, FOLDER_STRUCTURES, DOCUMENT_TYPE_LABELS, DocumentTemplate, Stakeholder } from '@/lib/types'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -34,10 +34,11 @@ import { PHASE_LABELS } from '@/lib/types'
 
 interface DocumentManagerProps {
   project: Project
+  stakeholders?: Stakeholder[]
   onProjectUpdate: (project: Partial<Project>) => void
 }
 
-export function DocumentManager({ project, onProjectUpdate }: DocumentManagerProps) {
+export function DocumentManager({ project, stakeholders, onProjectUpdate }: DocumentManagerProps) {
   const [documents, setDocuments] = useKV<Document[]>('documents', [])
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [bulkUploadOpen, setBulkUploadOpen] = useState(false)
@@ -684,6 +685,8 @@ export function DocumentManager({ project, onProjectUpdate }: DocumentManagerPro
         open={templateDialogOpen}
         onOpenChange={setTemplateDialogOpen}
         onSelectTemplate={handleTemplateSelect}
+        project={project}
+        stakeholders={stakeholders}
         projectContext={{
           title: project.title,
           location: project.location,

@@ -10,12 +10,24 @@ export interface ProjectPhaseData {
 
 export interface Project {
     id: string
+    code?: string
     title: string
     client: string
+    clientId?: string
     location: string
     status: ProjectStatus
     phases: ProjectPhaseData[]
     nextMilestone?: string
+}
+
+export interface Client {
+    id: string
+    code?: string
+    name: string
+    email?: string
+    phone?: string
+    nif?: string
+    address?: string
 }
 
 export interface ComplianceRequirement {

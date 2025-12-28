@@ -4,6 +4,7 @@ import { AFOChecklistPage } from './pages/AFOChecklist'
 import { BC3ImportPage } from './pages/BC3Import'
 import { BillingManagerPage } from './pages/BillingManager'
 import { BudgetManagerPage } from './pages/BudgetManager'
+import { ClientesPage } from './pages/Clientes'
 import { ComplianceWizardPage } from './pages/ComplianceWizard'
 import { DashboardPage } from './pages/Dashboard'
 import { DocumentosPage } from './pages/Documentos'
@@ -25,6 +26,7 @@ export default function App() {
                 <Route path="/normativa" element={<NormativaPage />} />
                 <Route path="/documentos" element={<DocumentosPage />} />
                 <Route path="/finanzas" element={<FinanzasPage />} />
+                <Route path="/clientes" element={<ClientesPage />} />
                 <Route path="/afo" element={<AFOChecklistPage />} />
                 <Route path="/cte-wizard" element={<ComplianceWizardPage />} />
                 <Route path="/visado" element={<VisaManagerPage />} />

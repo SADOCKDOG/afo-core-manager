@@ -282,6 +282,7 @@ export function ProjectDetail({ project, stakeholders, onBack, onEdit, onUpdateP
         <TabsContent value="documents" className="mt-6">
           <DocumentManager 
             project={project} 
+            stakeholders={stakeholders}
             onProjectUpdate={onProjectUpdate}
           />
         </TabsContent>
