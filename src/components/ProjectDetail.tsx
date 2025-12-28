@@ -277,7 +277,7 @@ export function ProjectDetail({ project, stakeholders, onBack, onEdit, onUpdateP
         </TabsContent>
 
         <TabsContent value="compliance" className="mt-6">
-          <ComplianceChecklistView project={project} onBack={() => setActiveTab('overview')} />
+          <ComplianceChecklistView project={project} stakeholders={stakeholders} onBack={() => setActiveTab('overview')} />
         </TabsContent>
       </Tabs>
     </motion.div>

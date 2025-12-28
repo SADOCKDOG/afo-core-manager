@@ -20,18 +20,21 @@ import {
   XCircle,
   Clock,
   Warning,
-  ChartBar
+  ChartBar,
+  PaperPlaneRight
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
-import { Project, ComplianceCheck } from '@/lib/types'
+import { Project, ComplianceCheck, Stakeholder } from '@/lib/types'
 import { marked } from 'marked'
 import { motion } from 'framer-motion'
+import { ComplianceReportEmailDialog } from './ComplianceReportEmailDialog'
 
 interface ComplianceReportGeneratorProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   project: Project
   checks: ComplianceCheck[]
+  stakeholders?: Stakeholder[]
 }
 
 interface ComplianceReport {
@@ -56,12 +59,14 @@ export function ComplianceReportGenerator({
   open,
   onOpenChange,
   project,
-  checks
+  checks,
+  stakeholders = []
 }: ComplianceReportGeneratorProps) {
   const [reports, setReports] = useKV<ComplianceReport[]>('compliance-reports', [])
   const [currentReport, setCurrentReport] = useState<ComplianceReport | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [activeTab, setActiveTab] = useState<'preview' | 'history'>('preview')
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false)
 
   const projectReports = (reports || []).filter(r => r.projectId === project.id)
 
@@ -178,15 +183,26 @@ export function ComplianceReportGenerator({
                           Generado el {new Date(currentReport.generatedAt).toLocaleString('es-ES')}
                         </CardDescription>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2"
-                        onClick={() => handleDownloadReport(currentReport)}
-                      >
-                        <Download size={16} />
-                        Descargar
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-2"
+                          onClick={() => setEmailDialogOpen(true)}
+                        >
+                          <PaperPlaneRight size={16} />
+                          Enviar
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-2"
+                          onClick={() => handleDownloadReport(currentReport)}
+                        >
+                          <Download size={16} />
+                          Descargar
+                        </Button>
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -400,6 +416,16 @@ export function ComplianceReportGenerator({
           </TabsContent>
         </Tabs>
       </DialogContent>
+
+      {currentReport && (
+        <ComplianceReportEmailDialog
+          open={emailDialogOpen}
+          onOpenChange={setEmailDialogOpen}
+          report={currentReport}
+          project={project}
+          stakeholders={stakeholders}
+        />
+      )}
     </Dialog>
   )
 }

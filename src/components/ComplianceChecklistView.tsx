@@ -11,6 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { ComplianceGeneratorDialog } from './ComplianceGeneratorDialog'
+import { ComplianceReportGenerator } from './ComplianceReportGenerator'
 import { MunicipalComplianceManager } from './MunicipalComplianceManager'
 import { generateComplianceChecksForProject, COMPLIANCE_CATEGORIES } from '@/lib/compliance-data'
 import { Municipality, EXAMPLE_MUNICIPALITIES, getMunicipalRequirementsForProject } from '@/lib/municipal-compliance'
@@ -25,20 +26,24 @@ import {
   FunnelSimple,
   Download,
   ArrowLeft,
-  MapPin
+  MapPin,
+  FileText
 } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
+import { Stakeholder } from '@/lib/types'
 
 interface ComplianceChecklistViewProps {
   project: Project
+  stakeholders: Stakeholder[]
   onBack: () => void
 }
 
-export function ComplianceChecklistView({ project, onBack }: ComplianceChecklistViewProps) {
+export function ComplianceChecklistView({ project, stakeholders, onBack }: ComplianceChecklistViewProps) {
   const [checklists, setChecklists] = useKV<Record<string, ComplianceChecklist>>('compliance-checklists', {})
   const [municipalities] = useKV<Municipality[]>('municipalities', EXAMPLE_MUNICIPALITIES)
   const [generatorOpen, setGeneratorOpen] = useState(false)
+  const [reportGeneratorOpen, setReportGeneratorOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [priorityFilter, setPriorityFilter] = useState<'all' | 'high' | 'medium' | 'low'>('all')
@@ -409,6 +414,15 @@ export function ComplianceChecklistView({ project, onBack }: ComplianceChecklist
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <Button 
+            variant="default" 
+            onClick={() => setReportGeneratorOpen(true)} 
+            className="gap-2"
+            disabled={!currentChecklist || currentChecklist.checks.length === 0}
+          >
+            <FileText size={18} weight="duotone" />
+            Generar Informe
+          </Button>
           <Button variant="outline" onClick={exportChecklist} className="gap-2">
             <Download size={18} />
             Exportar CSV
@@ -640,6 +654,14 @@ export function ComplianceChecklistView({ project, onBack }: ComplianceChecklist
           )}
         </TabsContent>
       </Tabs>
+
+      <ComplianceReportGenerator
+        open={reportGeneratorOpen}
+        onOpenChange={setReportGeneratorOpen}
+        project={project}
+        checks={currentChecklist.checks}
+        stakeholders={stakeholders}
+      />
     </div>
   )
 }
