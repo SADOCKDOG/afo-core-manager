@@ -13,7 +13,8 @@ import { VisaManager } from '@/components/VisaManager'
 import { InvoiceManager } from '@/components/InvoiceManager'
 import { EmailConfigDialog } from '@/components/EmailConfigDialog'
 import { EmailLogsDialog } from '@/components/EmailLogsDialog'
-import { Plus, Buildings, Users, BookOpen, Gear, EnvelopeSimple, ClockCounterClockwise } from '@phosphor-icons/react'
+import { ProjectImportDialog } from '@/components/ProjectImportDialog'
+import { Plus, Buildings, Users, BookOpen, Gear, EnvelopeSimple, ClockCounterClockwise, Upload } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
 import { Toaster, toast } from 'sonner'
 import { useEmailConfig } from '@/lib/email-service'
@@ -32,6 +33,7 @@ function App() {
   const [stakeholderDialogOpen, setStakeholderDialogOpen] = useState(false)
   const [emailConfigDialogOpen, setEmailConfigDialogOpen] = useState(false)
   const [emailLogsDialogOpen, setEmailLogsDialogOpen] = useState(false)
+  const [projectImportDialogOpen, setProjectImportDialogOpen] = useState(false)
   const [editingProject, setEditingProject] = useState<Project | undefined>()
 
   const filteredProjects = (projects || []).filter(project => {
@@ -80,6 +82,28 @@ function App() {
     if (projectData.id) {
       toast.success('Proyecto actualizado correctamente')
     }
+  }
+
+  const handleImportComplete = (importData: {
+    title: string
+    location: string
+    folderStructure: any
+    documents: any[]
+  }) => {
+    const newProject: Project = {
+      id: Date.now().toString(),
+      title: importData.title,
+      location: importData.location,
+      status: 'active',
+      phases: [],
+      stakeholders: [],
+      folderStructure: importData.folderStructure,
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    }
+
+    setProjects(currentProjects => [...(currentProjects || []), newProject])
+    toast.success(`Proyecto "${importData.title}" importado con ${importData.documents.length} documentos`)
   }
 
   const handleSaveStakeholder = (stakeholderData: Partial<Stakeholder>) => {
@@ -199,6 +223,14 @@ function App() {
                   Intervinientes
                 </Button>
                 <Button
+                  variant="outline"
+                  className="gap-2"
+                  onClick={() => setProjectImportDialogOpen(true)}
+                >
+                  <Upload size={18} weight="duotone" />
+                  Importar Proyecto
+                </Button>
+                <Button
                   className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 shadow-md hover:shadow-lg transition-all"
                   onClick={() => {
                     setEditingProject(undefined)
@@ -278,17 +310,28 @@ function App() {
                   Centralice la gestión de sus proyectos arquitectónicos, desde la concepción hasta la entrega final.
                   Comience creando su primer proyecto.
                 </p>
-                <Button
-                  size="lg"
-                  className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg hover:shadow-xl transition-all"
-                  onClick={() => {
-                    setEditingProject(undefined)
-                    setProjectDialogOpen(true)
-                  }}
-                >
-                  <Plus size={20} weight="bold" />
-                  Crear Primer Proyecto
-                </Button>
+                <div className="flex gap-3">
+                  <Button
+                    size="lg"
+                    className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg hover:shadow-xl transition-all"
+                    onClick={() => {
+                      setEditingProject(undefined)
+                      setProjectDialogOpen(true)
+                    }}
+                  >
+                    <Plus size={20} weight="bold" />
+                    Crear Primer Proyecto
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="gap-2 shadow-md hover:shadow-lg transition-all"
+                    onClick={() => setProjectImportDialogOpen(true)}
+                  >
+                    <Upload size={20} weight="duotone" />
+                    Importar Proyecto Existente
+                  </Button>
+                </div>
 
                 <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
                   <div className="p-6 rounded-lg border bg-card shadow-md hover:shadow-lg transition-shadow">
@@ -357,6 +400,12 @@ function App() {
       <EmailLogsDialog
         open={emailLogsDialogOpen}
         onOpenChange={setEmailLogsDialogOpen}
+      />
+
+      <ProjectImportDialog
+        open={projectImportDialogOpen}
+        onOpenChange={setProjectImportDialogOpen}
+        onImportComplete={handleImportComplete}
       />
     </div>
   )
