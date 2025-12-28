@@ -144,22 +144,24 @@ This MVP focuses on core project management functionality with client tracking, 
 
 ## Design Direction
 
-The design should evoke **authority, precision, and modernism** - reflecting the architectural profession itself. Think clean lines, structured layouts, and a sophisticated color palette that feels technical yet approachable. The interface should feel like a tool built by architects, for architects - respecting the craft while embracing contemporary digital design.
+The design should evoke **authority, precision, and technical sophistication** - reflecting the architectural profession itself with a modern dark theme. Think clean lines, structured layouts, and a sophisticated dark color palette that feels technical, professional, and reduces eye strain during long work sessions. The interface should feel like a premium tool built by architects, for architects - respecting the craft while embracing contemporary digital design trends favored by technical professionals.
 
 ## Color Selection
 
-A technical, professional palette with warm architectural accents inspired by materials and technical drawings.
+A professional dark theme with technical blue accents and warm architectural highlights, designed for extended use and visual comfort.
 
-- **Primary Color**: Deep Architectural Blue `oklch(0.35 0.08 250)` - Conveys trust, professionalism, and technical expertise, reminiscent of blueprint blue
+- **Primary Color**: Technical Blue `oklch(0.45 0.12 250)` - A sophisticated blue that conveys technical expertise and professionalism against dark backgrounds, inspired by technical blueprints
 - **Secondary Colors**: 
-  - Warm Concrete Gray `oklch(0.65 0.01 70)` - Supporting backgrounds and dividers, evoking building materials
-  - Slate Dark `oklch(0.25 0.02 250)` - Text and strong contrast elements
-- **Accent Color**: Terracotta Accent `oklch(0.65 0.15 40)` - Attention for CTAs and important status indicators, warm material reference
+  - Deep Slate Background `oklch(0.15 0.02 250)` - Main background color providing excellent contrast and reduced eye strain
+  - Elevated Card Surface `oklch(0.18 0.02 250)` - Slightly lighter surface for cards and elevated elements
+  - Muted Surface `oklch(0.22 0.02 250)` - For secondary backgrounds and subtle differentiation
+- **Accent Color**: Warm Terracotta `oklch(0.65 0.15 40)` - Attention-grabbing warm accent for CTAs and important actions, providing material warmth against cool technical palette
 - **Foreground/Background Pairings**:
-  - Background (Soft White `oklch(0.98 0 0)`): Slate Dark text `oklch(0.25 0.02 250)` - Ratio 12.8:1 ✓
-  - Primary (Architectural Blue `oklch(0.35 0.08 250)`): White text `oklch(1 0 0)` - Ratio 8.2:1 ✓
-  - Accent (Terracotta `oklch(0.65 0.15 40)`): Slate Dark text `oklch(0.25 0.02 250)` - Ratio 4.9:1 ✓
-  - Muted (Light Gray `oklch(0.95 0.005 70)`): Medium Gray text `oklch(0.55 0.01 250)` - Ratio 5.1:1 ✓
+  - Background (Deep Slate `oklch(0.15 0.02 250)`): Light Gray text `oklch(0.95 0.01 70)` - Ratio 14.2:1 ✓
+  - Primary (Technical Blue `oklch(0.45 0.12 250)`): Light text `oklch(0.98 0.005 70)` - Ratio 9.1:1 ✓
+  - Accent (Terracotta `oklch(0.65 0.15 40)`): Dark Slate text `oklch(0.15 0.02 250)` - Ratio 11.8:1 ✓
+  - Card (Elevated Surface `oklch(0.18 0.02 250)`): Light Gray text `oklch(0.95 0.01 70)` - Ratio 12.9:1 ✓
+  - Muted text `oklch(0.60 0.01 250)` on Background: Ratio 5.2:1 ✓
 
 ## Font Selection
 
@@ -178,13 +180,15 @@ Typography should balance technical precision with contemporary professionalism 
 
 ## Animations
 
-Animations should feel **precise and purposeful** - like the movement of drafting tools or the satisfying click of a mechanical pencil. Use subtle, snappy transitions that reinforce actions without distracting. Key moments:
+Animations should feel **precise, purposeful, and technically refined** - like the satisfying movement of precision drafting tools or the smooth operation of mechanical instruments. Use subtle, confident transitions that reinforce actions and hierarchy without distracting from content. The dark theme enhances the perception of depth and layering through strategic use of shadows and elevation changes. Key moments:
 
-- **Project Creation**: Smooth slide-in of the form modal with backdrop blur (300ms ease-out)
-- **Phase Completion**: Satisfying check animation with subtle spring physics when marking phases complete
-- **Dashboard Loading**: Skeleton screens that transform into content, cards fade-up sequentially with 50ms stagger
-- **Hover States**: Micro-elevation change on cards (subtle shadow transition 200ms)
-- **Status Changes**: Color transition with gentle pulse to draw attention to state changes
+- **Project Creation**: Smooth slide-in of form modal with subtle backdrop blur and elevation shadow (300ms ease-out)
+- **Phase Completion**: Satisfying check animation with subtle glow effect and spring physics when marking phases complete
+- **Dashboard Loading**: Skeleton screens with shimmer effect that transform into content, cards fade-up sequentially with 50ms stagger
+- **Hover States**: Elevation change on cards with enhanced shadow depth and subtle border glow (200ms transition)
+- **Status Changes**: Smooth color transition with gentle pulse and subtle glow to draw attention to state changes
+- **Element Focus**: Subtle ring glow effect in primary color for focused interactive elements
+- **Card Interactions**: Micro-lift effect (translateY) combined with shadow depth increase on hover
 
 ## Component Selection
 
@@ -208,10 +212,10 @@ Animations should feel **precise and purposeful** - like the movement of draftin
 - Quick Action toolbar with frequently-used operations
 
 **States**:
-- Buttons: Rest with subtle shadow → Hover with elevation increase → Active with pressed effect → Disabled with 50% opacity
-- Cards: Rest flat → Hover elevated with border accent → Selected with persistent accent border
-- Inputs: Default with light border → Focus with primary color ring → Error with red accent and message → Success with green check
-- Badges: Color-coded by status (Pending: gray, In Progress: blue, Completed: green, Archived: muted)
+- Buttons: Rest with subtle shadow → Hover with elevation increase and glow → Active with pressed effect and reduced shadow → Disabled with 40% opacity
+- Cards: Rest with medium shadow → Hover elevated with enhanced shadow and primary border glow → Selected with persistent primary border and glow
+- Inputs: Default with subtle border → Focus with primary color ring glow → Error with destructive accent and message → Success with green check and subtle glow
+- Badges: Color-coded by status with appropriate contrast (Pending: muted, In Progress: primary, Completed: success green, Archived: muted gray)
 
 **Icon Selection**:
 - Projects: Folder, Buildings

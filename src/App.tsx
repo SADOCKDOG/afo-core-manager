@@ -150,11 +150,11 @@ function App() {
     <div className="min-h-screen bg-background">
       <Toaster position="top-right" />
       
-      <header className="border-b bg-card sticky top-0 z-10 backdrop-blur-sm bg-card/95">
+      <header className="border-b bg-card/95 sticky top-0 z-10 backdrop-blur-sm shadow-lg">
         <div className="container mx-auto px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary text-primary-foreground">
+              <div className="p-2 rounded-lg bg-primary/20 text-primary ring-1 ring-primary/30">
                 <Buildings size={28} weight="duotone" />
               </div>
               <div>
@@ -178,7 +178,7 @@ function App() {
                   size="icon"
                   onClick={() => setEmailConfigDialogOpen(true)}
                   title={isConfigured ? "Configuración de email" : "Configurar servicio de email"}
-                  className={!isConfigured ? "border-primary/50 bg-primary/5" : ""}
+                  className={!isConfigured ? "border-primary/50 bg-primary/10 text-primary" : ""}
                 >
                   {isConfigured ? (
                     <EnvelopeSimple size={20} weight="duotone" />
@@ -199,7 +199,7 @@ function App() {
                   Intervinientes
                 </Button>
                 <Button
-                  className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90"
+                  className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 shadow-md hover:shadow-lg transition-all"
                   onClick={() => {
                     setEditingProject(undefined)
                     setProjectDialogOpen(true)
@@ -270,7 +270,7 @@ function App() {
                 animate={{ opacity: 1, y: 0 }}
                 className="text-center py-20"
               >
-                <div className="inline-flex p-6 rounded-full bg-primary/10 mb-6">
+                <div className="inline-flex p-6 rounded-2xl bg-primary/20 mb-6 ring-1 ring-primary/30">
                   <Buildings size={64} className="text-primary" weight="duotone" />
                 </div>
                 <h2 className="text-3xl font-bold mb-3">Bienvenido a AFO CORE MANAGER</h2>
@@ -280,7 +280,7 @@ function App() {
                 </p>
                 <Button
                   size="lg"
-                  className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90"
+                  className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg hover:shadow-xl transition-all"
                   onClick={() => {
                     setEditingProject(undefined)
                     setProjectDialogOpen(true)
@@ -291,8 +291,8 @@ function App() {
                 </Button>
 
                 <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-                  <div className="p-6 rounded-lg border bg-card">
-                    <div className="inline-flex p-3 rounded-lg bg-primary/10 text-primary mb-4">
+                  <div className="p-6 rounded-lg border bg-card shadow-md hover:shadow-lg transition-shadow">
+                    <div className="inline-flex p-3 rounded-lg bg-primary/20 text-primary mb-4 ring-1 ring-primary/30">
                       <Buildings size={24} weight="duotone" />
                     </div>
                     <h3 className="font-semibold mb-2">Gestión de Proyectos</h3>
@@ -300,8 +300,8 @@ function App() {
                       Organice fases, intervinientes y documentación de forma centralizada
                     </p>
                   </div>
-                  <div className="p-6 rounded-lg border bg-card">
-                    <div className="inline-flex p-3 rounded-lg bg-primary/10 text-primary mb-4">
+                  <div className="p-6 rounded-lg border bg-card shadow-md hover:shadow-lg transition-shadow">
+                    <div className="inline-flex p-3 rounded-lg bg-primary/20 text-primary mb-4 ring-1 ring-primary/30">
                       <Users size={24} weight="duotone" />
                     </div>
                     <h3 className="font-semibold mb-2">Registro de Intervinientes</h3>
@@ -309,8 +309,8 @@ function App() {
                       Mantenga información de clientes, arquitectos y técnicos reutilizable
                     </p>
                   </div>
-                  <div className="p-6 rounded-lg border bg-card">
-                    <div className="inline-flex p-3 rounded-lg bg-primary/10 text-primary mb-4">
+                  <div className="p-6 rounded-lg border bg-card shadow-md hover:shadow-lg transition-shadow">
+                    <div className="inline-flex p-3 rounded-lg bg-primary/20 text-primary mb-4 ring-1 ring-primary/30">
                       <BookOpen size={24} weight="duotone" />
                     </div>
                     <h3 className="font-semibold mb-2">Normativa Integrada</h3>

@@ -38,13 +38,13 @@ export function ProjectCard({ project, onClick, index }: ProjectCardProps) {
       transition={{ duration: 0.3, delay: index * 0.05 }}
     >
       <Card 
-        className="cursor-pointer transition-all duration-200 hover:shadow-lg hover:border-accent/50 group"
+        className="cursor-pointer transition-all duration-200 hover:shadow-xl hover:border-primary/50 group bg-card shadow-md"
         onClick={onClick}
       >
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3 flex-1 min-w-0">
-              <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+              <div className="p-2 rounded-lg bg-primary/20 text-primary shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-all ring-1 ring-primary/30">
                 <Buildings size={20} weight="duotone" />
               </div>
               <div className="flex-1 min-w-0">
