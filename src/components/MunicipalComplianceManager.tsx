@@ -204,12 +204,12 @@ export function MunicipalComplianceManager({ projectId, onSelectMunicipality }: 
                     className="pl-10"
                   />
                 </div>
-                <Select value={selectedProvince} onValueChange={setSelectedProvince}>
+                <Select value={selectedProvince || "_all"} onValueChange={(value) => setSelectedProvince(value === '_all' ? '' : value)}>
                   <SelectTrigger className="w-[200px]">
                     <SelectValue placeholder="Provincia" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas las provincias</SelectItem>
+                    <SelectItem value="_all">Todas las provincias</SelectItem>
                     {SPANISH_PROVINCES.map(province => (
                       <SelectItem key={province} value={province}>{province}</SelectItem>
                     ))}

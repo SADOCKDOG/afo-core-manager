@@ -134,11 +134,12 @@ export function ComplianceGeneratorDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="climate-zone">Zona Climática</Label>
-              <Select value={climateZone} onValueChange={setClimateZone}>
+              <Select value={climateZone || "_none"} onValueChange={(value) => setClimateZone(value === '_none' ? '' : value)}>
                 <SelectTrigger id="climate-zone">
                   <SelectValue placeholder="Seleccionar zona climática" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="_none">Sin especificar</SelectItem>
                   {CLIMATE_ZONES.map(zone => (
                     <SelectItem key={zone.value} value={zone.value}>
                       {zone.label}
@@ -151,12 +152,12 @@ export function ComplianceGeneratorDialog({
 
             <div className="space-y-2">
               <Label htmlFor="municipality">Municipio</Label>
-              <Select value={municipalityId || undefined} onValueChange={(value) => setMunicipalityId(value === 'none' ? '' : value)}>
+              <Select value={municipalityId || "_none"} onValueChange={(value) => setMunicipalityId(value === '_none' ? '' : value)}>
                 <SelectTrigger id="municipality">
                   <SelectValue placeholder="Sin municipio específico" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Ninguno</SelectItem>
+                  <SelectItem value="_none">Ninguno</SelectItem>
                   {(municipalities || []).map(municipality => (
                     <SelectItem key={municipality.id} value={municipality.id}>
                       {municipality.name} ({municipality.province})
