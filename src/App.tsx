@@ -14,7 +14,8 @@ import { InvoiceManager } from '@/components/InvoiceManager'
 import { EmailConfigDialog } from '@/components/EmailConfigDialog'
 import { EmailLogsDialog } from '@/components/EmailLogsDialog'
 import { ProjectImportDialog } from '@/components/ProjectImportDialog'
-import { Plus, Buildings, Users, BookOpen, Gear, EnvelopeSimple, ClockCounterClockwise, Upload } from '@phosphor-icons/react'
+import { BulkProjectImportDialog } from '@/components/BulkProjectImportDialog'
+import { Plus, Buildings, Users, BookOpen, Gear, EnvelopeSimple, ClockCounterClockwise, Upload, FolderOpen } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
 import { Toaster, toast } from 'sonner'
 import { useEmailConfig } from '@/lib/email-service'
@@ -34,6 +35,7 @@ function App() {
   const [emailConfigDialogOpen, setEmailConfigDialogOpen] = useState(false)
   const [emailLogsDialogOpen, setEmailLogsDialogOpen] = useState(false)
   const [projectImportDialogOpen, setProjectImportDialogOpen] = useState(false)
+  const [bulkProjectImportDialogOpen, setBulkProjectImportDialogOpen] = useState(false)
   const [editingProject, setEditingProject] = useState<Project | undefined>()
 
   const filteredProjects = (projects || []).filter(project => {
@@ -104,6 +106,27 @@ function App() {
 
     setProjects(currentProjects => [...(currentProjects || []), newProject])
     toast.success(`Proyecto "${importData.title}" importado con ${importData.documents.length} documentos`)
+  }
+
+  const handleBulkImportComplete = (importedProjects: Array<{
+    title: string
+    location: string
+    folderStructure: any
+    documents: any[]
+  }>) => {
+    const newProjects: Project[] = importedProjects.map(importData => ({
+      id: `${Date.now()}-${Math.random()}`,
+      title: importData.title,
+      location: importData.location,
+      status: 'active',
+      phases: [],
+      stakeholders: [],
+      folderStructure: importData.folderStructure,
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    }))
+
+    setProjects(currentProjects => [...(currentProjects || []), ...newProjects])
   }
 
   const handleSaveStakeholder = (stakeholderData: Partial<Stakeholder>) => {
@@ -231,6 +254,14 @@ function App() {
                   Importar Proyecto
                 </Button>
                 <Button
+                  variant="outline"
+                  className="gap-2"
+                  onClick={() => setBulkProjectImportDialogOpen(true)}
+                >
+                  <FolderOpen size={18} weight="duotone" />
+                  Importación Múltiple
+                </Button>
+                <Button
                   className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 shadow-md hover:shadow-lg transition-all"
                   onClick={() => {
                     setEditingProject(undefined)
@@ -329,7 +360,16 @@ function App() {
                     onClick={() => setProjectImportDialogOpen(true)}
                   >
                     <Upload size={20} weight="duotone" />
-                    Importar Proyecto Existente
+                    Importar Proyecto
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="gap-2 shadow-md hover:shadow-lg transition-all"
+                    onClick={() => setBulkProjectImportDialogOpen(true)}
+                  >
+                    <FolderOpen size={20} weight="duotone" />
+                    Importación Múltiple
                   </Button>
                 </div>
 
@@ -406,6 +446,12 @@ function App() {
         open={projectImportDialogOpen}
         onOpenChange={setProjectImportDialogOpen}
         onImportComplete={handleImportComplete}
+      />
+
+      <BulkProjectImportDialog
+        open={bulkProjectImportDialogOpen}
+        onOpenChange={setBulkProjectImportDialogOpen}
+        onImportComplete={handleBulkImportComplete}
       />
     </div>
   )
