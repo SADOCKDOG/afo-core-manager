@@ -424,3 +424,18 @@ function calculateNextSendTime(schedule: EmailSchedule): number {
   
   return now.getTime() + 24 * 60 * 60 * 1000
 }
+
+export async function sendEmailReminder(to: string, subject: string, body: string): Promise<void> {
+  if (!emailService.isConfigured()) {
+    throw new Error('El servicio de email no está configurado')
+  }
+
+  const htmlBody = body.replace(/\n/g, '<br>')
+
+  await emailService.sendEmail({
+    to: [{ email: to }],
+    subject,
+    html: `<div style="font-family: sans-serif; line-height: 1.6;">${htmlBody}</div>`,
+    text: body
+  })
+}

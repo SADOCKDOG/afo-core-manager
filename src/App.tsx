@@ -15,6 +15,8 @@ import { EmailConfigDialog } from '@/components/EmailConfigDialog'
 import { EmailLogsDialog } from '@/components/EmailLogsDialog'
 import { ProjectImportDialog } from '@/components/ProjectImportDialog'
 import { BulkProjectImportDialog } from '@/components/BulkProjectImportDialog'
+import { ClientManager } from '@/components/ClientManager'
+import { BillingManager } from '@/components/BillingManager'
 import { Plus, Buildings, Users, BookOpen, Gear, EnvelopeSimple, ClockCounterClockwise, Upload, FolderOpen } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
 import { Toaster, toast } from 'sonner'
@@ -233,6 +235,8 @@ function App() {
                     <Gear size={20} weight="duotone" className="text-primary" />
                   )}
                 </Button>
+                <ClientManager />
+                <BillingManager />
                 <InvoiceManager />
                 <MunicipalComplianceManager />
                 <VisaManager />

@@ -27,6 +27,10 @@ export interface Stakeholder {
   phone?: string
   collegiateNumber?: string
   qualification?: string
+  apellido1?: string
+  apellido2?: string
+  razonSocial?: string
+  representante?: string
 }
 
 export type FolderStructureType = 'by-type' | 'screaming-architecture'
@@ -92,6 +96,7 @@ export interface Project {
   status: ProjectStatus
   phases: ProjectPhaseData[]
   stakeholders: string[]
+  clientId?: string
   folderStructure?: FolderStructureType
   createdAt: number
   updatedAt: number
@@ -455,7 +460,26 @@ export const VISA_DOCUMENT_TYPE_LABELS: Record<VisaDocumentType, string> = {
   'otro': 'Otro Documento'
 }
 
-export type InvoiceType = 'visa-fee' | 'professional-fee' | 'expense' | 'other'
+export interface Client {
+  id: string
+  type: 'persona-fisica' | 'persona-juridica'
+  nif: string
+  nombre?: string
+  apellido1?: string
+  apellido2?: string
+  razonSocial?: string
+  direccion?: string
+  email?: string
+  telefono?: string
+  representante?: string
+  notas?: string
+  createdAt: number
+  updatedAt: number
+}
+
+export type PaymentMethod = 'transferencia' | 'efectivo' | 'tarjeta' | 'cheque' | 'otros'
+
+export type InvoiceType = 'visa-fee' | 'professional-fee' | 'expense' | 'phase-payment' | 'other'
 
 export type InvoiceStatus = 'draft' | 'issued' | 'paid' | 'overdue' | 'cancelled'
 
@@ -466,13 +490,15 @@ export interface InvoiceLineItem {
   unitPrice: number
   totalPrice: number
   taxRate: number
+  phaseId?: string
 }
 
 export interface Invoice {
   id: string
   invoiceNumber: string
   type: InvoiceType
-  projectId: string
+  projectId?: string
+  clientId?: string
   visaId?: string
   clientName: string
   clientNIF: string
@@ -481,18 +507,29 @@ export interface Invoice {
   lineItems: InvoiceLineItem[]
   subtotal: number
   taxAmount: number
+  taxRate: number
   total: number
   issuedDate?: number
   dueDate?: number
   paidDate?: number
+  paymentMethod?: PaymentMethod
   notes?: string
   createdAt: number
   updatedAt: number
 }
 
+export interface PaymentReminder {
+  id: string
+  invoiceId: string
+  sentAt: number
+  method: 'email' | 'manual'
+  status: 'sent' | 'failed'
+}
+
 export const INVOICE_TYPE_LABELS: Record<InvoiceType, string> = {
   'visa-fee': 'Tasa de Visado Colegial',
   'professional-fee': 'Honorarios Profesionales',
+  'phase-payment': 'Pago por Fase de Proyecto',
   'expense': 'Gasto Reembolsable',
   'other': 'Otro'
 }
@@ -503,4 +540,12 @@ export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
   'paid': 'Pagada',
   'overdue': 'Vencida',
   'cancelled': 'Anulada'
+}
+
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  'transferencia': 'Transferencia Bancaria',
+  'efectivo': 'Efectivo',
+  'tarjeta': 'Tarjeta',
+  'cheque': 'Cheque',
+  'otros': 'Otros'
 }

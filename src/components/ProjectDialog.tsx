@@ -5,9 +5,10 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Project, ProjectPhase, ProjectStatus, PHASE_LABELS } from '@/lib/types'
+import { Project, ProjectPhase, ProjectStatus, PHASE_LABELS, Client } from '@/lib/types'
 import { useState, useEffect } from 'react'
 import { Separator } from '@/components/ui/separator'
+import { useKV } from '@github/spark/hooks'
 
 interface ProjectDialogProps {
   open: boolean
@@ -19,9 +20,12 @@ interface ProjectDialogProps {
 const ALL_PHASES: ProjectPhase[] = ['estudio-previo', 'anteproyecto', 'basico', 'ejecucion', 'direccion-obra']
 
 export function ProjectDialog({ open, onOpenChange, onSave, project }: ProjectDialogProps) {
+  const [clients] = useKV<Client[]>('clients', [])
+  
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [location, setLocation] = useState('')
+  const [clientId, setClientId] = useState('')
   const [status, setStatus] = useState<ProjectStatus>('active')
   const [selectedPhases, setSelectedPhases] = useState<Set<ProjectPhase>>(new Set())
   const [phasePercentages, setPhasePercentages] = useState<Record<ProjectPhase, number>>({} as Record<ProjectPhase, number>)
@@ -31,6 +35,7 @@ export function ProjectDialog({ open, onOpenChange, onSave, project }: ProjectDi
       setTitle(project.title)
       setDescription(project.description || '')
       setLocation(project.location)
+      setClientId(project.clientId || '')
       setStatus(project.status)
       const phases = new Set(project.phases.map(p => p.phase))
       setSelectedPhases(phases)
@@ -43,6 +48,7 @@ export function ProjectDialog({ open, onOpenChange, onSave, project }: ProjectDi
       setTitle('')
       setDescription('')
       setLocation('')
+      setClientId('')
       setStatus('active')
       setSelectedPhases(new Set())
       setPhasePercentages({} as Record<ProjectPhase, number>)
@@ -84,6 +90,7 @@ export function ProjectDialog({ open, onOpenChange, onSave, project }: ProjectDi
       title,
       description,
       location,
+      clientId: clientId || undefined,
       status,
       phases,
       stakeholders: project?.stakeholders || []
@@ -137,6 +144,28 @@ export function ProjectDialog({ open, onOpenChange, onSave, project }: ProjectDi
                 placeholder="Breve descripción del proyecto..."
                 rows={3}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="client">Cliente (Promotor)</Label>
+              <Select value={clientId} onValueChange={setClientId}>
+                <SelectTrigger id="client">
+                  <SelectValue placeholder="Seleccionar cliente" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Sin cliente asociado</SelectItem>
+                  {(clients || []).map(client => {
+                    const name = client.type === 'persona-juridica' 
+                      ? client.razonSocial 
+                      : `${client.nombre} ${client.apellido1}`
+                    return (
+                      <SelectItem key={client.id} value={client.id}>
+                        {name} - {client.nif}
+                      </SelectItem>
+                    )
+                  })}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
