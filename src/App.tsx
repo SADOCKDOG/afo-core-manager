@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useKV } from '@github/spark/hooks'
-import { Project, Stakeholder, Invoice, Client, Budget, PHASE_LABELS } from '@/lib/types'
+import { Project, Stakeholder, Invoice, Client, Budget } from '@/lib/types'
 import { Button } from '@/components/ui/button'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Dashboard } from '@/components/Dashboard'
 import { ProjectCard } from '@/components/ProjectCard'
 import { ProjectDialog } from '@/components/ProjectDialog'
 import { ProjectDetail } from '@/components/ProjectDetail'
@@ -21,13 +21,44 @@ import { BillingManager } from '@/components/BillingManager'
 import { AutoInvoiceConfirmDialog } from '@/components/AutoInvoiceConfirmDialog'
 import { DocumentTemplateLibrary } from '@/components/DocumentTemplateLibrary'
 import { BoardPermitWorkflow } from '@/components/BoardPermitWorkflow'
-import { Plus, Buildings, Users, BookOpen, Gear, EnvelopeSimple, ClockCounterClockwise, Upload, FolderOpen, DownloadSimple, Files } from '@phosphor-icons/react'
-import { motion } from 'framer-motion'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { 
+  Buildings, 
+  Users, 
+  BookOpen, 
+  Gear, 
+  EnvelopeSimple, 
+  ClockCounterClockwise, 
+  Upload, 
+  FolderOpen, 
+  DownloadSimple, 
+  Plus,
+  SquaresFour,
+  Folders,
+  Receipt,
+  UsersThree,
+  DotsThreeVertical,
+  Stamp,
+  FileText,
+  Sparkle,
+  Bank
+} from '@phosphor-icons/react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Toaster, toast } from 'sonner'
 import { useEmailConfig } from '@/lib/email-service'
 import { generatePhaseCompletionInvoice } from '@/lib/invoice-utils'
+import { PHASE_LABELS } from '@/lib/types'
+import { cn } from '@/lib/utils'
 
-type ViewMode = 'dashboard' | 'detail'
+type ViewMode = 'dashboard' | 'projects' | 'clients' | 'invoices' | 'project-detail'
+type ProjectFilter = 'all' | 'active' | 'archived'
 
 function App() {
   const [projects, setProjects] = useKV<Project[]>('projects', [])
@@ -37,8 +68,8 @@ function App() {
   const [budgets, setBudgets] = useKV<Budget[]>('budgets', [])
   const { isConfigured } = useEmailConfig()
   
-  const [activeTab, setActiveTab] = useState<'all' | 'active' | 'archived'>('all')
   const [viewMode, setViewMode] = useState<ViewMode>('dashboard')
+  const [projectFilter, setProjectFilter] = useState<ProjectFilter>('all')
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [projectDialogOpen, setProjectDialogOpen] = useState(false)
   const [stakeholderDialogOpen, setStakeholderDialogOpen] = useState(false)
@@ -58,9 +89,9 @@ function App() {
   } | null>(null)
 
   const filteredProjects = (projects || []).filter(project => {
-    if (activeTab === 'all') return true
-    if (activeTab === 'active') return project.status === 'active'
-    if (activeTab === 'archived') return project.status === 'archived'
+    if (projectFilter === 'all') return true
+    if (projectFilter === 'active') return project.status === 'active'
+    if (projectFilter === 'archived') return project.status === 'archived'
     return true
   })
 
@@ -177,11 +208,16 @@ function App() {
 
   const handleProjectClick = (project: Project) => {
     setSelectedProject(project)
-    setViewMode('detail')
+    setViewMode('project-detail')
   }
 
   const handleBackToDashboard = () => {
     setViewMode('dashboard')
+    setSelectedProject(null)
+  }
+
+  const handleBackToProjects = () => {
+    setViewMode('projects')
     setSelectedProject(null)
   }
 
@@ -273,91 +309,112 @@ function App() {
     setPendingInvoiceData(null)
   }
 
-  const hasProjects = (projects || []).length > 0
+  const navItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: SquaresFour },
+    { id: 'projects', label: 'Proyectos', icon: Buildings },
+    { id: 'clients', label: 'Clientes', icon: UsersThree },
+    { id: 'invoices', label: 'Facturas', icon: Receipt },
+  ] as const
 
   return (
     <div className="min-h-screen bg-background">
-      <Toaster position="top-right" />
+      <Toaster position="top-right" richColors />
       
-      <header className="border-b bg-card/95 sticky top-0 z-10 backdrop-blur-sm shadow-lg">
-        <div className="container mx-auto px-8 py-6">
+      <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur-sm shadow-sm">
+        <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/20 text-primary ring-1 ring-primary/30">
-                <Buildings size={28} weight="duotone" />
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-primary/20 text-primary ring-2 ring-primary/30">
+                  <Buildings size={28} weight="duotone" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold tracking-tight">AFO CORE MANAGER</h1>
+                  <p className="text-xs text-muted-foreground">Gestión Integral Arquitectónica</p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight">AFO CORE MANAGER</h1>
-                <p className="text-sm text-muted-foreground">Gestión Integral de Proyectos Arquitectónicos</p>
-              </div>
+
+              <nav className="hidden lg:flex items-center gap-2 ml-8">
+                {navItems.map(item => (
+                  <Button
+                    key={item.id}
+                    variant={viewMode === item.id ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode(item.id as ViewMode)}
+                    className={cn(
+                      "gap-2 transition-all",
+                      viewMode === item.id && "shadow-md"
+                    )}
+                  >
+                    <item.icon size={18} weight={viewMode === item.id ? 'fill' : 'regular'} />
+                    {item.label}
+                  </Button>
+                ))}
+              </nav>
             </div>
             
-            {viewMode === 'dashboard' && (
-              <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2 hidden md:flex">
+                    <DotsThreeVertical size={18} weight="bold" />
+                    Herramientas
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>Gestión</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => setStakeholderDialogOpen(true)}>
+                    <Users size={16} className="mr-2" weight="duotone" />
+                    Intervinientes
+                  </DropdownMenuItem>
+                  <ClientManager />
+                  <BillingManager />
+                  
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>Normativa y Visados</DropdownMenuLabel>
+                  <MunicipalComplianceManager />
+                  <VisaManager />
+                  <BoardPermitWorkflow />
+                  <AIRegulatoryAssistant />
+                  
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>Documentos</DropdownMenuLabel>
+                  <DocumentTemplateLibrary />
+                  <DropdownMenuItem onClick={() => setProjectImportDialogOpen(true)}>
+                    <Upload size={16} className="mr-2" weight="duotone" />
+                    Importar Proyecto
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setBulkProjectImportDialogOpen(true)}>
+                    <FolderOpen size={16} className="mr-2" weight="duotone" />
+                    Importación Múltiple
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => setBulkProjectExportDialogOpen(true)}
+                    disabled={(projects || []).length === 0}
+                  >
+                    <DownloadSimple size={16} className="mr-2" weight="duotone" />
+                    Exportar Proyectos
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>Configuración</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => setEmailLogsDialogOpen(true)}>
+                    <ClockCounterClockwise size={16} className="mr-2" weight="duotone" />
+                    Registro de Emails
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setEmailConfigDialogOpen(true)}>
+                    <Gear size={16} className="mr-2" weight="duotone" />
+                    Configurar Email
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <InvoiceManager />
+
+              {viewMode === 'projects' && (
                 <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setEmailLogsDialogOpen(true)}
-                  title="Registro de emails"
-                >
-                  <ClockCounterClockwise size={20} weight="duotone" />
-                </Button>
-                <Button
-                  variant={isConfigured ? "ghost" : "outline"}
-                  size="icon"
-                  onClick={() => setEmailConfigDialogOpen(true)}
-                  title={isConfigured ? "Configuración de email" : "Configurar servicio de email"}
-                  className={!isConfigured ? "border-primary/50 bg-primary/10 text-primary" : ""}
-                >
-                  {isConfigured ? (
-                    <EnvelopeSimple size={20} weight="duotone" />
-                  ) : (
-                    <Gear size={20} weight="duotone" className="text-primary" />
-                  )}
-                </Button>
-                <ClientManager />
-                <BillingManager />
-                <InvoiceManager />
-                <MunicipalComplianceManager />
-                <VisaManager />
-                <BoardPermitWorkflow />
-                <AIRegulatoryAssistant />
-                <DocumentTemplateLibrary />
-                <Button
-                  variant="outline"
-                  className="gap-2"
-                  onClick={() => setStakeholderDialogOpen(true)}
-                >
-                  <Users size={18} />
-                  Intervinientes
-                </Button>
-                <Button
-                  variant="outline"
-                  className="gap-2"
-                  onClick={() => setProjectImportDialogOpen(true)}
-                >
-                  <Upload size={18} weight="duotone" />
-                  Importar Proyecto
-                </Button>
-                <Button
-                  variant="outline"
-                  className="gap-2"
-                  onClick={() => setBulkProjectImportDialogOpen(true)}
-                >
-                  <FolderOpen size={18} weight="duotone" />
-                  Importación Múltiple
-                </Button>
-                <Button
-                  variant="outline"
-                  className="gap-2"
-                  onClick={() => setBulkProjectExportDialogOpen(true)}
-                  disabled={(projects || []).length === 0}
-                >
-                  <DownloadSimple size={18} weight="duotone" />
-                  Exportar Proyectos
-                </Button>
-                <Button
-                  className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 shadow-md hover:shadow-lg transition-all"
+                  className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg"
+                  size="sm"
                   onClick={() => {
                     setEditingProject(undefined)
                     setProjectDialogOpen(true)
@@ -366,152 +423,152 @@ function App() {
                   <Plus size={18} weight="bold" />
                   Nuevo Proyecto
                 </Button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-8 py-8">
-        {viewMode === 'dashboard' ? (
-          <>
-            {hasProjects ? (
-              <>
-                <div className="mb-8">
-                  <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as typeof activeTab)}>
-                    <TabsList>
-                      <TabsTrigger value="all">
-                        Todos ({(projects || []).length})
-                      </TabsTrigger>
-                      <TabsTrigger value="active">
-                        Activos ({(projects || []).filter(p => p.status === 'active').length})
-                      </TabsTrigger>
-                      <TabsTrigger value="archived">
-                        Archivados ({(projects || []).filter(p => p.status === 'archived').length})
-                      </TabsTrigger>
-                    </TabsList>
-                  </Tabs>
-                </div>
+      <main className="container mx-auto px-6 py-8">
+        <AnimatePresence mode="wait">
+          {viewMode === 'dashboard' && (
+            <motion.div
+              key="dashboard"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Dashboard 
+                projects={projects || []}
+                clients={clients || []}
+                invoices={invoices || []}
+                budgets={budgets || []}
+                onNavigate={setViewMode}
+              />
+            </motion.div>
+          )}
 
-                {filteredProjects.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredProjects.map((project, index) => (
-                      <ProjectCard
-                        key={project.id}
-                        project={project}
-                        onClick={() => handleProjectClick(project)}
-                        index={index}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-center py-16"
-                  >
-                    <div className="inline-flex p-4 rounded-full bg-muted mb-4">
-                      <Buildings size={48} className="text-muted-foreground" weight="duotone" />
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">No hay proyectos {activeTab === 'active' ? 'activos' : 'archivados'}</h3>
-                    <p className="text-muted-foreground">
-                      {activeTab === 'active' 
-                        ? 'Todos los proyectos están archivados o en pausa'
-                        : 'No hay proyectos archivados en este momento'}
-                    </p>
-                  </motion.div>
-                )}
-              </>
-            ) : (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center py-20"
-              >
-                <div className="inline-flex p-6 rounded-2xl bg-primary/20 mb-6 ring-1 ring-primary/30">
-                  <Buildings size={64} className="text-primary" weight="duotone" />
+          {viewMode === 'projects' && (
+            <motion.div
+              key="projects"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h2 className="text-3xl font-bold tracking-tight mb-2">Proyectos</h2>
+                  <p className="text-muted-foreground">Gestiona tu cartera de proyectos</p>
                 </div>
-                <h2 className="text-3xl font-bold mb-3">Bienvenido a AFO CORE MANAGER</h2>
-                <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-                  Centralice la gestión de sus proyectos arquitectónicos, desde la concepción hasta la entrega final.
-                  Comience creando su primer proyecto.
-                </p>
-                <div className="flex gap-3">
+              </div>
+
+              <div className="flex gap-3 mb-6">
+                {(['all', 'active', 'archived'] as const).map(filter => (
                   <Button
-                    size="lg"
-                    className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg hover:shadow-xl transition-all"
+                    key={filter}
+                    variant={projectFilter === filter ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setProjectFilter(filter)}
+                    className="gap-2"
+                  >
+                    {filter === 'all' && `Todos (${(projects || []).length})`}
+                    {filter === 'active' && `Activos (${(projects || []).filter(p => p.status === 'active').length})`}
+                    {filter === 'archived' && `Archivados (${(projects || []).filter(p => p.status === 'archived').length})`}
+                  </Button>
+                ))}
+              </div>
+
+              {filteredProjects.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredProjects.map((project, index) => (
+                    <ProjectCard
+                      key={project.id}
+                      project={project}
+                      onClick={() => handleProjectClick(project)}
+                      index={index}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-20 border-2 border-dashed rounded-lg">
+                  <Buildings size={64} className="mx-auto mb-4 text-muted-foreground opacity-50" weight="duotone" />
+                  <h3 className="text-xl font-semibold mb-2">No hay proyectos {projectFilter === 'active' ? 'activos' : 'archivados'}</h3>
+                  <p className="text-muted-foreground mb-6">
+                    {projectFilter === 'active' 
+                      ? 'Todos los proyectos están archivados'
+                      : 'No hay proyectos archivados en este momento'}
+                  </p>
+                  <Button
+                    className="gap-2"
                     onClick={() => {
                       setEditingProject(undefined)
                       setProjectDialogOpen(true)
                     }}
                   >
-                    <Plus size={20} weight="bold" />
+                    <Plus size={18} weight="bold" />
                     Crear Primer Proyecto
                   </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="gap-2 shadow-md hover:shadow-lg transition-all"
-                    onClick={() => setProjectImportDialogOpen(true)}
-                  >
-                    <Upload size={20} weight="duotone" />
-                    Importar Proyecto
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="gap-2 shadow-md hover:shadow-lg transition-all"
-                    onClick={() => setBulkProjectImportDialogOpen(true)}
-                  >
-                    <FolderOpen size={20} weight="duotone" />
-                    Importación Múltiple
-                  </Button>
                 </div>
+              )}
+            </motion.div>
+          )}
 
-                <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-                  <div className="p-6 rounded-lg border bg-card shadow-md hover:shadow-lg transition-shadow">
-                    <div className="inline-flex p-3 rounded-lg bg-primary/20 text-primary mb-4 ring-1 ring-primary/30">
-                      <Buildings size={24} weight="duotone" />
-                    </div>
-                    <h3 className="font-semibold mb-2">Gestión de Proyectos</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Organice fases, intervinientes y documentación de forma centralizada
-                    </p>
-                  </div>
-                  <div className="p-6 rounded-lg border bg-card shadow-md hover:shadow-lg transition-shadow">
-                    <div className="inline-flex p-3 rounded-lg bg-primary/20 text-primary mb-4 ring-1 ring-primary/30">
-                      <Users size={24} weight="duotone" />
-                    </div>
-                    <h3 className="font-semibold mb-2">Registro de Intervinientes</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Mantenga información de clientes, arquitectos y técnicos reutilizable
-                    </p>
-                  </div>
-                  <div className="p-6 rounded-lg border bg-card shadow-md hover:shadow-lg transition-shadow">
-                    <div className="inline-flex p-3 rounded-lg bg-primary/20 text-primary mb-4 ring-1 ring-primary/30">
-                      <BookOpen size={24} weight="duotone" />
-                    </div>
-                    <h3 className="font-semibold mb-2">Normativa Integrada</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Acceso rápido a CTE, RITE y normativa urbanística aplicable
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </>
-        ) : (
-          selectedProject && (
-            <ProjectDetail
-              project={selectedProject}
-              stakeholders={stakeholders || []}
-              onBack={handleBackToDashboard}
-              onEdit={handleEditProject}
-              onUpdatePhaseStatus={handleUpdatePhaseStatus}
-              onProjectUpdate={(updates) => handleSaveProject({ ...updates, id: selectedProject.id })}
-            />
-          )
-        )}
+          {viewMode === 'project-detail' && selectedProject && (
+            <motion.div
+              key="project-detail"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ProjectDetail
+                project={selectedProject}
+                stakeholders={stakeholders || []}
+                onBack={handleBackToProjects}
+                onEdit={handleEditProject}
+                onUpdatePhaseStatus={handleUpdatePhaseStatus}
+                onProjectUpdate={(updates) => handleSaveProject({ ...updates, id: selectedProject.id })}
+              />
+            </motion.div>
+          )}
+
+          {viewMode === 'clients' && (
+            <motion.div
+              key="clients"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.2 }}
+              className="text-center py-20"
+            >
+              <UsersThree size={64} className="mx-auto mb-4 text-muted-foreground opacity-50" weight="duotone" />
+              <h3 className="text-xl font-semibold mb-2">Vista de Clientes</h3>
+              <p className="text-muted-foreground mb-6">
+                Usa el botón "Herramientas" en el menú superior para gestionar tus clientes
+              </p>
+            </motion.div>
+          )}
+
+          {viewMode === 'invoices' && (
+            <motion.div
+              key="invoices"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.2 }}
+              className="text-center py-20"
+            >
+              <Receipt size={64} className="mx-auto mb-4 text-muted-foreground opacity-50" weight="duotone" />
+              <h3 className="text-xl font-semibold mb-2">Vista de Facturas</h3>
+              <p className="text-muted-foreground mb-6">
+                Usa el botón "Gestión de Facturas" en el menú superior
+              </p>
+              <InvoiceManager />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
       <ProjectDialog

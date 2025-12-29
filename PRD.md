@@ -20,11 +20,11 @@ This MVP focuses on core project management functionality with client tracking, 
 - **Success criteria**: Projects persist between sessions, all metadata is captured, phase percentages validate to logical totals
 
 ### Project Dashboard with Multiple Views
-- **Functionality**: Visual overview of all active projects with status, progress, and key dates
-- **Purpose**: Provide at-a-glance understanding of studio workload and priorities
-- **Trigger**: Application launch or navigation to "Projects" section
-- **Progression**: Open app → See dashboard with project cards → Filter by status/phase → Click project → View detailed project information
-- **Success criteria**: Dashboard loads instantly, projects are clearly organized, status is immediately visible
+- **Functionality**: Visual overview of all active projects with status, progress, and key dates. Comprehensive main dashboard showing key metrics, recent activity, project distribution, and pending items across all modules
+- **Purpose**: Provide at-a-glance understanding of studio workload, priorities, and business health with actionable insights
+- **Trigger**: Application launch or navigation to "Dashboard" section
+- **Progression**: Open app → See comprehensive dashboard with metric cards (active projects, total clients, revenue, completed phases) → View recent projects list with progress → Review project distribution by status → Check pending invoices → Click metric cards or items to navigate to detailed views
+- **Success criteria**: Dashboard loads instantly with smooth animations, all metrics calculate accurately, recent projects show real-time progress, distribution charts reflect current data, navigation links work correctly, empty states guide users appropriately
 
 ### Stakeholder Management
 - **Functionality**: Maintain a registry of clients, promoters, architects, and technical collaborators with reusable profiles
@@ -151,24 +151,24 @@ This MVP focuses on core project management functionality with client tracking, 
 
 ## Design Direction
 
-The design should evoke **authority, precision, and technical sophistication** - reflecting the architectural profession itself with a modern dark theme. Think clean lines, structured layouts, and a sophisticated dark color palette that feels technical, professional, and reduces eye strain during long work sessions. The interface should feel like a premium tool built by architects, for architects - respecting the craft while embracing contemporary digital design trends favored by technical professionals.
+The design should evoke **authority, precision, and technical sophistication** - reflecting the architectural profession itself with a modern dark theme that feels **contemporary, vibrant, and professional**. The interface combines deep, rich backgrounds with vivid accent colors creating a dynamic, energetic experience while maintaining excellent readability. Think premium technical tools with personality - clean lines, structured layouts, and a sophisticated dark color palette enhanced by brighter, more saturated accent colors that pop against the dark canvas and reduce eye strain during long work sessions. The interface should feel like a next-generation tool built by architects, for architects.
 
 ## Color Selection
 
-A professional dark theme with technical blue accents and warm architectural highlights, designed for extended use and visual comfort.
+A professional dark theme with enhanced technical blue accents and vibrant architectural highlights, designed for extended use, visual impact, and modern aesthetics.
 
-- **Primary Color**: Technical Blue `oklch(0.45 0.12 250)` - A sophisticated blue that conveys technical expertise and professionalism against dark backgrounds, inspired by technical blueprints
+- **Primary Color**: Enhanced Technical Blue `oklch(0.52 0.18 250)` - A more vibrant, saturated blue that maintains technical expertise while adding visual energy against dark backgrounds
 - **Secondary Colors**: 
-  - Deep Slate Background `oklch(0.15 0.02 250)` - Main background color providing excellent contrast and reduced eye strain
-  - Elevated Card Surface `oklch(0.18 0.02 250)` - Slightly lighter surface for cards and elevated elements
-  - Muted Surface `oklch(0.22 0.02 250)` - For secondary backgrounds and subtle differentiation
-- **Accent Color**: Warm Terracotta `oklch(0.65 0.15 40)` - Attention-grabbing warm accent for CTAs and important actions, providing material warmth against cool technical palette
+  - Rich Slate Background `oklch(0.13 0.015 250)` - Deeper main background for maximum contrast and modern feel
+  - Elevated Card Surface `oklch(0.17 0.018 250)` - Distinct card elevation with better separation
+  - Refined Muted Surface `oklch(0.21 0.018 250)` - For secondary backgrounds with clearer hierarchy
+- **Accent Color**: Vibrant Terracotta `oklch(0.68 0.19 40)` - Brighter, more saturated warm accent for CTAs and important actions, creating striking contrast against the cool technical palette
 - **Foreground/Background Pairings**:
-  - Background (Deep Slate `oklch(0.15 0.02 250)`): Light Gray text `oklch(0.95 0.01 70)` - Ratio 14.2:1 ✓
-  - Primary (Technical Blue `oklch(0.45 0.12 250)`): Light text `oklch(0.98 0.005 70)` - Ratio 9.1:1 ✓
-  - Accent (Terracotta `oklch(0.65 0.15 40)`): Dark Slate text `oklch(0.15 0.02 250)` - Ratio 11.8:1 ✓
-  - Card (Elevated Surface `oklch(0.18 0.02 250)`): Light Gray text `oklch(0.95 0.01 70)` - Ratio 12.9:1 ✓
-  - Muted text `oklch(0.60 0.01 250)` on Background: Ratio 5.2:1 ✓
+  - Background (Rich Slate `oklch(0.13 0.015 250)`): Bright text `oklch(0.96 0.008 70)` - Ratio 15.8:1 ✓
+  - Primary (Enhanced Blue `oklch(0.52 0.18 250)`): Light text `oklch(0.99 0.003 70)` - Ratio 8.2:1 ✓
+  - Accent (Vibrant Terracotta `oklch(0.68 0.19 40)`): Dark Slate text `oklch(0.13 0.015 250)` - Ratio 13.1:1 ✓
+  - Card (Elevated Surface `oklch(0.17 0.018 250)`): Bright text `oklch(0.96 0.008 70)` - Ratio 14.3:1 ✓
+  - Muted text `oklch(0.58 0.012 250)` on Background: Ratio 5.8:1 ✓
 
 ## Font Selection
 
