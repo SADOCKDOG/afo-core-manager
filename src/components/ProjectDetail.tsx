@@ -12,6 +12,7 @@ import { DocumentManager } from './DocumentManager'
 import { ComplianceChecklistView } from './ComplianceChecklistView'
 import { BudgetManager } from './BudgetManager'
 import { VisaManager } from './VisaManager'
+import { BoardPermitWorkflow } from './BoardPermitWorkflow'
 import { InvoiceManager } from './InvoiceManager'
 import { ProjectExportDialog } from './ProjectExportDialog'
 
@@ -95,6 +96,7 @@ export function ProjectDetail({ project, stakeholders, onBack, onEdit, onUpdateP
           </Button>
           <InvoiceManager project={project} />
           <VisaManager project={project} />
+          <BoardPermitWorkflow projectId={project.id} />
           <BudgetManager projectId={project.id} projectName={project.title} />
           <Button onClick={onEdit} variant="outline" className="gap-2">
             <Pencil size={16} />
