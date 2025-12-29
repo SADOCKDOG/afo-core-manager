@@ -1,19 +1,31 @@
 import { Project, Client, Invoice, Budget } from '@/lib/types'
 import { motion } from 'framer-motion'
-import { Card } from '@/components/ui/
-
 import { Card } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { Button } from '@/components/ui/button'
+import { 
+  Buildings, 
+  UsersThree, 
+  Receipt, 
+  ChartBar,
+  Clock,
+  Warning,
+  CheckCircle,
+  TrendUp
+} from '@phosphor-icons/react'
+import { cn } from '@/lib/utils'
+
+type ViewMode = 'dashboard' | 'projects' | 'clients' | 'invoices' | 'project-detail'
 
 interface DashboardProps {
-  onNavigate: (view: 
+  projects: Project[]
+  clients: Client[]
+  invoices: Invoice[]
+  budgets: Budget[]
+  onNavigate: (view: ViewMode) => void
+}
 
-  const activeProject
-  
-    .filter(inv => inv.status === 'issued' || inv.status === 'paid')
-
-
-
+export function Dashboard({ projects, clients, invoices, budgets, onNavigate }: DashboardProps) {
   const activeProjects = projects.filter(p => p.status === 'active')
   const archivedProjects = projects.filter(p => p.status === 'archived')
   
@@ -30,102 +42,101 @@ interface DashboardProps {
   )
   const totalPhases = projects.reduce((sum, p) => sum + p.phases.length, 0)
 
-      onClick: () => onNavigate('proje
-    {
-      value: cli
+  const recentProjects = projects
+    .sort((a, b) => b.updatedAt - a.updatedAt)
+    .slice(0, 5)
 
-      onClick: ()
-    {
-      value: `${(totalRevenue / 1
-      color: 'text-chart-3',
-      onClick: () => onNaviga
-    {
-      value: `${completedPha
-      color: 'text-chart-4',
-    }
-
-    {
+  const projectStats = [
+    { label: 'Activos', count: activeProjects.length, color: 'bg-chart-1' },
+    { label: 'Archivados', count: archivedProjects.length, color: 'bg-chart-2' }
   ]
+
+  const stats = [
+    {
+      label: 'Proyectos Activos',
+      value: activeProjects.length.toString(),
+      icon: Buildings,
+      color: 'text-chart-1',
+      bgColor: 'bg-chart-1/10',
+      onClick: () => onNavigate('projects')
+    },
+    {
+      label: 'Clientes',
+      value: clients.length.toString(),
+      icon: UsersThree,
+      color: 'text-chart-2',
+      bgColor: 'bg-chart-2/10',
+      onClick: () => onNavigate('clients')
+    },
+    {
+      label: 'Ingresos Totales',
+      value: `${(totalRevenue / 1000).toFixed(1)}k €`,
+      icon: TrendUp,
+      color: 'text-chart-3',
+      bgColor: 'bg-chart-3/10',
+      onClick: () => onNavigate('invoices')
+    },
+    {
+      label: 'Fases Completadas',
+      value: `${completedPhases}/${totalPhases}`,
+      icon: ChartBar,
+      color: 'text-chart-4',
+      bgColor: 'bg-chart-4/10'
+    }
+  ]
+
   return (
+    <div className="space-y-8">
       <div>
-        <p className="text-m
-
-        {stats.map((stat, index) => (
-      
-     
-          >
-              className={`p-6 hover:shadow-lg transiti
-            >
-                <div classNa
-                </div>
-                  <span className="text-sm 
-      
-     
-              </div>
-          </motion.div>
+        <h2 className="text-3xl font-bold tracking-tight mb-2">Dashboard</h2>
+        <p className="text-muted-foreground">Visión general de tu negocio</p>
       </div>
-      <div className="grid g
-          className="lg:col-spa
-     
-   
 
-                <h3 clas
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {stats.map((stat, index) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: index * 0.1 }}
+          >
+            <Card 
+              className={cn(
+                "p-6 hover:shadow-lg transition-all cursor-pointer",
+                stat.onClick && "hover:scale-105"
+              )}
+              onClick={stat.onClick}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-muted-foreground mb-2">{stat.label}</p>
+                  <p className="text-3xl font-bold tracking-tight">{stat.value}</p>
+                </div>
+                <div className={cn("p-3 rounded-xl", stat.bgColor)}>
+                  <stat.icon size={24} weight="duotone" className={stat.color} />
+                </div>
               </div>
-                variant="ghost" 
-   
+            </Card>
+          </motion.div>
+        ))}
+      </div>
 
-          
-            {recentProjects.len
-           
-                  const progress = project.phases.length > 0 
-                    : 0
-            
-
-                    >
-                        <div classNam
-                     
-                            
-                          <div>
-                            <p className="
-                        </div>
-           
-                  
-                        </div>
-                      </div>
-             
-              </div>
-              <div className="text-center py-8 text-muted-foregrou
-                <p>No hay proyectos recientes</p>
-            )}
-        </motion.div>
+      <div className="grid gap-6 lg:grid-cols-2">
         <motion.div
-          animate=
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.4 }}
+          className="lg:col-span-1"
         >
-            <div className="mb-6">
-              <p className="text-sm text-muted-foreground">Distribución por estado</p
-            <div className="space-y-4">
-                <div
-                   
-                  </div
-           
-            
-
-              ))}
-
-              <div className="mb-4"
-                <p className="text-sm tex
-              <div className="space-y-3"
-                  pendingInvoices.slice(0, 3).map((i
-         
-                      }`}>
-                          <Warning size={20} weight="duotone" />
-                   
-                      </div>
-                        <p className="text-sm font-medium truncate">{invoice.invoiceNumb
-                    
-                  ))
-                  <div className
-                    <p>No
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-xl font-semibold mb-1">Proyectos Recientes</h3>
+                <p className="text-sm text-muted-foreground">{recentProjects.length} proyectos</p>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm"
                 onClick={() => onNavigate('projects')}
               >
                 Ver todos
@@ -147,9 +158,10 @@ interface DashboardProps {
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-lg ${
+                          <div className={cn(
+                            "p-2 rounded-lg",
                             project.status === 'active' ? 'bg-chart-1/10 text-chart-1' : 'bg-muted'
-                          }`}>
+                          )}>
                             <Buildings size={20} weight="duotone" />
                           </div>
                           <div>
@@ -197,7 +209,7 @@ interface DashboardProps {
                   </div>
                   <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <div 
-                      className={`h-full ${stat.color} transition-all`}
+                      className={cn("h-full transition-all", stat.color)}
                       style={{ width: `${projects.length > 0 ? (stat.count / projects.length) * 100 : 0}%` }}
                     />
                   </div>
@@ -214,9 +226,10 @@ interface DashboardProps {
                 {pendingInvoices.length > 0 ? (
                   pendingInvoices.slice(0, 3).map((invoice) => (
                     <div key={invoice.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                      <div className={`p-2 rounded-lg ${
+                      <div className={cn(
+                        "p-2 rounded-lg",
                         invoice.status === 'overdue' ? 'bg-destructive/10 text-destructive' : 'bg-chart-3/10 text-chart-3'
-                      }`}>
+                      )}>
                         {invoice.status === 'overdue' ? (
                           <Warning size={20} weight="duotone" />
                         ) : (
@@ -233,26 +246,6 @@ interface DashboardProps {
                   <div className="text-center py-4 text-sm text-muted-foreground">
                     <CheckCircle size={32} className="mx-auto mb-2 opacity-50" weight="duotone" />
                     <p>No hay facturas pendientes</p>
-                  </div>
-                )}
-                {pendingInvoices.length > 3 && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className="w-full"
-                    onClick={() => onNavigate('invoices')}
-                  >
-                    Ver todas ({pendingInvoices.length})
-                  </Button>
-                )}
-              </div>
-            </div>
-          </Card>
-        </motion.div>
-      </div>
-    </div>
-  )
-}
                   </div>
                 )}
                 {pendingInvoices.length > 3 && (
