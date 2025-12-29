@@ -1,7 +1,7 @@
 import { Project, Client, Invoice, Budget } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Buildings, Users, CurrencyEuro, FileText, TrendUp, CheckCircle, Clock, WarningCircle, ChartBar } from '@phosphor-icons/react'
+import { Buildings, Users, CurrencyEur, CheckCircle, Clock, WarningCircle, ArrowRight } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
 import { Progress } from '@/components/ui/progress'
 
@@ -15,6 +15,7 @@ interface DashboardProps {
 
 export function Dashboard({ projects, clients, invoices, budgets, onNavigate }: DashboardProps) {
   const activeProjects = projects.filter(p => p.status === 'active')
+  const archivedProjects = projects.filter(p => p.status === 'archived')
   const totalRevenue = invoices
     .filter(i => i.status === 'paid')
     .reduce((sum, inv) => sum + inv.total, 0)
@@ -49,7 +50,7 @@ export function Dashboard({ projects, clients, invoices, budgets, onNavigate }: 
     {
       label: 'Facturación Cobrada',
       value: `${(totalRevenue / 1000).toFixed(1)}k €`,
-      icon: CurrencyEuro,
+      icon: CurrencyEur,
       color: 'text-chart-3',
       bgColor: 'bg-chart-3/10',
       onClick: () => onNavigate('invoices')
@@ -62,202 +63,188 @@ export function Dashboard({ projects, clients, invoices, budgets, onNavigate }: 
       color: 'text-chart-4',
       bgColor: 'bg-chart-4/10',
     },
+  ]
 
+  const projectStatusData = [
+    { label: 'Activos', count: activeProjects.length, color: 'bg-chart-1' },
+    { label: 'Archivados', count: archivedProjects.length, color: 'bg-chart-5' },
+  ]
 
-    { label: 'Archivados', c
-
+  return (
     <div className="space-y-8">
+      <div>
         <h2 className="text-3xl font-bold tracking-tight mb-2">Panel de Control</h2>
-   
+        <p className="text-muted-foreground">Resumen general de tu actividad</p>
+      </div>
 
-          
-            initial={{ opacity:
-           
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {stats.map((stat, index) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: index * 0.1 }}
+          >
             <Card 
               onClick={stat.onClick}
-            
-
+              className={`p-6 hover:shadow-lg transition-all cursor-pointer ${stat.onClick ? 'hover:scale-[1.02]' : ''}`}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className={`p-3 rounded-xl ${stat.bgColor}`}>
+                  <stat.icon size={24} className={stat.color} weight="duotone" />
+                </div>
                 {stat.onClick && (
+                  <ArrowRight size={20} className="text-muted-foreground" />
                 )}
-              <div cl
-                <div classNa
-                  {stat.total && (
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground font-medium">{stat.label}</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-3xl font-bold">{stat.value}</p>
+                  {stat.total !== undefined && (
+                    <span className="text-sm text-muted-foreground">/ {stat.total}</span>
                   )}
+                </div>
               </div>
-          <
+            </Card>
+          </motion.div>
+        ))}
       </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          initial={{ opacity: 0, y: 
-          tra
+        <motion.div
+          className="lg:col-span-2"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.4 }}
         >
-            <div className="flex items-center justify-between mb-6
-                <h3 className="text-xl font-semibold mb-1">Proyectos Recientes</h
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-xl font-semibold mb-1">Proyectos Recientes</h3>
+                <p className="text-sm text-muted-foreground">Últimas actualizaciones</p>
               </div>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => onNavigate('projects')}
+                className="gap-2"
+              >
                 Ver Todos
+                <ArrowRight size={16} />
+              </Button>
             </div>
-            <div c
-                rece
-                  const progress = projec
+            <div className="space-y-3">
+              {recentProjects.length > 0 ? (
+                recentProjects.map((project) => {
+                  const completedCount = project.phases.filter(p => p.status === 'completed').length
+                  const progress = project.phases.length > 0 
+                    ? (completedCount / project.phases.length) * 100 
                     : 0
                   return (
+                    <div 
                       key={project.id}
-                      onClick={() 
-                      <div className={`p-2 rounded-lg ${
-                    
-                      
-                    
-                   
-                       
-           
-            
-
+                      onClick={() => onNavigate('projects')}
+                      className="p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <p className="font-semibold mb-1">{project.title}</p>
+                          <p className="text-sm text-muted-foreground">{project.location}</p>
                         </div>
-                   
-                          <span>{complete
-                        <Progress value=
+                        <div className={`p-2 rounded-lg ${
+                          project.status === 'active' ? 'bg-chart-1/10 text-chart-1' : 'bg-muted text-muted-foreground'
+                        }`}>
+                          <Buildings size={20} weight="duotone" />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Progreso</span>
+                          <span className="font-medium">{completedCount} / {project.phases.length} fases</span>
+                        </div>
+                        <Progress value={progress} className="h-2" />
+                      </div>
                     </div>
+                  )
                 })
-         
-                  <p>No hay proyectos todavía</p>
-              )}
-          </Card>
-
-          initial={{ opacity: 0, y: 20 }}
-          transition
-        >
-            <div classNam
-              <p classN
-            
-            
-                  <div className="flex 
-                    <span className="text-sm
-                  <div className="w-full h-2 bg-m
-                      className={`h-full ${status.color} transition-all duration-500`}
-                    />
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Buildings size={48} className="mx-auto mb-2 opacity-50" weight="duotone" />
+                  <p className="text-sm">No hay proyectos todavía</p>
                 </div>
+              )}
+            </div>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.5 }}
+        >
+          <Card className="p-6">
+            <div className="mb-6">
+              <h3 className="text-xl font-semibold mb-1">Estado de Proyectos</h3>
+              <p className="text-sm text-muted-foreground">Distribución actual</p>
+            </div>
+            <div className="space-y-4">
+              {projectStatusData.map((status) => (
+                <div key={status.label}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">{status.label}</span>
+                    <span className="text-sm font-bold">{status.count}</span>
+                  </div>
+                  <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full ${status.color} transition-all duration-500`}
+                      style={{ width: `${projects.length > 0 ? (status.count / projects.length) * 100 : 0}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
 
-            <div className
-              <p classNa
-            
+            <div className="mt-8 pt-6 border-t">
+              <h4 className="text-sm font-semibold mb-4">Facturas Pendientes</h4>
               <div className="space-y-3">
-                  <div
-                    c
-                  >
-                      invoice.status === 'overdue' ? 'bg-destructive/10 text-destruc
+                {pendingInvoices.length > 0 ? (
+                  pendingInvoices.slice(0, 3).map((invoice) => (
+                    <div
+                      key={invoice.id}
+                      className={`flex items-center gap-3 p-3 rounded-lg ${
+                        invoice.status === 'overdue' ? 'bg-destructive/10 text-destructive' : 'bg-muted'
+                      }`}
+                    >
                       {invoice.status === 'overdue' ? (
+                        <WarningCircle size={20} weight="fill" />
                       ) : (
+                        <Clock size={20} weight="duotone" />
                       )}
-                    <div className="flex-1 min-w-0">
-                      <p cla
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{invoice.invoiceNumber}</p>
+                        <p className="text-xs text-muted-foreground">{invoice.total.toFixed(2)} €</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-4 text-muted-foreground">
+                    <CheckCircle size={40} className="mx-auto mb-2 opacity-50" weight="duotone" />
+                    <p className="text-sm">Todo al día</p>
                   </div>
+                )}
                 {pendingInvoices.length > 3 && (
+                  <Button
                     variant="ghost" 
+                    size="sm"
                     className="w-full mt-2"
+                    onClick={() => onNavigate('invoices')}
                   >
+                    Ver todas ({pendingInvoices.length})
                   </Button>
+                )}
               </div>
-              <div className="
-                <p className="text-sm">Todo al día</p>
-            )}
-        </motion.div>
-    </div>
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                <CheckCircle size={40} className="mx-auto mb-2 opacity-50" weight="duotone" />
-                <p className="text-sm">Todo al día</p>
-              </div>
-            )}
+            </div>
           </Card>
         </motion.div>
       </div>
