@@ -1,19 +1,19 @@
 import { Project, Client, Invoice, Budget } from '@/lib/types'
-import { Buildings, Users, CurrencyEur, CheckCircle, Clock, Warning } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
-import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/
+
 import { Card } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 
 interface DashboardProps {
-  projects: Project[]
-  clients: Client[]
-  invoices: Invoice[]
-  budgets: Budget[]
-  onNavigate: (view: 'dashboard' | 'projects' | 'clients' | 'invoices') => void
-}
+  onNavigate: (view: 
 
-export function Dashboard({ projects, clients, invoices, budgets, onNavigate }: DashboardProps) {
+  const activeProject
+  
+    .filter(inv => inv.status === 'issued' || inv.status === 'paid')
+
+
+
   const activeProjects = projects.filter(p => p.status === 'active')
   const archivedProjects = projects.filter(p => p.status === 'archived')
   
@@ -30,102 +30,102 @@ export function Dashboard({ projects, clients, invoices, budgets, onNavigate }: 
   )
   const totalPhases = projects.reduce((sum, p) => sum + p.phases.length, 0)
 
-  const recentProjects = [...projects]
-    .sort((a, b) => b.updatedAt - a.updatedAt)
-    .slice(0, 3)
+      onClick: () => onNavigate('proje
+    {
+      value: cli
 
-  const stats = [
+      onClick: ()
     {
-      label: 'Proyectos Activos',
-      value: activeProjects.length.toString(),
-      total: projects.length,
-      icon: Buildings,
-      color: 'text-chart-1',
-      bgColor: 'bg-chart-1/10',
-      onClick: () => onNavigate('projects')
-    },
-    {
-      label: 'Clientes',
-      value: clients.length.toString(),
-      icon: Users,
-      color: 'text-chart-2',
-      bgColor: 'bg-chart-2/10',
-      onClick: () => onNavigate('clients')
-    },
-    {
-      label: 'Facturación',
-      value: `${(totalRevenue / 1000).toFixed(1)}k €`,
-      icon: CurrencyEur,
+      value: `${(totalRevenue / 1
       color: 'text-chart-3',
-      bgColor: 'bg-chart-3/10',
-      onClick: () => onNavigate('invoices')
-    },
+      onClick: () => onNaviga
     {
-      label: 'Fases Completadas',
-      value: `${completedPhases}/${totalPhases}`,
-      icon: CheckCircle,
+      value: `${completedPha
       color: 'text-chart-4',
-      bgColor: 'bg-chart-4/10',
     }
-  ]
 
-  const projectStats = [
-    { label: 'Activos', count: activeProjects.length, color: 'bg-chart-1' },
-    { label: 'Archivados', count: archivedProjects.length, color: 'bg-muted-foreground' }
+    {
   ]
-
   return (
-    <div className="space-y-8">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight mb-2">Dashboard</h2>
-        <p className="text-muted-foreground">Visión general de tu gestión</p>
-      </div>
+        <p className="text-m
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
-          <motion.div
-            key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: index * 0.1 }}
+      
+     
           >
-            <Card 
-              className={`p-6 hover:shadow-lg transition-all ${stat.onClick ? 'cursor-pointer' : ''}`}
-              onClick={stat.onClick}
+              className={`p-6 hover:shadow-lg transiti
             >
-              <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-lg ${stat.bgColor}`}>
-                  <stat.icon size={24} weight="duotone" className={stat.color} />
+                <div classNa
                 </div>
-                {stat.total && (
-                  <span className="text-sm text-muted-foreground">de {stat.total}</span>
-                )}
+                  <span className="text-sm 
+      
+     
               </div>
-              <div className="space-y-1">
-                <div className="text-3xl font-bold tracking-tight">{stat.value}</div>
-                <p className="text-sm text-muted-foreground">{stat.label}</p>
-              </div>
-            </Card>
           </motion.div>
-        ))}
       </div>
+      <div className="grid g
+          className="lg:col-spa
+     
+   
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <motion.div
-          className="lg:col-span-2"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.4 }}
-        >
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="text-xl font-semibold mb-1">Proyectos Recientes</h3>
-                <p className="text-sm text-muted-foreground">Últimas actualizaciones</p>
+                <h3 clas
               </div>
-              <Button 
                 variant="ghost" 
-                size="sm"
+   
+
+          
+            {recentProjects.len
+           
+                  const progress = project.phases.length > 0 
+                    : 0
+            
+
+                    >
+                        <div classNam
+                     
+                            
+                          <div>
+                            <p className="
+                        </div>
+           
+                  
+                        </div>
+                      </div>
+             
+              </div>
+              <div className="text-center py-8 text-muted-foregrou
+                <p>No hay proyectos recientes</p>
+            )}
+        </motion.div>
+        <motion.div
+          animate=
+        >
+            <div className="mb-6">
+              <p className="text-sm text-muted-foreground">Distribución por estado</p
+            <div className="space-y-4">
+                <div
+                   
+                  </div
+           
+            
+
+              ))}
+
+              <div className="mb-4"
+                <p className="text-sm tex
+              <div className="space-y-3"
+                  pendingInvoices.slice(0, 3).map((i
+         
+                      }`}>
+                          <Warning size={20} weight="duotone" />
+                   
+                      </div>
+                        <p className="text-sm font-medium truncate">{invoice.invoiceNumb
+                    
+                  ))
+                  <div className
+                    <p>No
                 onClick={() => onNavigate('projects')}
               >
                 Ver todos
@@ -233,6 +233,26 @@ export function Dashboard({ projects, clients, invoices, budgets, onNavigate }: 
                   <div className="text-center py-4 text-sm text-muted-foreground">
                     <CheckCircle size={32} className="mx-auto mb-2 opacity-50" weight="duotone" />
                     <p>No hay facturas pendientes</p>
+                  </div>
+                )}
+                {pendingInvoices.length > 3 && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="w-full"
+                    onClick={() => onNavigate('invoices')}
+                  >
+                    Ver todas ({pendingInvoices.length})
+                  </Button>
+                )}
+              </div>
+            </div>
+          </Card>
+        </motion.div>
+      </div>
+    </div>
+  )
+}
                   </div>
                 )}
                 {pendingInvoices.length > 3 && (
