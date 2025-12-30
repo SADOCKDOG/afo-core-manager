@@ -117,18 +117,18 @@ export function QualifiedSignatureRequestViewer() {
           )}
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-5xl max-h-[90vh]">
-        <DialogHeader>
+      <DialogContent className="max-w-6xl max-h-[95vh] h-[95vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-3 text-2xl">
             <div className="p-2 rounded-lg bg-primary/10 text-primary">
-              <Stamp size={24} weight="duotone" />
+              <Stamp size={28} weight="duotone" />
             </div>
             Solicitudes de Firma Cualificada
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="pending" className="flex-1">
-          <TabsList>
+        <Tabs defaultValue="pending" className="flex-1 flex flex-col min-h-0">
+          <TabsList className="flex-shrink-0">
             <TabsTrigger value="pending" className="gap-2">
               <Clock size={16} weight="duotone" />
               Pendientes ({pendingRequests.length})
@@ -143,8 +143,9 @@ export function QualifiedSignatureRequestViewer() {
             </TabsTrigger>
           </TabsList>
 
-          <ScrollArea className="h-[500px] mt-4">
-            <TabsContent value="pending" className="mt-0">
+          <div className="flex-1 min-h-0 mt-4">
+            <ScrollArea className="h-full">
+              <TabsContent value="pending" className="mt-0 pb-4">
               {pendingRequests.length === 0 ? (
                 <Card className="border-dashed">
                   <CardContent className="pt-8 pb-8 text-center">
@@ -164,46 +165,47 @@ export function QualifiedSignatureRequestViewer() {
               )}
             </TabsContent>
 
-            <TabsContent value="signed" className="mt-0">
-              {signedRequests.length === 0 ? (
-                <Card className="border-dashed">
-                  <CardContent className="pt-8 pb-8 text-center">
-                    <CheckCircle size={48} className="mx-auto mb-4 text-muted-foreground opacity-50" weight="duotone" />
-                    <h3 className="text-lg font-semibold mb-2">No hay documentos firmados</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Los documentos firmados aparecerán aquí
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="grid gap-4">
-                  {signedRequests.map(request => (
-                    <RequestCard key={request.id} request={request} />
-                  ))}
-                </div>
-              )}
-            </TabsContent>
+              <TabsContent value="signed" className="mt-0 pb-4">
+                {signedRequests.length === 0 ? (
+                  <Card className="border-dashed">
+                    <CardContent className="pt-8 pb-8 text-center">
+                      <CheckCircle size={48} className="mx-auto mb-4 text-muted-foreground opacity-50" weight="duotone" />
+                      <h3 className="text-lg font-semibold mb-2">No hay documentos firmados</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Los documentos firmados aparecerán aquí
+                      </p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid gap-4">
+                    {signedRequests.map(request => (
+                      <RequestCard key={request.id} request={request} />
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
 
-            <TabsContent value="failed" className="mt-0">
-              {failedRequests.length === 0 ? (
-                <Card className="border-dashed">
-                  <CardContent className="pt-8 pb-8 text-center">
-                    <XCircle size={48} className="mx-auto mb-4 text-muted-foreground opacity-50" weight="duotone" />
-                    <h3 className="text-lg font-semibold mb-2">No hay solicitudes fallidas</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Las solicitudes rechazadas o fallidas aparecerán aquí
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="grid gap-4">
-                  {failedRequests.map(request => (
-                    <RequestCard key={request.id} request={request} />
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-          </ScrollArea>
+              <TabsContent value="failed" className="mt-0 pb-4">
+                {failedRequests.length === 0 ? (
+                  <Card className="border-dashed">
+                    <CardContent className="pt-8 pb-8 text-center">
+                      <XCircle size={48} className="mx-auto mb-4 text-muted-foreground opacity-50" weight="duotone" />
+                      <h3 className="text-lg font-semibold mb-2">No hay solicitudes fallidas</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Las solicitudes rechazadas o fallidas aparecerán aquí
+                      </p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid gap-4">
+                    {failedRequests.map(request => (
+                      <RequestCard key={request.id} request={request} />
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+            </ScrollArea>
+          </div>
         </Tabs>
 
         {selectedRequest && (

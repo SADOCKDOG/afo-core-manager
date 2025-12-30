@@ -139,10 +139,10 @@ export function DocumentVersionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <File size={24} weight="duotone" />
+      <DialogContent className="max-w-6xl max-h-[95vh] h-[95vh] overflow-hidden flex flex-col">
+        <DialogHeader className="flex-shrink-0">
+          <DialogTitle className="flex items-center gap-2 text-2xl">
+            <File size={28} weight="duotone" className="text-primary" />
             {document.name}
           </DialogTitle>
           <DialogDescription>
@@ -150,11 +150,11 @@ export function DocumentVersionDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1 overflow-hidden">
-          <div className="md:col-span-2 flex flex-col gap-4 overflow-hidden">
-            <div className="flex items-center justify-between">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1 overflow-hidden min-h-0">
+          <div className="md:col-span-2 flex flex-col gap-4 overflow-hidden min-h-0">
+            <div className="flex items-center justify-between flex-shrink-0">
               <div>
-                <h3 className="font-semibold">Historial de Versiones</h3>
+                <h3 className="font-semibold text-lg">Historial de Versiones</h3>
                 <p className="text-sm text-muted-foreground">
                   {document.versions.length} versiones
                 </p>
@@ -167,8 +167,8 @@ export function DocumentVersionDialog({
               </div>
             </div>
 
-            <ScrollArea className="flex-1 pr-4">
-              <div className="space-y-3">
+            <ScrollArea className="flex-1 pr-4 min-h-0">
+              <div className="space-y-3 pb-4">
                 {sortedVersions.map((version, index) => (
                   <div 
                     key={version.id} 

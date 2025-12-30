@@ -153,8 +153,8 @@ export function DocumentGeneratorHub({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-7xl max-h-[95vh] p-0">
-        <div className="flex flex-col h-full">
+      <DialogContent className="max-w-7xl max-h-[98vh] h-[98vh] p-0 flex flex-col">
+        <div className="flex flex-col flex-1 min-h-0">
           <DialogHeader className="px-6 pt-6 pb-4 border-b">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -182,9 +182,9 @@ export function DocumentGeneratorHub({
             </div>
           </DialogHeader>
 
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden min-h-0">
             <div className="grid grid-cols-12 h-full">
-              <div className="col-span-3 border-r bg-muted/20 p-4 space-y-3">
+              <div className="col-span-3 border-r bg-muted/20 p-4 space-y-3 overflow-y-auto">
                 <div>
                   <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">
                     Modo de Generación
@@ -265,10 +265,10 @@ export function DocumentGeneratorHub({
                 </div>
               </div>
 
-              <div className="col-span-9 flex flex-col">
+              <div className="col-span-9 flex flex-col min-h-0">
                 {mode === 'templates' && (
-                  <div className="flex-1 flex flex-col">
-                    <div className="p-4 border-b space-y-3">
+                  <div className="flex-1 flex flex-col min-h-0">
+                    <div className="p-4 border-b space-y-3 flex-shrink-0">
                       <div className="relative">
                         <MagnifyingGlass 
                           size={18} 
@@ -303,8 +303,8 @@ export function DocumentGeneratorHub({
                       </div>
                     </div>
 
-                    <ScrollArea className="flex-1 p-4">
-                      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                    <ScrollArea className="flex-1 p-4 min-h-0">
+                      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 pb-4">
                         {filteredTemplates.map((template, index) => (
                           <motion.div
                             key={template.id}

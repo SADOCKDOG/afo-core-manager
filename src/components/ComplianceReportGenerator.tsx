@@ -134,10 +134,12 @@ export function ComplianceReportGenerator({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-7xl max-h-[95vh]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FileText size={24} weight="duotone" />
+      <DialogContent className="max-w-7xl max-h-[98vh] h-[98vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
+          <DialogTitle className="flex items-center gap-2 text-2xl">
+            <div className="p-2 rounded-lg bg-primary/10 text-primary">
+              <FileText size={28} weight="duotone" />
+            </div>
             Generador de Informes de Cumplimiento
           </DialogTitle>
           <DialogDescription>
@@ -145,8 +147,8 @@ export function ComplianceReportGenerator({
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
-          <div className="flex items-center justify-between mb-4">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="flex-1 flex flex-col min-h-0">
+          <div className="flex items-center justify-between mb-4 flex-shrink-0">
             <TabsList>
               <TabsTrigger value="preview">Vista Previa</TabsTrigger>
               <TabsTrigger value="history">Historial ({projectReports.length})</TabsTrigger>
@@ -171,7 +173,8 @@ export function ComplianceReportGenerator({
             </Button>
           </div>
 
-          <TabsContent value="preview" className="mt-0">
+          <div className="flex-1 min-h-0 overflow-auto">
+            <TabsContent value="preview" className="mt-0 pb-4">
             {currentReport ? (
               <div className="space-y-4">
                 <Card>
@@ -292,14 +295,12 @@ export function ComplianceReportGenerator({
                     <CardTitle className="text-base">Informe Completo</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <ScrollArea className="h-[400px] pr-4">
-                      <div
-                        className="prose prose-sm max-w-none"
-                        dangerouslySetInnerHTML={{
-                          __html: marked(currentReport.reportContent)
-                        }}
-                      />
-                    </ScrollArea>
+                    <div
+                      className="prose prose-sm max-w-none max-h-[500px] overflow-y-auto pr-4"
+                      dangerouslySetInnerHTML={{
+                        __html: marked(currentReport.reportContent)
+                      }}
+                    />
                   </CardContent>
                 </Card>
 
@@ -339,10 +340,9 @@ export function ComplianceReportGenerator({
             )}
           </TabsContent>
 
-          <TabsContent value="history" className="mt-0">
-            <ScrollArea className="h-[600px]">
-              {projectReports.length > 0 ? (
-                <div className="space-y-3">
+          <TabsContent value="history" className="mt-0 pb-4">
+            {projectReports.length > 0 ? (
+              <div className="space-y-3">
                   {projectReports
                     .sort((a, b) => b.generatedAt - a.generatedAt)
                     .map((report) => (
@@ -412,8 +412,8 @@ export function ComplianceReportGenerator({
                   </p>
                 </div>
               )}
-            </ScrollArea>
-          </TabsContent>
+            </TabsContent>
+          </div>
         </Tabs>
       </DialogContent>
 

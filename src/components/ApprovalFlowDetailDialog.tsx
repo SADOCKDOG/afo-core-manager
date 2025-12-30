@@ -183,11 +183,11 @@ export function ApprovalFlowDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh]">
-        <DialogHeader>
+      <DialogContent className="max-w-6xl max-h-[95vh] h-[95vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <DialogTitle className="text-xl mb-2">{flow.documentName}</DialogTitle>
+              <DialogTitle className="text-2xl mb-2">{flow.documentName}</DialogTitle>
               <DialogDescription className="flex items-center gap-2">
                 <FileText size={14} />
                 {flow.projectName}
@@ -199,7 +199,7 @@ export function ApprovalFlowDetailDialog({
           </div>
         </DialogHeader>
 
-        <div className="grid grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-3 gap-4 mb-4 flex-shrink-0">
           <Card>
             <CardContent className="pt-6">
               <div className="text-center">
@@ -233,8 +233,8 @@ export function ApprovalFlowDetailDialog({
           </Card>
         </div>
 
-        <Tabs defaultValue="steps" className="flex-1">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs defaultValue="steps" className="flex-1 flex flex-col min-h-0">
+          <TabsList className="grid w-full grid-cols-3 flex-shrink-0">
             <TabsTrigger value="steps" className="gap-2">
               <ListChecks size={16} />
               Pasos
@@ -249,8 +249,9 @@ export function ApprovalFlowDetailDialog({
             </TabsTrigger>
           </TabsList>
 
-          <ScrollArea className="h-[400px] mt-4">
-            <TabsContent value="steps" className="mt-0 space-y-4">
+          <div className="flex-1 min-h-0 mt-4">
+            <ScrollArea className="h-full">
+              <TabsContent value="steps" className="mt-0 space-y-4 pb-4">
               {flow.steps.map((step, index) => {
                 const isCurrentStep = step.stepNumber === flow.currentStepNumber
                 const isCompleted = step.status === 'approved'
@@ -337,131 +338,132 @@ export function ApprovalFlowDetailDialog({
               })}
             </TabsContent>
 
-            <TabsContent value="signatures" className="mt-0">
-              <div className="space-y-4">
-                {flow.steps.flatMap(step => 
-                  step.signatures.map(sig => ({
-                    ...sig,
-                    stepNumber: step.stepNumber
-                  }))
-                ).map((signature) => (
-                  <Card key={signature.id}>
-                    <CardContent className="pt-6">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start gap-3">
-                          <div className={`p-2 rounded-lg ${
-                            signature.status === 'signed' ? 'bg-green-500/10 text-green-500' :
-                            signature.status === 'rejected' ? 'bg-red-500/10 text-red-500' :
-                            'bg-yellow-500/10 text-yellow-500'
-                          }`}>
-                            <Signature size={20} weight="duotone" />
+              <TabsContent value="signatures" className="mt-0 pb-4">
+                <div className="space-y-4">
+                  {flow.steps.flatMap(step => 
+                    step.signatures.map(sig => ({
+                      ...sig,
+                      stepNumber: step.stepNumber
+                    }))
+                  ).map((signature) => (
+                    <Card key={signature.id}>
+                      <CardContent className="pt-6">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-3">
+                            <div className={`p-2 rounded-lg ${
+                              signature.status === 'signed' ? 'bg-green-500/10 text-green-500' :
+                              signature.status === 'rejected' ? 'bg-red-500/10 text-red-500' :
+                              'bg-yellow-500/10 text-yellow-500'
+                            }`}>
+                              <Signature size={20} weight="duotone" />
+                            </div>
+                            <div>
+                              <p className="font-medium">{signature.signerName}</p>
+                              <p className="text-sm text-muted-foreground">{signature.signerEmail}</p>
+                              <p className="text-xs text-muted-foreground mt-1">Paso {signature.stepNumber}</p>
+                              {signature.signedAt && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Firmado: {format(signature.signedAt, 'dd MMM yyyy HH:mm', { locale: es })}
+                                </p>
+                              )}
+                              {signature.rejectionReason && (
+                                <p className="text-xs text-red-500 mt-1">
+                                  Motivo: {signature.rejectionReason}
+                                </p>
+                              )}
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-medium">{signature.signerName}</p>
-                            <p className="text-sm text-muted-foreground">{signature.signerEmail}</p>
-                            <p className="text-xs text-muted-foreground mt-1">Paso {signature.stepNumber}</p>
-                            {signature.signedAt && (
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Firmado: {format(signature.signedAt, 'dd MMM yyyy HH:mm', { locale: es })}
-                              </p>
-                            )}
-                            {signature.rejectionReason && (
-                              <p className="text-xs text-red-500 mt-1">
-                                Motivo: {signature.rejectionReason}
-                              </p>
-                            )}
-                          </div>
+                          <Badge variant="outline" className={
+                            signature.status === 'signed' ? 'bg-green-500/20 text-green-500 border-green-500/30' :
+                            signature.status === 'rejected' ? 'bg-red-500/20 text-red-500 border-red-500/30' :
+                            'bg-yellow-500/20 text-yellow-500 border-yellow-500/30'
+                          }>
+                            {signature.status === 'signed' ? 'Firmado' :
+                             signature.status === 'rejected' ? 'Rechazado' :
+                             'Pendiente'}
+                          </Badge>
                         </div>
-                        <Badge variant="outline" className={
-                          signature.status === 'signed' ? 'bg-green-500/20 text-green-500 border-green-500/30' :
-                          signature.status === 'rejected' ? 'bg-red-500/20 text-red-500 border-red-500/30' :
-                          'bg-yellow-500/20 text-yellow-500 border-yellow-500/30'
-                        }>
-                          {signature.status === 'signed' ? 'Firmado' :
-                           signature.status === 'rejected' ? 'Rechazado' :
-                           'Pendiente'}
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </TabsContent>
 
-            <TabsContent value="info" className="mt-0">
-              <Card>
-                <CardContent className="pt-6 space-y-4">
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Tipo de Flujo</Label>
-                    <p className="text-sm font-medium mt-1">
-                      {flow.flowType === 'sequential' ? 'Secuencial' :
-                       flow.flowType === 'parallel' ? 'Paralelo' :
-                       'Unánime'}
-                    </p>
-                  </div>
+              <TabsContent value="info" className="mt-0 pb-4">
+                <Card>
+                  <CardContent className="pt-6 space-y-4">
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Tipo de Flujo</Label>
+                      <p className="text-sm font-medium mt-1">
+                        {flow.flowType === 'sequential' ? 'Secuencial' :
+                         flow.flowType === 'parallel' ? 'Paralelo' :
+                         'Unánime'}
+                      </p>
+                    </div>
 
-                  <Separator />
+                    <Separator />
 
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Iniciado por</Label>
-                    <p className="text-sm font-medium mt-1">{flow.initiatedByName}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {format(flow.initiatedAt, 'dd MMM yyyy HH:mm', { locale: es })}
-                    </p>
-                  </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Iniciado por</Label>
+                      <p className="text-sm font-medium mt-1">{flow.initiatedByName}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {format(flow.initiatedAt, 'dd MMM yyyy HH:mm', { locale: es })}
+                      </p>
+                    </div>
 
-                  {flow.dueDate && (
-                    <>
-                      <Separator />
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Fecha Límite</Label>
-                        <p className="text-sm font-medium mt-1">
-                          {format(flow.dueDate, 'dd MMM yyyy', { locale: es })}
-                        </p>
-                      </div>
-                    </>
-                  )}
+                    {flow.dueDate && (
+                      <>
+                        <Separator />
+                        <div>
+                          <Label className="text-xs text-muted-foreground">Fecha Límite</Label>
+                          <p className="text-sm font-medium mt-1">
+                            {format(flow.dueDate, 'dd MMM yyyy', { locale: es })}
+                          </p>
+                        </div>
+                      </>
+                    )}
 
-                  {flow.completedAt && (
-                    <>
-                      <Separator />
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Completado</Label>
-                        <p className="text-sm font-medium mt-1">
-                          {format(flow.completedAt, 'dd MMM yyyy HH:mm', { locale: es })}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Duración: {formatFlowDuration(flow.initiatedAt, flow.completedAt)}
-                        </p>
-                      </div>
-                    </>
-                  )}
+                    {flow.completedAt && (
+                      <>
+                        <Separator />
+                        <div>
+                          <Label className="text-xs text-muted-foreground">Completado</Label>
+                          <p className="text-sm font-medium mt-1">
+                            {format(flow.completedAt, 'dd MMM yyyy HH:mm', { locale: es })}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Duración: {formatFlowDuration(flow.initiatedAt, flow.completedAt)}
+                          </p>
+                        </div>
+                      </>
+                    )}
 
-                  {flow.notes && (
-                    <>
-                      <Separator />
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Notas</Label>
-                        <p className="text-sm mt-1 whitespace-pre-wrap">{flow.notes}</p>
-                      </div>
-                    </>
-                  )}
+                    {flow.notes && (
+                      <>
+                        <Separator />
+                        <div>
+                          <Label className="text-xs text-muted-foreground">Notas</Label>
+                          <p className="text-sm mt-1 whitespace-pre-wrap">{flow.notes}</p>
+                        </div>
+                      </>
+                    )}
 
-                  {flow.cancellationReason && (
-                    <>
-                      <Separator />
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Motivo de Cancelación</Label>
-                        <p className="text-sm mt-1 whitespace-pre-wrap text-destructive">
-                          {flow.cancellationReason}
-                        </p>
-                      </div>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </ScrollArea>
+                    {flow.cancellationReason && (
+                      <>
+                        <Separator />
+                        <div>
+                          <Label className="text-xs text-muted-foreground">Motivo de Cancelación</Label>
+                          <p className="text-sm mt-1 whitespace-pre-wrap text-destructive">
+                            {flow.cancellationReason}
+                          </p>
+                        </div>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </ScrollArea>
+          </div>
         </Tabs>
 
         {canApprove && (flow.status === 'pending' || flow.status === 'in-review') && (

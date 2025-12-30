@@ -161,8 +161,8 @@ export function DocumentPreview({ open, onOpenChange, document, content }: Docum
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[95vh] p-0">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b">
+      <DialogContent className="max-w-7xl max-h-[98vh] h-[98vh] p-0 flex flex-col">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b flex-shrink-0">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               <DialogTitle className="text-2xl flex items-center gap-3">
@@ -186,7 +186,7 @@ export function DocumentPreview({ open, onOpenChange, document, content }: Docum
           </div>
         </DialogHeader>
 
-        <div className="px-6 py-4 border-b bg-muted/20">
+        <div className="px-6 py-4 border-b bg-muted/20 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex gap-2">
               <Button
@@ -252,13 +252,13 @@ export function DocumentPreview({ open, onOpenChange, document, content }: Docum
           </div>
         </div>
 
-        <ScrollArea className="flex-1 h-[calc(95vh-200px)]">
-          <div className="px-6 py-6">
+        <ScrollArea className="flex-1 overflow-auto">
+          <div className="px-6 py-6 min-h-full">
             {content ? (
               <Card className="bg-white dark:bg-gray-900">
-                <CardContent className="p-8">
+                <CardContent className="p-10">
                   {viewMode === 'formatted' ? (
-                    <div className="prose prose-sm max-w-none">
+                    <div className="prose prose-base max-w-none">
                       {formatContent(content)}
                     </div>
                   ) : (
@@ -282,7 +282,7 @@ export function DocumentPreview({ open, onOpenChange, document, content }: Docum
           </div>
         </ScrollArea>
 
-        <div className="px-6 py-4 border-t bg-muted/20">
+        <div className="px-6 py-4 border-t bg-muted/20 flex-shrink-0">
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <div className="flex items-center gap-4">
               <span>Subido: {new Date(latestVersion.uploadedAt).toLocaleDateString('es-ES')}</span>
