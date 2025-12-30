@@ -34,6 +34,7 @@ import { DeleteAllDataDialog } from '@/components/DeleteAllDataDialog'
 import { SelectiveDeleteDialog } from '@/components/SelectiveDeleteDialog'
 import { BackupRestoreDialog } from '@/components/BackupRestoreDialog'
 import { BC3ImportDialog } from '@/components/BC3ImportDialog'
+import { PriceDatabaseManager } from '@/components/PriceDatabaseManager'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -67,7 +68,8 @@ import {
   UserCircle,
   Trash,
   FloppyDisk,
-  FileArrowDown
+  FileArrowDown,
+  Database
 } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Toaster, toast } from 'sonner'
@@ -539,11 +541,19 @@ function App() {
                   
                   <DropdownMenuSeparator />
                   <DropdownMenuLabel>Presupuestos y Bases de Precios</DropdownMenuLabel>
+                  <PriceDatabaseManager 
+                    trigger={
+                      <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground w-full">
+                        <Database size={16} className="mr-2" weight="duotone" />
+                        Gestión de Base de Precios
+                      </button>
+                    }
+                  />
                   <BC3ImportDialog 
                     trigger={
                       <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground w-full">
                         <FileArrowDown size={16} className="mr-2" weight="duotone" />
-                        Importar Base de Precios BC3
+                        Importar BC3 Rápido
                       </button>
                     }
                   />

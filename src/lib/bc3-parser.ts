@@ -28,7 +28,11 @@ export interface BC3Record {
 }
 
 export function parseBC3File(content: string): BC3ParseResult {
-  const lines = content.split('\n').filter(line => line.trim() && !line.startsWith('#'))
+  const lines = content.split(/\r?\n/).filter(line => {
+    const trimmed = line.trim()
+    return trimmed && !trimmed.startsWith('#') && !trimmed.startsWith('//')
+  })
+  
   const records: BC3Record[] = []
   
   for (const line of lines) {
@@ -41,6 +45,10 @@ export function parseBC3File(content: string): BC3ParseResult {
     }
   }
   
+  if (records.length === 0) {
+    throw new Error('No se encontraron registros válidos en el archivo BC3. Asegúrate de que el archivo tiene el formato FIEBDC-3 correcto.')
+  }
+  
   const items: BudgetItem[] = []
   const prices: BudgetPrice[] = []
   const priceMap = new Map<string, BudgetPrice>()
@@ -49,22 +57,26 @@ export function parseBC3File(content: string): BC3ParseResult {
   const metadata: BC3ParseResult['metadata'] = {}
   
   for (const record of records) {
-    switch (record.type) {
-      case 'V':
-        parseVersionRecord(record, metadata)
-        break
-      case 'K':
-        parseHeaderRecord(record, metadata)
-        break
-      case 'C':
-        parsePriceRecord(record, prices, priceMap)
-        break
-      case 'T':
-        parseTextRecord(record, textMap)
-        break
-      case 'D':
-        parseDecompositionRecord(record, itemMap, priceMap)
-        break
+    try {
+      switch (record.type) {
+        case 'V':
+          parseVersionRecord(record, metadata)
+          break
+        case 'K':
+          parseHeaderRecord(record, metadata)
+          break
+        case 'C':
+          parsePriceRecord(record, prices, priceMap)
+          break
+        case 'T':
+          parseTextRecord(record, textMap)
+          break
+        case 'D':
+          parseDecompositionRecord(record, itemMap, priceMap)
+          break
+      }
+    } catch (error) {
+      console.warn(`Error al procesar registro tipo ${record.type}:`, error)
     }
   }
   
@@ -323,11 +335,33 @@ export async function importBC3FromFile(file: File): Promise<BC3ParseResult> {
     
     reader.onload = (e) => {
       try {
-        const content = e.target?.result as string
+        const arrayBuffer = e.target?.result as ArrayBuffer
+        
+        let content = ''
+        try {
+          const decoder = new TextDecoder('ISO-8859-1')
+          content = decoder.decode(arrayBuffer)
+        } catch {
+          const decoder = new TextDecoder('windows-1252')
+          content = decoder.decode(arrayBuffer)
+        }
+        
+        if (!content || content.trim().length === 0) {
+          reject(new Error('El archivo BC3 está vacío o no se pudo leer'))
+          return
+        }
+        
         const result = parseBC3File(content)
+        
+        if (result.prices.length === 0 && result.items.length === 0) {
+          reject(new Error('No se encontraron datos válidos en el archivo BC3'))
+          return
+        }
+        
         resolve(result)
       } catch (error) {
-        reject(new Error(`Error al parsear archivo BC3: ${error}`))
+        console.error('Error detallado al parsear BC3:', error)
+        reject(new Error(`Error al parsear archivo BC3: ${error instanceof Error ? error.message : 'Error desconocido'}`))
       }
     }
     
@@ -335,18 +369,41 @@ export async function importBC3FromFile(file: File): Promise<BC3ParseResult> {
       reject(new Error('Error al leer el archivo'))
     }
     
-    reader.readAsText(file, 'ISO-8859-1')
+    reader.readAsArrayBuffer(file)
   })
 }
 
 export function validateBC3File(file: File): { valid: boolean; error?: string } {
-  if (!file.name.toLowerCase().endsWith('.bc3')) {
-    return { valid: false, error: 'El archivo debe tener extensión .bc3' }
+  const fileName = file.name.toLowerCase()
+  
+  if (!fileName.endsWith('.bc3')) {
+    return { 
+      valid: false, 
+      error: 'El archivo debe tener extensión .bc3 (formato FIEBDC-3)' 
+    }
+  }
+  
+  if (file.size === 0) {
+    return { 
+      valid: false, 
+      error: 'El archivo está vacío' 
+    }
   }
   
   if (file.size > 50 * 1024 * 1024) {
-    return { valid: false, error: 'El archivo no puede superar los 50 MB' }
+    return { 
+      valid: false, 
+      error: `El archivo es demasiado grande (${(file.size / 1024 / 1024).toFixed(2)} MB). El tamaño máximo es 50 MB` 
+    }
   }
   
   return { valid: true }
+}
+
+export function getBC3FileInfo(file: File): string {
+  const sizeMB = (file.size / 1024 / 1024).toFixed(2)
+  const sizeKB = (file.size / 1024).toFixed(2)
+  const size = file.size > 1024 * 1024 ? `${sizeMB} MB` : `${sizeKB} KB`
+  
+  return `${file.name} (${size})`
 }

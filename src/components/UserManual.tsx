@@ -42,7 +42,8 @@ import {
   FilePdf,
   FileDoc,
   X,
-  Camera
+  Camera,
+  Database
 } from '@phosphor-icons/react'
 import jsPDF from 'jspdf'
 import { toast } from 'sonner'
@@ -855,6 +856,131 @@ const manualSections: ManualSection[] = [
         'Cumple RGPD al solicitar firmas: informa uso de datos y obtén consentimiento',
         'No compartas enlaces de firma de otros firmantes, son personales e intransferibles',
         'Los rechazos de firma quedan registrados como evidencia de desacuerdo'
+      ]
+    }
+  },
+  {
+    id: 'price-database',
+    title: 'Base de Precios BC3',
+    icon: Database,
+    category: 'business',
+    content: {
+      description: 'Sistema completo de gestión de bases de precios de construcción en formato BC3 (FIEBDC-3), el estándar español de intercambio de información de presupuestos. Permite importar, gestionar y consultar bases de precios oficiales como BEDEC (ITeC), PREOC (Galicia), BPHU (País Vasco) y BASE (Navarra), además de bases de precios de fabricantes y bases personalizadas. La integración con formato BC3 facilita la elaboración de presupuestos precisos basados en precios actualizados del mercado y el uso de partidas estandarizadas reconocidas por el sector.',
+      features: [
+        'Importación completa de archivos BC3 (FIEBDC-3) con análisis automático de estructura',
+        'Soporte para múltiples fuentes: BEDEC, PREOC, BPHU, BASE y bases personalizadas',
+        'Almacenamiento local de base de precios reutilizable entre proyectos',
+        'Catálogo completo con más de 100.000 precios (según base importada)',
+        'Clasificación automática por tipos: Materiales, Mano de Obra, Maquinaria, Unidades de obra',
+        'Información detallada por precio: código, descripción técnica, unidad de medida, precio unitario actualizado, categoría y subcategoría, fuente y fecha de última actualización',
+        'Búsqueda avanzada: por código de partida, descripción completa o parcial, categoría o tipo de recurso',
+        'Filtros inteligentes por tipo de recurso para localización rápida',
+        'Ordenación configurable: alfabética, por precio, por fecha de actualización, por tipo',
+        'Vista previa completa antes de importar con estadísticas: total de precios, desglose por tipos, capítulos y unidades',
+        'Importación selectiva: evita duplicados automáticamente, conserva precios existentes, solo añade nuevos',
+        'Exportación de base de precios: formato JSON para backup y migración, formato CSV para análisis en Excel',
+        'Gestión de precios individuales: edición de precios, eliminación selectiva, actualización de valores',
+        'Estadísticas de base de datos en tiempo real',
+        'Compatibilidad con software del sector: PRESTO, Arquímedes, TCQ, CYPE, Allplan',
+        'Importación desde archivo local o descarga directa desde URL',
+        'Preservación de metadatos: autor, fecha, versión, descripción de base'
+      ],
+      steps: [
+        {
+          title: 'Acceder a la gestión de base de precios',
+          description: 'Desde el menú principal: "Herramientas > Gestión de Base de Precios". Se abre la ventana de gestión con dos pestañas principales: Base de Datos: consulta y gestión de precios ya importados, Importar BC3: importación de nuevas bases. En la primera vista verás estadísticas globales: total de precios, materiales, mano de obra, maquinaria, unidades de obra.',
+          note: 'La base de precios es compartida por todos tus proyectos, actualízala regularmente'
+        },
+        {
+          title: 'Obtener archivo BC3 de base de precios oficial',
+          description: 'Accede a fuentes oficiales españolas según tu ubicación geográfica: BEDEC (ITeC) - Cataluña: https://itec.cat/bedec/ → más de 70.000 partidas actualizadas trimestralmente. PREOC - Galicia: https://www.preoc.es/ → base de precios oficial de la Xunta. BPHU - País Vasco: base oficial del Gobierno Vasco, actualización semestral. BASE - Navarra: banco estructurado de precios del Gobierno de Navarra. En cada plataforma: Navega por capítulos o busca partidas específicas, Selecciona las partidas necesarias para tu tipo de obra, Exporta la selección en formato BC3/FIEBDC-3, Descarga el archivo .BC3 a tu ordenador.',
+          note: 'También puedes obtener bases BC3 de fabricantes (CYPE, constructores) y organismos (colegios profesionales)'
+        },
+        {
+          title: 'Importar base de precios desde archivo local',
+          description: 'En "Importar BC3" pestaña "Archivo Local": OPCIÓN 1 - Arrastrar y soltar: Arrastra el archivo .BC3 desde tu explorador a la zona indicada. OPCIÓN 2 - Seleccionar archivo: Haz clic en la zona de carga, Navega a la ubicación del archivo BC3, Selecciona y confirma. El sistema procesa automáticamente el archivo: Valida formato FIEBDC-3, Parsea estructura completa, Extrae precios y metadatos, Muestra vista previa con estadísticas. Revisa la información detectada antes de confirmar importación.',
+          note: 'El proceso puede tardar 10-30 segundos según tamaño del archivo BC3 (típicamente 1-5 MB)'
+        },
+        {
+          title: 'Revisar vista previa de importación',
+          description: 'Antes de importar definitivamente, el sistema muestra: Metadatos: título de la base, autor/organismo, fecha de publicación, versión, descripción. Estadísticas completas: Total de precios únicos, Número de partidas/capítulos, Materiales (tipo 0), Mano de obra (tipo 1), Maquinaria (tipo 2), Unidades compuestas. Lista de precios (primeros 50): Código oficial de la partida, Descripción técnica completa, Unidad de medida (m, m2, m3, ud, kg, h), Precio unitario en euros, Tipo de recurso, Categoría. Revisa que los datos son correctos y actualizados antes de confirmar.',
+          note: 'Si la vista previa muestra errores o datos incorrectos, verifica que el archivo BC3 no esté corrupto'
+        },
+        {
+          title: 'Confirmar importación a base de datos',
+          description: 'Si la vista previa es correcta, haz clic en "Importar a Base de Datos". El sistema: Compara códigos con precios ya existentes en tu base, Omite automáticamente precios duplicados (mismo código), Solo importa precios nuevos, Conserva precios que ya tenías. Al finalizar muestra resumen: "85 nuevos precios añadidos (15 duplicados omitidos)". Los precios están ahora disponibles para: Consulta en la pestaña "Base de Datos", Búsqueda y filtrado, Uso en presupuestos de proyectos (futuro), Exportación para análisis.',
+          note: 'Puedes importar múltiples bases BC3, los precios se acumulan sin duplicar'
+        },
+        {
+          title: 'Buscar y filtrar precios en la base de datos',
+          description: 'En la pestaña "Base de Datos": Búsqueda textual: escribe en el buscador código (ej: "E02D"), descripción parcial (ej: "excavación"), categoría. Los resultados se filtran en tiempo real. Filtro por tipo: usa el selector para mostrar solo: Todos, Materiales (ladrillos, cemento, perfiles), Mano de Obra (oficial, peón), Maquinaria (retroexcavadora, grúa), Unidades (partidas compuestas). Ordenación: Por código: orden alfabético estándar BC3, Por descripción: alfabética de texto, Por precio: de menor a mayor o viceversa, Por tipo: agrupa materiales, luego MO, luego maquinaria, Por fecha: más recientes primero.',
+          note: 'Usa búsquedas específicas como "hormigón HA-25" para encontrar exactamente lo que necesitas'
+        },
+        {
+          title: 'Consultar detalle de un precio',
+          description: 'Cada precio en la lista muestra: Identificación: código único (ej: E04CM050), tipo de recurso con icono y color. Descripción técnica completa: "Fábrica de ladrillo cerámico perforado 24x11.5x7 cm, HD, para revestir, categoría I...". Unidad de medida: m2, m3, ud, kg, h, pa (partida alzada). Precio unitario actualizado: precio en €/unidad con 2 decimales. Metadatos: Categoría (si disponible en el BC3), Fuente: nombre de la base importada, Última actualización: fecha del BC3. Esta información está lista para copiar a presupuestos o documentos.',
+          note: 'Los precios suelen actualizarse trimestralmente en bases oficiales, reimporta regularmente'
+        },
+        {
+          title: 'Exportar base de precios a CSV',
+          description: 'Para análisis externo o backup, exporta a CSV: Botón "Exportar CSV" en la pestaña Base de Datos. El archivo CSV generado contiene: Código, Descripción, Unidad, Precio Unitario, Tipo, Categoría, Fuente, Última Actualización. Separado por punto y coma (;) compatible con Excel español. Codificación UTF-8 con BOM para caracteres especiales. Usos del CSV: Comparar precios entre diferentes bases, Análisis estadísticos en Excel, Importar a otros sistemas, Archivo para cliente o colaboradores, Base de conocimiento.',
+          note: 'El CSV usa punto y coma (;) como separador para compatibilidad con Excel en español'
+        },
+        {
+          title: 'Exportar base de precios a JSON',
+          description: 'Para backup técnico o migración: Botón "Exportar JSON" en Base de Datos. El archivo JSON contiene: Estructura completa de cada precio, Todos los metadatos, Formato importable directamente. Guarda el JSON como backup regular (mensual): Almacena en cloud seguro, Permite restaurar toda la base, Facilita migración entre instalaciones. El JSON es la forma más completa y segura de respaldar tu base de precios.',
+          note: 'Incluye el JSON en tus backups mensuales junto con proyectos exportados'
+        },
+        {
+          title: 'Gestionar precios individuales',
+          description: 'Para cada precio puedes: Eliminar individualmente: pasa el ratón sobre el precio, aparece icono de papelera, confirma eliminación. Esto NO elimina el precio de presupuestos ya creados que lo usen. Actualizar precio manualmente (futuro): edita precio unitario, añade notas, marca como desactualizado. Gestión masiva: "Vaciar Base": elimina TODOS los precios de una vez (con confirmación), útil para renovación completa de base.',
+          note: 'Cuidado al eliminar precios que puedas estar usando en presupuestos activos'
+        },
+        {
+          title: 'Importar desde URL online',
+          description: 'Algunas fuentes permiten acceso directo por URL: En "Importar BC3" pestaña "Base Online", Introduce URL completa del archivo BC3, Ejemplo: https://ejemplo.com/bedec-2024-Q1.bc3, Haz clic en "Descargar". El sistema descarga y procesa igual que archivo local. Ventajas: No necesitas descargar manualmente, Acceso directo a bases actualizadas, Menos pasos en el proceso. Limitación: La URL debe ser pública y accesible sin login.',
+          note: 'No todas las bases oficiales permiten descarga directa por URL pública'
+        },
+        {
+          title: 'Actualizar base de precios periódicamente',
+          description: 'Las bases oficiales se actualizan regularmente: BEDEC: trimestral (enero, abril, julio, octubre), PREOC: semestral (enero, julio), BPHU: semestral o anual. Proceso de actualización: Descarga la nueva versión BC3, Importa normalmente a tu base, Los precios nuevos se añaden, Los precios duplicados (mismo código) NO se modifican, puedes actualizar manualmente si es necesario. Marca en calendario recordatorios para actualizar en cada publicación.',
+          note: 'Al importar nueva versión, precios existentes no se sobrescriben automáticamente, actualiza manualmente si cambió el precio'
+        },
+        {
+          title: 'Integración con presupuestos (futuro)',
+          description: 'La base de precios está preparada para: Búsqueda directa al crear partidas de presupuesto, Autocompletado de código y descripción, Precio unitario pre-rellenado automáticamente, Actualización de precios en presupuestos existentes, Comparativas de precios entre bases. Esta funcionalidad conectará bases BC3 con módulo de presupuestos cuando esté implementado.',
+          note: 'De momento usa la base como consulta rápida de precios para presupuestos manuales'
+        }
+      ],
+      tips: [
+        'Importa la base de precios oficial de tu comunidad autónoma como base principal (BEDEC en Cataluña, PREOC en Galicia, etc.)',
+        'Complementa con bases de fabricantes específicos para productos que uses habitualmente (CYPE, fabricantes de ventanas, etc.)',
+        'Actualiza la base trimestralmente con las nuevas versiones oficiales para tener precios de mercado actualizados',
+        'Usa la búsqueda avanzada con términos específicos: "excavación zanja" en lugar de solo "excavación" para resultados precisos',
+        'Exporta a CSV las partidas que uses frecuentemente para tener referencia rápida en Excel',
+        'Combina filtros: primero filtra por tipo "Materiales", luego busca "ladrillo" para afinar resultados',
+        'Los códigos BC3 estándar facilitan comunicación con proveedores: menciona el código oficial en presupuestos',
+        'Guarda múltiples bases temáticas: una para obra nueva, otra para reforma, otra para instalaciones',
+        'Aprovecha las descripciones completas de las partidas BC3 como referencia técnica para pliegos',
+        'Usa el ordenamiento por precio para comparar alternativas similares (varios tipos de ladrillo, hormigones)',
+        'Mantén backup JSON mensual de tu base de precios junto con proyectos exportados',
+        'Si trabajas en varias comunidades autónomas, importa las bases de cada región para ajustar a precios locales',
+        'Verifica que los precios incluyan o no IVA según la base (habitualmente sin IVA para bases oficiales)',
+        'Usa categorías de la base BC3 para organizar presupuestos por capítulos estándar del sector',
+        'Algunos archivos BC3 incluyen descomposiciones (materiales + MO + maquinaria de cada unidad), muy útil para justificación'
+      ],
+      warnings: [
+        'Los archivos BC3 pueden ser grandes (5-20 MB), la importación puede tardar 30-60 segundos, ten paciencia',
+        'Verifica siempre que el archivo BC3 descargado no esté corrupto antes de importar',
+        'Los precios en bases oficiales NO incluyen IVA, añádelo al calcular presupuestos finales para cliente',
+        'Algunos precios pueden estar desactualizados, verifica con proveedores para proyectos críticos',
+        'No todos los archivos .bc3 son iguales, algunos tienen estructura incompleta o errores',
+        'Los precios duplicados (mismo código) no se sobrescriben automáticamente, actualiza manualmente si cambió el valor',
+        'Si eliminas toda la base ("Vaciar Base") no hay deshacer, asegúrate de tener backup JSON antes',
+        'Los precios de mano de obra pueden variar significativamente entre regiones, ajusta según tu ubicación',
+        'Las bases de fabricantes pueden incluir precios promocionales temporales, no son precios de mercado estables',
+        'El formato BC3 tiene varias versiones (FIEBDC-2, FIEBDC-3), asegúrate de usar versión 3 para máxima compatibilidad',
+        'No confíes ciegamente en precios de bases antiguas (+2 años), la inflación puede haberlos desfasado significativamente'
       ]
     }
   },
