@@ -189,6 +189,7 @@ function App() {
           title: projectData.title!,
           description: projectData.description,
           location: projectData.location!,
+          clientId: projectData.clientId!,
           status: projectData.status || 'active',
           phases: projectData.phases || [],
           stakeholders: projectData.stakeholders || [],
@@ -209,6 +210,7 @@ function App() {
   const handleImportComplete = (importData: {
     title: string
     location: string
+    clientId: string
     folderStructure: any
     documents: any[]
   }) => {
@@ -216,6 +218,7 @@ function App() {
       id: Date.now().toString(),
       title: importData.title,
       location: importData.location,
+      clientId: importData.clientId,
       status: 'active',
       phases: [],
       stakeholders: [],
@@ -241,6 +244,7 @@ function App() {
   const handleBulkImportComplete = (importedProjects: Array<{
     title: string
     location: string
+    clientId: string
     folderStructure: any
     documents: any[]
   }>) => {
@@ -248,6 +252,7 @@ function App() {
       id: `${Date.now()}-${Math.random()}`,
       title: importData.title,
       location: importData.location,
+      clientId: importData.clientId,
       status: 'active',
       phases: [],
       stakeholders: [],

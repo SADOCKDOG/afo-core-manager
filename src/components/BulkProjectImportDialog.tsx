@@ -28,8 +28,10 @@ import {
 } from '@/lib/project-import'
 import { 
   FolderStructureType,
-  FOLDER_STRUCTURES
+  FOLDER_STRUCTURES,
+  Client
 } from '@/lib/types'
+import { useKV } from '@github/spark/hooks'
 import { ClassificationContext } from '@/lib/ai-document-classifier'
 import { AIDocumentClassifier } from './AIDocumentClassifier'
 import { toast } from 'sonner'
@@ -43,6 +45,7 @@ interface ProjectImportData {
   isAnalyzing: boolean
   title: string
   location: string
+  clientId: string
   folderStructure: FolderStructureType
   selected: boolean
   error?: string
@@ -54,6 +57,7 @@ interface BulkProjectImportDialogProps {
   onImportComplete: (projects: Array<{
     title: string
     location: string
+    clientId: string
     folderStructure: FolderStructureType
     documents: any[]
   }>) => void
@@ -62,6 +66,7 @@ interface BulkProjectImportDialogProps {
 type ImportStep = 'select' | 'analyze' | 'configure' | 'importing'
 
 export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }: BulkProjectImportDialogProps) {
+  const [clients] = useKV<Client[]>('clients', [])
   const [step, setStep] = useState<ImportStep>('select')
   const [projects, setProjects] = useState<ProjectImportData[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
@@ -92,6 +97,7 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
       isAnalyzing: false,
       title: folderName,
       location: '',
+      clientId: '',
       folderStructure: 'by-type' as FolderStructureType,
       selected: true
     }))
@@ -157,9 +163,9 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
       return
     }
 
-    const hasInvalidProjects = selectedProjects.some(p => !p.title || !p.location)
+    const hasInvalidProjects = selectedProjects.some(p => !p.title || !p.location || !p.clientId)
     if (hasInvalidProjects) {
-      toast.error('Complete todos los campos requeridos (nombre y ubicación)')
+      toast.error('Complete todos los campos requeridos (nombre, ubicación y cliente)')
       return
     }
 
@@ -174,6 +180,7 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
         return {
           title: project.title,
           location: project.location,
+          clientId: project.clientId,
           folderStructure: project.folderStructure,
           documents
         }
@@ -404,6 +411,41 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
                                         className="mt-1 h-9"
                                       />
                                     </div>
+                                  </div>
+
+                                  <div>
+                                    <Label htmlFor={`client-${project.id}`} className="text-xs">
+                                      Cliente (Promotor) *
+                                    </Label>
+                                    <Select
+                                      value={project.clientId}
+                                      onValueChange={(value) => handleUpdateProject(project.id, { clientId: value })}
+                                    >
+                                      <SelectTrigger className="mt-1 h-9">
+                                        <SelectValue placeholder="Seleccionar cliente" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {(clients || []).length === 0 ? (
+                                          <SelectItem value="" disabled>No hay clientes disponibles</SelectItem>
+                                        ) : (
+                                          (clients || []).map(client => {
+                                            const name = client.type === 'persona-juridica' 
+                                              ? client.razonSocial 
+                                              : `${client.nombre} ${client.apellido1}`
+                                            return (
+                                              <SelectItem key={client.id} value={client.id}>
+                                                {name} - {client.nif}
+                                              </SelectItem>
+                                            )
+                                          })
+                                        )}
+                                      </SelectContent>
+                                    </Select>
+                                    {(clients || []).length === 0 && (
+                                      <p className="text-xs text-destructive mt-1">
+                                        Debe crear un cliente antes de importar proyectos
+                                      </p>
+                                    )}
                                   </div>
 
                                   <div>

@@ -96,7 +96,7 @@ export interface Project {
   status: ProjectStatus
   phases: ProjectPhaseData[]
   stakeholders: string[]
-  clientId?: string
+  clientId: string
   folderStructure?: FolderStructureType
   createdAt: number
   updatedAt: number

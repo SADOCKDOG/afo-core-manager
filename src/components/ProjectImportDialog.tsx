@@ -31,8 +31,10 @@ import {
   DOCUMENT_TYPE_LABELS, 
   DocumentType, 
   FolderStructureType,
-  FOLDER_STRUCTURES
+  FOLDER_STRUCTURES,
+  Client
 } from '@/lib/types'
+import { useKV } from '@github/spark/hooks'
 import { ClassificationContext } from '@/lib/ai-document-classifier'
 import { AIDocumentClassifier } from './AIDocumentClassifier'
 import { toast } from 'sonner'
@@ -45,6 +47,7 @@ interface ProjectImportDialogProps {
   onImportComplete: (projectData: {
     title: string
     location: string
+    clientId: string
     folderStructure: FolderStructureType
     documents: any[]
   }) => void
@@ -53,12 +56,14 @@ interface ProjectImportDialogProps {
 type ImportStep = 'upload' | 'analyze' | 'ai-classify' | 'review' | 'confirm'
 
 export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: ProjectImportDialogProps) {
+  const [clients] = useKV<Client[]>('clients', [])
   const [step, setStep] = useState<ImportStep>('upload')
   const [files, setFiles] = useState<File[]>([])
   const [analysis, setAnalysis] = useState<ImportAnalysis | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [projectTitle, setProjectTitle] = useState('')
   const [projectLocation, setProjectLocation] = useState('')
+  const [clientId, setClientId] = useState('')
   const [selectedStructure, setSelectedStructure] = useState<FolderStructureType>('by-type')
   const [editingFile, setEditingFile] = useState<ImportedFile | null>(null)
   const [searchFilter, setSearchFilter] = useState('')
@@ -169,7 +174,7 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
   }
 
   const handleImport = () => {
-    if (!analysis || !projectTitle || !projectLocation) {
+    if (!analysis || !projectTitle || !projectLocation || !clientId) {
       toast.error('Por favor, complete todos los campos requeridos')
       return
     }
@@ -180,6 +185,7 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
     onImportComplete({
       title: projectTitle,
       location: projectLocation,
+      clientId,
       folderStructure: selectedStructure,
       documents
     })
@@ -203,6 +209,7 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
     setAnalysis(null)
     setProjectTitle('')
     setProjectLocation('')
+    setClientId('')
     setSelectedStructure('by-type')
     setEditingFile(null)
     setSearchFilter('')
@@ -535,6 +542,36 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
                         {analysis.locationSuggestion && (
                           <p className="text-xs text-muted-foreground mt-1">
                             Sugerencia detectada: {analysis.locationSuggestion}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <Label htmlFor="client">Cliente (Promotor) *</Label>
+                        <Select value={clientId} onValueChange={setClientId}>
+                          <SelectTrigger id="client" className="mt-1">
+                            <SelectValue placeholder="Seleccionar cliente" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {(clients || []).length === 0 ? (
+                              <SelectItem value="" disabled>No hay clientes disponibles</SelectItem>
+                            ) : (
+                              (clients || []).map(client => {
+                                const name = client.type === 'persona-juridica' 
+                                  ? client.razonSocial 
+                                  : `${client.nombre} ${client.apellido1}`
+                                return (
+                                  <SelectItem key={client.id} value={client.id}>
+                                    {name} - {client.nif}
+                                  </SelectItem>
+                                )
+                              })
+                            )}
+                          </SelectContent>
+                        </Select>
+                        {(clients || []).length === 0 && (
+                          <p className="text-xs text-destructive mt-1">
+                            Debe crear un cliente antes de importar un proyecto
                           </p>
                         )}
                       </div>

@@ -41,11 +41,11 @@ This MVP focuses on core project management functionality with client tracking, 
 - **Success criteria**: Logo displays properly in header badge, razón social appears as application title, defaults to "AFO CORE MANAGER" when not configured, logo images scale and fit within header constraints, changes apply immediately without page reload
 
 ### Project Creation & Management
-- **Functionality**: Create and track architectural projects with client details, contracted phases, and key metadata
-- **Purpose**: Centralize all project information in one authoritative location
-- **Trigger**: User clicks "New Project" from dashboard
-- **Progression**: Click New Project → Enter project details → Define contracted phases with percentages → Add stakeholders (Promotor, Architects, Other Technicians) → Save → View in dashboard
-- **Success criteria**: Projects persist between sessions, all metadata is captured, phase percentages validate to logical totals
+- **Functionality**: Create and track architectural projects with mandatory client assignment, contracted phases, and key metadata
+- **Purpose**: Centralize all project information with clear client relationships from the start
+- **Trigger**: User clicks "New Project" from dashboard or projects view
+- **Progression**: Click New Project → Select client from dropdown (required) → Enter project details (title*, location*) → Define contracted phases with percentages → Add stakeholders (Promotor, Architects, Other Technicians) → Save → View in dashboard
+- **Success criteria**: Projects persist between sessions, all metadata is captured, phase percentages validate to logical totals, client field is mandatory and enforced, users are prompted to create a client if none exist before creating a project
 
 ### Project Dashboard with Multiple Views
 - **Functionality**: Visual overview of all active projects with status, progress, and key dates. Comprehensive main dashboard showing key metrics, recent activity, project distribution, and pending items across all modules
@@ -220,13 +220,13 @@ This MVP focuses on core project management functionality with client tracking, 
 - **Project Import with Deep Nesting**: Folder tree performance optimized for 500+ files across 50+ folders; initial folders auto-expanded to 2 levels for quick overview
 - **Project Import Analysis Failure**: Network or processing errors during analysis show clear error message with retry option; user returns to upload step without data loss
 - **Project Import Duplicate Files**: Duplicate filenames in different folders handled correctly; full path displayed to distinguish files; import preserves all files with unique IDs
-- **Project Import Missing Metadata**: Projects with no detectable name/location show placeholders (""Proyecto Sin Nombre"", ""Ubicación Por Determinar"") with clear prompts to fill manually
+- **Project Import Missing Metadata**: Projects with no detectable name/location show placeholders ("Proyecto Sin Nombre", "Ubicación Por Determinar") with clear prompts to fill manually; client selection is mandatory before completing import; users are guided to create client if none exist
 - **Project Import File Search**: Search across 1000+ files returns instant results; empty search state shows clear "No files match" message with active filters displayed
 - **Project Import Type Filtering**: Type filter dropdown shows all document types; "all" option resets filter; filter works in combination with search
-- **Bulk Import with Mixed Folders**: Parent folder with mix of project folders and loose files handled correctly; loose files ignored or bundled into separate "Archivos Sueltos" project
+- **Bulk Import with Mixed Folders**: Parent folder with mix of project folders and loose files handled correctly; loose files ignored or bundled into separate "Archivos Sueltos" project; each project requires client selection
 - **Bulk Import Zero Valid Projects**: Selecting folder with no valid subfolders shows informative error explaining folder structure requirements
 - **Bulk Import Partial Selection**: Can deselect individual projects from bulk import; unselected projects ignored; import count updates in real-time
-- **Bulk Import Configuration**: Each project independently configurable; changes to one project don't affect others; validation per-project before allowing import
+- **Bulk Import Configuration**: Each project independently configurable including mandatory client selection; changes to one project don't affect others; validation per-project (title, location, client) before allowing import; warning if no clients exist with guidance to create one first
 - **Bulk Import Analysis Progress**: Progress bar shows percentage during multi-project analysis; estimated time remaining displayed; can't cancel mid-analysis (fast enough not needed)
 - **Import Statistics Display**: Statistics calculate correctly for any number of files; percentage bars scale properly; confidence distribution always sums to total files
 

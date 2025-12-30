@@ -90,7 +90,7 @@ export function ProjectDialog({ open, onOpenChange, onSave, project }: ProjectDi
       title,
       description,
       location,
-      clientId: clientId || undefined,
+      clientId,
       status,
       phases,
       stakeholders: project?.stakeholders || []
@@ -147,25 +147,33 @@ export function ProjectDialog({ open, onOpenChange, onSave, project }: ProjectDi
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="client">Cliente (Promotor)</Label>
-              <Select value={clientId} onValueChange={setClientId}>
+              <Label htmlFor="client">Cliente (Promotor) *</Label>
+              <Select value={clientId} onValueChange={setClientId} required>
                 <SelectTrigger id="client">
                   <SelectValue placeholder="Seleccionar cliente" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sin cliente asociado</SelectItem>
-                  {(clients || []).map(client => {
-                    const name = client.type === 'persona-juridica' 
-                      ? client.razonSocial 
-                      : `${client.nombre} ${client.apellido1}`
-                    return (
-                      <SelectItem key={client.id} value={client.id}>
-                        {name} - {client.nif}
-                      </SelectItem>
-                    )
-                  })}
+                  {(clients || []).length === 0 ? (
+                    <SelectItem value="" disabled>No hay clientes disponibles</SelectItem>
+                  ) : (
+                    (clients || []).map(client => {
+                      const name = client.type === 'persona-juridica' 
+                        ? client.razonSocial 
+                        : `${client.nombre} ${client.apellido1}`
+                      return (
+                        <SelectItem key={client.id} value={client.id}>
+                          {name} - {client.nif}
+                        </SelectItem>
+                      )
+                    })
+                  )}
                 </SelectContent>
               </Select>
+              {(clients || []).length === 0 && (
+                <p className="text-sm text-destructive">
+                  Debe crear un cliente antes de crear un proyecto
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -242,7 +250,7 @@ export function ProjectDialog({ open, onOpenChange, onSave, project }: ProjectDi
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={!title || !location || selectedPhases.size === 0}>
+            <Button type="submit" disabled={!title || !location || !clientId || selectedPhases.size === 0}>
               {project ? 'Guardar Cambios' : 'Crear Proyecto'}
             </Button>
           </div>
