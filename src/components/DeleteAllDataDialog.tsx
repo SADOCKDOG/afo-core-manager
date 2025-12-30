@@ -12,8 +12,9 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Trash, Warning } from '@phosphor-icons/react'
+import { Trash, Warning, FloppyDisk, Download } from '@phosphor-icons/react'
 import { toast } from 'sonner'
+import { createFullBackup, exportBackupToFile } from '@/lib/backup-restore'
 
 interface DeleteAllDataDialogProps {
   onConfirmDelete: () => void
@@ -24,12 +25,34 @@ export function DeleteAllDataDialog({ onConfirmDelete, trigger }: DeleteAllDataD
   const [open, setOpen] = useState(false)
   const [confirmText, setConfirmText] = useState('')
   const [step, setStep] = useState(1)
+  const [isCreatingBackup, setIsCreatingBackup] = useState(false)
+  const [backupCreated, setBackupCreated] = useState(false)
 
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen)
     if (!newOpen) {
       setConfirmText('')
       setStep(1)
+      setBackupCreated(false)
+      setIsCreatingBackup(false)
+    }
+  }
+
+  const handleCreateBackupBeforeDelete = async () => {
+    setIsCreatingBackup(true)
+    try {
+      const backup = await createFullBackup()
+      await exportBackupToFile(backup)
+      setBackupCreated(true)
+      toast.success('Respaldo creado y descargado', {
+        description: 'Ahora puedes proceder con la eliminación'
+      })
+    } catch (error) {
+      toast.error('Error al crear respaldo', {
+        description: error instanceof Error ? error.message : 'Error desconocido'
+      })
+    } finally {
+      setIsCreatingBackup(false)
     }
   }
 
@@ -94,9 +117,29 @@ export function DeleteAllDataDialog({ onConfirmDelete, trigger }: DeleteAllDataD
                     </ul>
                   </div>
 
-                  <Alert className="bg-muted">
-                    <AlertDescription className="text-sm">
-                      <strong>Recomendación:</strong> Antes de continuar, considera exportar tus proyectos desde el menú de Herramientas.
+                  <Alert className={backupCreated ? "bg-primary/10 border-primary/30" : "bg-muted"}>
+                    <FloppyDisk size={20} weight="duotone" className={backupCreated ? "text-primary" : ""} />
+                    <AlertDescription className="text-sm ml-2">
+                      {backupCreated ? (
+                        <div className="space-y-2">
+                          <p><strong>✓ Respaldo creado y descargado</strong></p>
+                          <p className="text-xs text-muted-foreground">Tus datos están seguros. Puedes continuar con la eliminación.</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          <p><strong>Recomendación:</strong> Crea un respaldo de tus datos antes de continuar</p>
+                          <Button
+                            onClick={handleCreateBackupBeforeDelete}
+                            disabled={isCreatingBackup}
+                            variant="outline"
+                            size="sm"
+                            className="gap-2 w-full"
+                          >
+                            <Download size={16} weight="bold" />
+                            {isCreatingBackup ? 'Creando respaldo...' : 'Crear Respaldo Ahora'}
+                          </Button>
+                        </div>
+                      )}
                     </AlertDescription>
                   </Alert>
                 </>

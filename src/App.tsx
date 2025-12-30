@@ -31,6 +31,7 @@ import { ComponentRegistry } from '@/components/ComponentRegistry'
 import { WelcomeScreen } from '@/components/WelcomeScreen'
 import { ArchitectProfileEditor } from '@/components/ArchitectProfileEditor'
 import { DeleteAllDataDialog } from '@/components/DeleteAllDataDialog'
+import { BackupRestoreDialog } from '@/components/BackupRestoreDialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -62,7 +63,8 @@ import {
   CalendarBlank,
   Question,
   UserCircle,
-  Trash
+  Trash,
+  FloppyDisk
 } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Toaster, toast } from 'sonner'
@@ -556,6 +558,17 @@ function App() {
                     <Gear size={16} className="mr-2" weight="duotone" />
                     Configurar Email
                   </DropdownMenuItem>
+                  
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>Datos</DropdownMenuLabel>
+                  <BackupRestoreDialog 
+                    trigger={
+                      <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground w-full">
+                        <FloppyDisk size={16} className="mr-2" weight="duotone" />
+                        Respaldo y Restauración
+                      </button>
+                    }
+                  />
                   
                   <DropdownMenuSeparator />
                   <DeleteAllDataDialog 
