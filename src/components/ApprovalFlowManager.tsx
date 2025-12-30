@@ -22,8 +22,8 @@ import {
 import { getFlowStatusLabel } from '@/lib/approval-utils'
 
 export function ApprovalFlowManager() {
-  const [flows, setFlows] = useKV<ApprovalFlow[]>('approval-flows', [])
-  const [templates] = useKV<ApprovalFlowTemplate[]>('approval-flow-templates', [])
+  const [flows, setFlows, deleteFlows] = useKV<ApprovalFlow[] | null>('approval-flows', null)
+  const [templates, setTemplates, deleteTemplates] = useKV<ApprovalFlowTemplate[] | null>('approval-flow-templates', null)
   const [open, setOpen] = useState(false)
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [selectedFlow, setSelectedFlow] = useState<ApprovalFlow | null>(null)

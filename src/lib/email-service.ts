@@ -320,7 +320,7 @@ export function useEmailConfig() {
 }
 
 export function useEmailLogs() {
-  const [logs, setLogs] = useKV<EmailLog[]>('email-logs', [])
+  const [logs, setLogs, deleteLogs] = useKV<EmailLog[] | null>('email-logs', null)
 
   const addLog = (log: Omit<EmailLog, 'id' | 'timestamp'>) => {
     const newLog: EmailLog = {
@@ -332,7 +332,7 @@ export function useEmailLogs() {
   }
 
   const clearLogs = () => {
-    setLogs([])
+    deleteLogs()
   }
 
   return {
@@ -343,7 +343,7 @@ export function useEmailLogs() {
 }
 
 export function useScheduledEmails() {
-  const [scheduledEmails, setScheduledEmails] = useKV<ScheduledEmail[]>('scheduled-emails', [])
+  const [scheduledEmails, setScheduledEmails, deleteScheduledEmails] = useKV<ScheduledEmail[] | null>('scheduled-emails', null)
 
   const addScheduledEmail = (email: Omit<ScheduledEmail, 'id' | 'createdAt' | 'nextSendAt'>) => {
     const nextSendAt = calculateNextSendTime(email.schedule)

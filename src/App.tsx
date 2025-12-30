@@ -75,14 +75,14 @@ type ViewMode = 'dashboard' | 'projects' | 'clients' | 'invoices' | 'calendar' |
 type ProjectFilter = 'all' | 'active' | 'archived'
 
 function App() {
-  const [architectProfile, setArchitectProfile] = useKV<ArchitectProfile | null>('architect-profile', null)
-  const [projects, setProjects] = useKV<Project[]>('projects', [])
-  const [stakeholders, setStakeholders] = useKV<Stakeholder[]>('stakeholders', [])
-  const [invoices, setInvoices] = useKV<Invoice[]>('invoices', [])
-  const [clients, setClients] = useKV<Client[]>('clients', [])
-  const [budgets, setBudgets] = useKV<Budget[]>('budgets', [])
-  const [milestones, setMilestones] = useKV<ProjectMilestone[]>('project-milestones', [])
-  const [documents, setDocuments] = useKV<Document[]>('project-documents', [])
+  const [architectProfile, setArchitectProfile, deleteArchitectProfile] = useKV<ArchitectProfile | null>('architect-profile', null)
+  const [projects, setProjects, deleteProjects] = useKV<Project[] | null>('projects', null)
+  const [stakeholders, setStakeholders, deleteStakeholders] = useKV<Stakeholder[] | null>('stakeholders', null)
+  const [invoices, setInvoices, deleteInvoices] = useKV<Invoice[] | null>('invoices', null)
+  const [clients, setClients, deleteClients] = useKV<Client[] | null>('clients', null)
+  const [budgets, setBudgets, deleteBudgets] = useKV<Budget[] | null>('budgets', null)
+  const [milestones, setMilestones, deleteMilestones] = useKV<ProjectMilestone[] | null>('project-milestones', null)
+  const [documents, setDocuments, deleteDocuments] = useKV<Document[] | null>('project-documents', null)
   const { isConfigured } = useEmailConfig()
   
   const [isInitialized, setIsInitialized] = useState(false)
@@ -132,26 +132,44 @@ function App() {
   }
 
   const handleDeleteAllData = async () => {
-    const allKeys = await spark.kv.keys()
-    for (const key of allKeys) {
-      await spark.kv.delete(key)
+    try {
+      const allKeys = await spark.kv.keys()
+      console.log('Claves antes de eliminar:', allKeys)
+      
+      for (const key of allKeys) {
+        await spark.kv.delete(key)
+        console.log(`Clave eliminada: ${key}`)
+      }
+      
+      deleteArchitectProfile()
+      deleteProjects()
+      deleteStakeholders()
+      deleteInvoices()
+      deleteClients()
+      deleteBudgets()
+      deleteMilestones()
+      deleteDocuments()
+      
+      const remainingKeys = await spark.kv.keys()
+      console.log('Claves después de eliminar:', remainingKeys)
+      
+      setIsInitialized(false)
+      setViewMode('dashboard')
+      setSelectedProject(null)
+      
+      toast.success('Todos los datos han sido eliminados correctamente', {
+        description: 'La aplicación se reiniciará en breve'
+      })
+      
+      setTimeout(() => {
+        window.location.reload()
+      }, 800)
+    } catch (error) {
+      console.error('Error al eliminar datos:', error)
+      toast.error('Error al eliminar los datos', {
+        description: 'Por favor, intenta de nuevo'
+      })
     }
-    
-    setArchitectProfile(null)
-    setProjects([])
-    setStakeholders([])
-    setInvoices([])
-    setClients([])
-    setBudgets([])
-    setMilestones([])
-    setDocuments([])
-    setIsInitialized(false)
-    setViewMode('dashboard')
-    setSelectedProject(null)
-    
-    setTimeout(() => {
-      window.location.reload()
-    }, 1000)
   }
 
   if (!isInitialized) {

@@ -26,7 +26,7 @@ import { Gear, Stamp, Plus, CheckCircle, XCircle, ShieldCheck } from '@phosphor-
 import { toast } from 'sonner'
 
 export function QualifiedSignatureProviderManager() {
-  const [providers, setProviders] = useKV<QualifiedSignatureProvider[]>('qsig-providers', [])
+  const [providers, setProviders, deleteProviders] = useKV<QualifiedSignatureProvider[] | null>('qsig-providers', null)
   const [open, setOpen] = useState(false)
   const [editingProvider, setEditingProvider] = useState<QualifiedSignatureProvider | null>(null)
   const [providerType, setProviderType] = useState<QualifiedSignatureProviderType>('clave')

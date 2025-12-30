@@ -35,7 +35,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
 
 export function QualifiedSignatureRequestViewer() {
-  const [requests] = useKV<QualifiedSignatureRequest[]>('qsig-requests', [])
+  const [requests, setRequests, deleteRequests] = useKV<QualifiedSignatureRequest[] | null>('qsig-requests', null)
   const [open, setOpen] = useState(false)
   const [selectedRequest, setSelectedRequest] = useState<QualifiedSignatureRequest | null>(null)
 
