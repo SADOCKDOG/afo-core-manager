@@ -118,7 +118,10 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
       documents
     })
 
-    toast.success('Proyecto importado correctamente')
+    const stats = getImportStatistics(analysis)
+    toast.success(`Proyecto importado con ${analysis.totalFiles} documentos`, {
+      description: `${stats.byConfidence.high} archivos con alta confianza clasificados automáticamente`
+    })
     handleReset()
     onOpenChange(false)
   }
@@ -137,7 +140,7 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-7xl max-h-[95vh] flex flex-col">
+      <DialogContent className="max-w-[95vw] max-h-[95vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Upload size={24} weight="duotone" />
@@ -327,7 +330,7 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
                   </TabsContent>
 
                   <TabsContent value="files" className="flex-1">
-                    <ScrollArea className="h-[650px] border rounded-lg">
+                    <ScrollArea className="h-[calc(95vh-380px)] border rounded-lg">
                       <div className="p-4 space-y-2">
                         {analysis.analyzedFiles.map((file, idx) => (
                           <div

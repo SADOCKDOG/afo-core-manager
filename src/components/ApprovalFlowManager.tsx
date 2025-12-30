@@ -77,7 +77,7 @@ export function ApprovalFlowManager() {
           Aprobaciones y Firmas
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-7xl max-h-[95vh]">
+      <DialogContent className="max-w-[90vw] max-h-[95vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 text-2xl">
             <div className="p-2 rounded-lg bg-primary/10 text-primary">

@@ -95,7 +95,7 @@ export function DocumentTemplateLibrary({ open: controlledOpen, onOpenChange }: 
   )
 
   const content = (
-    <DialogContent className="max-w-7xl max-h-[95vh] p-0">
+    <DialogContent className="max-w-[92vw] max-h-[95vh] p-0">
       {!selectedTemplate ? (
         <>
           <DialogHeader className="px-6 pt-6 pb-4">

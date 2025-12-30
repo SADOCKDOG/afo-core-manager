@@ -94,7 +94,7 @@ export function AIRegulatoryAssistant({ projectId, open, onOpenChange }: AIRegul
           Asistente Normativo IA
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-5xl h-[85vh] flex flex-col p-0">
+      <DialogContent className="max-w-[92vw] h-[92vh] flex flex-col p-0">
         <DialogHeader className="px-6 pt-6 pb-4 border-b">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-primary/10 text-primary">
@@ -195,7 +195,7 @@ export function AIRegulatoryAssistant({ projectId, open, onOpenChange }: AIRegul
                     <CardDescription>Interpretación normativa con referencias</CardDescription>
                   </CardHeader>
                   <CardContent className="flex-1 overflow-hidden">
-                    <ScrollArea className="h-full pr-4">
+                    <ScrollArea className="h-[calc(92vh-400px)] pr-4">
                       {activeQuery ? (
                         <motion.div
                           initial={{ opacity: 0, y: 10 }}
@@ -267,7 +267,7 @@ export function AIRegulatoryAssistant({ projectId, open, onOpenChange }: AIRegul
             </TabsContent>
 
             <TabsContent value="quick" className="h-full mt-4">
-              <ScrollArea className="h-full">
+              <ScrollArea className="h-[calc(92vh-280px)]">
                 <div className="space-y-6 pr-4">
                   {COMMON_QUERIES.map((category, idx) => (
                     <Card key={idx}>
@@ -298,7 +298,7 @@ export function AIRegulatoryAssistant({ projectId, open, onOpenChange }: AIRegul
             </TabsContent>
 
             <TabsContent value="history" className="h-full mt-4">
-              <ScrollArea className="h-full">
+              <ScrollArea className="h-[calc(92vh-280px)]">
                 {queryHistory && queryHistory.length > 0 ? (
                   <div className="space-y-3 pr-4">
                     {queryHistory.map((query) => (

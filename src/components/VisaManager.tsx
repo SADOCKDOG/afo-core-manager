@@ -207,7 +207,7 @@ export function VisaManager({ project }: VisaManagerProps) {
           Gestión de Visados
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-[90vw] max-h-[92vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-2xl">
             <Stamp size={28} weight="duotone" className="text-primary" />

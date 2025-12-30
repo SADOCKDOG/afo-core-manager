@@ -158,7 +158,7 @@ export function MunicipalComplianceManager({ projectId, onSelectMunicipality }: 
           Normativa Municipal
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-7xl h-[90vh] flex flex-col p-0">
+      <DialogContent className="max-w-[92vw] h-[92vh] flex flex-col p-0">
         <DialogHeader className="px-6 pt-6 pb-4 border-b">
           <div className="flex items-center justify-between">
             <div>
@@ -327,7 +327,7 @@ export function MunicipalComplianceManager({ projectId, onSelectMunicipality }: 
 
                 <Separator />
 
-                <ScrollArea className="flex-1">
+                <ScrollArea className="flex-1 h-[calc(92vh-380px)]">
                   <div className="space-y-4 pr-4">
                     {selectedMunicipality.requirements.length === 0 ? (
                       <div className="text-center py-16">

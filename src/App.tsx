@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
-import { Project, Stakeholder, Invoice, Client, Budget, ProjectMilestone, ArchitectProfile } from '@/lib/types'
+import { Project, Stakeholder, Invoice, Client, Budget, ProjectMilestone, ArchitectProfile, Document } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Dashboard } from '@/components/Dashboard'
 import { ProjectCard } from '@/components/ProjectCard'
@@ -82,6 +82,7 @@ function App() {
   const [clients, setClients] = useKV<Client[]>('clients', [])
   const [budgets, setBudgets] = useKV<Budget[]>('budgets', [])
   const [milestones, setMilestones] = useKV<ProjectMilestone[]>('project-milestones', [])
+  const [documents, setDocuments] = useKV<Document[]>('project-documents', [])
   const { isConfigured } = useEmailConfig()
   
   const [isInitialized, setIsInitialized] = useState(false)
@@ -143,6 +144,7 @@ function App() {
     setClients([])
     setBudgets([])
     setMilestones([])
+    setDocuments([])
     setIsInitialized(false)
     setViewMode('dashboard')
     setSelectedProject(null)
@@ -223,7 +225,17 @@ function App() {
     }
 
     setProjects(currentProjects => [...(currentProjects || []), newProject])
-    toast.success(`Proyecto "${importData.title}" importado con ${importData.documents.length} documentos`)
+    
+    const documentsWithCorrectProjectId = importData.documents.map(doc => ({
+      ...doc,
+      projectId: newProject.id
+    }))
+    
+    setDocuments(currentDocs => [...(currentDocs || []), ...documentsWithCorrectProjectId])
+    
+    toast.success(`Proyecto "${importData.title}" importado con ${importData.documents.length} documentos`, {
+      description: 'Los documentos han sido clasificados y organizados automáticamente'
+    })
   }
 
   const handleBulkImportComplete = (importedProjects: Array<{
@@ -245,6 +257,22 @@ function App() {
     }))
 
     setProjects(currentProjects => [...(currentProjects || []), ...newProjects])
+    
+    const allDocuments: Document[] = []
+    importedProjects.forEach((importData, index) => {
+      const projectId = newProjects[index].id
+      const documentsWithCorrectProjectId = importData.documents.map(doc => ({
+        ...doc,
+        projectId
+      }))
+      allDocuments.push(...documentsWithCorrectProjectId)
+    })
+    
+    setDocuments(currentDocs => [...(currentDocs || []), ...allDocuments])
+    
+    toast.success(`${newProjects.length} proyectos importados con ${allDocuments.length} documentos totales`, {
+      description: 'Todos los documentos han sido clasificados y organizados automáticamente'
+    })
   }
 
   const handleSaveStakeholder = (stakeholderData: Partial<Stakeholder>) => {

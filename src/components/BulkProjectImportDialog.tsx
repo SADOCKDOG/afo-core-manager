@@ -201,7 +201,7 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-7xl max-h-[95vh] flex flex-col">
+      <DialogContent className="max-w-[92vw] max-h-[95vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FolderOpen size={24} weight="duotone" />
@@ -310,7 +310,7 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
                   </Button>
                 </div>
 
-                <ScrollArea className="flex-1 border rounded-lg">
+                <ScrollArea className="flex-1 border rounded-lg h-[calc(95vh-360px)]">
                   <div className="p-4 space-y-4">
                     {projects.map((project) => {
                       const stats = project.analysis ? getImportStatistics(project.analysis) : null

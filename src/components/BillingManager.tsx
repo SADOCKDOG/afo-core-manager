@@ -161,7 +161,7 @@ Saludos cordiales
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-7xl max-h-[95vh] overflow-y-auto">
+        <DialogContent className="max-w-[92vw] max-h-[95vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-2xl">
               <Receipt size={28} weight="duotone" className="text-primary" />

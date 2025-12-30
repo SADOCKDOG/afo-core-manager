@@ -114,7 +114,7 @@ export function ClientManager() {
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
+        <DialogContent className="max-w-[90vw] max-h-[95vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-2xl">
               <Users size={28} weight="duotone" className="text-primary" />
