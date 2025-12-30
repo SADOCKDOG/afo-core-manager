@@ -22,6 +22,7 @@ import { AutoInvoiceConfirmDialog } from '@/components/AutoInvoiceConfirmDialog'
 import { DocumentTemplateLibrary } from '@/components/DocumentTemplateLibrary'
 import { BoardPermitWorkflow } from '@/components/BoardPermitWorkflow'
 import { ProjectCalendar } from '@/components/ProjectCalendar'
+import { ApprovalFlowManager } from '@/components/ApprovalFlowManager'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -382,8 +383,9 @@ function App() {
                   <AIRegulatoryAssistant />
                   
                   <DropdownMenuSeparator />
-                  <DropdownMenuLabel>Documentos</DropdownMenuLabel>
+                  <DropdownMenuLabel>Documentos y Aprobaciones</DropdownMenuLabel>
                   <DocumentTemplateLibrary />
+                  <ApprovalFlowManager />
                   <DropdownMenuItem onClick={() => setProjectImportDialogOpen(true)}>
                     <Upload size={16} className="mr-2" weight="duotone" />
                     Importar Proyecto
