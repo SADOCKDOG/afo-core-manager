@@ -17,7 +17,6 @@ import { BudgetItemDialog } from './BudgetItemDialog'
 import { PriceDatabaseDialog } from './PriceDatabaseDialog'
 import { BC3ImportDialog } from './BC3ImportDialog'
 import { OnlineDatabaseBrowser } from './OnlineDatabaseBrowser'
-import { BC3ParseResult } from '@/lib/bc3-parser'
 import { motion } from 'framer-motion'
 
 interface BudgetManagerProps {
@@ -32,7 +31,6 @@ export function BudgetManager({ projectId, projectName }: BudgetManagerProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [itemDialogOpen, setItemDialogOpen] = useState(false)
   const [priceDbOpen, setPriceDbOpen] = useState(false)
-  const [bc3ImportOpen, setBC3ImportOpen] = useState(false)
   const [onlineDbOpen, setOnlineDbOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<BudgetItem | undefined>()
   
@@ -116,47 +114,6 @@ export function BudgetManager({ projectId, projectName }: BudgetManagerProps) {
     if (!selectedBudget) return
     downloadBC3(selectedBudget, projectName)
     toast.success('Archivo BC3 exportado')
-  }
-
-  const handleBC3Import = (items: BudgetItem[], importedPrices: BudgetPrice[], metadata: BC3ParseResult['metadata']) => {
-    setPrices(currentPrices => {
-      const existingCodes = new Set((currentPrices || []).map(p => p.code))
-      const newPrices = importedPrices.filter(p => !existingCodes.has(p.code))
-      return [...(currentPrices || []), ...newPrices]
-    })
-
-    if (selectedBudget) {
-      const updatedItems = [...selectedBudget.items, ...items]
-      handleUpdateBudget({ 
-        items: updatedItems,
-        name: metadata.title || selectedBudget.name
-      })
-    } else {
-      const newBudget: Budget = {
-        id: Date.now().toString(),
-        projectId,
-        name: metadata.title || 'Presupuesto Importado',
-        version: '1.0',
-        items,
-        totalPEM: 0,
-        totalGG: 0,
-        totalBI: 0,
-        totalIVA: 0,
-        totalPresupuesto: 0,
-        percentageGG: 13,
-        percentageBI: 6,
-        percentageIVA: 21,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-        status: 'draft'
-      }
-      
-      const totals = calculateBudgetTotals(items, 13, 6, 21)
-      const budgetWithTotals = { ...newBudget, ...totals }
-      
-      setBudgets(current => [...(current || []), budgetWithTotals])
-      setSelectedBudget(budgetWithTotals)
-    }
   }
 
   const handleOnlinePriceImport = (importedPrices: BudgetPrice[]) => {
@@ -259,14 +216,14 @@ export function BudgetManager({ projectId, projectName }: BudgetManagerProps) {
                   <Globe size={18} />
                   Bases Online
                 </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setBC3ImportOpen(true)} 
-                  className="gap-2"
-                >
-                  <FileArrowDown size={18} />
-                  Importar BC3
-                </Button>
+                <BC3ImportDialog 
+                  trigger={
+                    <Button variant="outline" className="gap-2">
+                      <FileArrowDown size={18} />
+                      Importar BC3
+                    </Button>
+                  }
+                />
                 <Button onClick={handleCreateBudget} className="gap-2">
                   <Plus size={18} weight="bold" />
                   Nuevo Presupuesto
@@ -340,14 +297,14 @@ export function BudgetManager({ projectId, projectName }: BudgetManagerProps) {
                         <Globe size={18} />
                         Bases Online
                       </Button>
-                      <Button 
-                        variant="outline" 
-                        onClick={() => setBC3ImportOpen(true)} 
-                        className="gap-2"
-                      >
-                        <FileArrowDown size={18} />
-                        Importar BC3
-                      </Button>
+                      <BC3ImportDialog 
+                        trigger={
+                          <Button variant="outline" className="gap-2">
+                            <FileArrowDown size={18} />
+                            Importar BC3
+                          </Button>
+                        }
+                      />
                       <Button onClick={handleCreateBudget} className="gap-2">
                         <Plus size={18} weight="bold" />
                         Crear Presupuesto
@@ -403,15 +360,14 @@ export function BudgetManager({ projectId, projectName }: BudgetManagerProps) {
                     <Globe size={16} />
                     Bases Online
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setBC3ImportOpen(true)}
-                    className="gap-2"
-                  >
-                    <FileArrowDown size={16} />
-                    Importar BC3
-                  </Button>
+                  <BC3ImportDialog 
+                    trigger={
+                      <Button variant="outline" size="sm" className="gap-2">
+                        <FileArrowDown size={16} />
+                        Importar BC3
+                      </Button>
+                    }
+                  />
                   <Button
                     variant="outline"
                     size="sm"
@@ -549,12 +505,6 @@ export function BudgetManager({ projectId, projectName }: BudgetManagerProps) {
                 setEditingItem(undefined)
                 setItemDialogOpen(true)
               }}
-            />
-            
-            <BC3ImportDialog
-              open={bc3ImportOpen}
-              onOpenChange={setBC3ImportOpen}
-              onImport={handleBC3Import}
             />
             
             <OnlineDatabaseBrowser

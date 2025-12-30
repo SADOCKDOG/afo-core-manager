@@ -8,6 +8,17 @@ export interface BC3ParseResult {
     author?: string
     date?: string
     description?: string
+    version?: string
+    format?: string
+  }
+  statistics: {
+    totalItems: number
+    totalPrices: number
+    chapters: number
+    units: number
+    materials: number
+    labor: number
+    machinery: number
   }
 }
 
@@ -17,16 +28,15 @@ export interface BC3Record {
 }
 
 export function parseBC3File(content: string): BC3ParseResult {
-  const lines = content.split('\n')
+  const lines = content.split('\n').filter(line => line.trim() && !line.startsWith('#'))
   const records: BC3Record[] = []
   
   for (const line of lines) {
-    if (!line.trim() || line.startsWith('#')) continue
-    
     const match = line.match(/^~([A-Z])~/)
     if (match) {
       const type = match[1]
-      const fields = line.substring(3).split('|')
+      const rest = line.substring(3)
+      const fields = rest.split('|').map(f => f.trim())
       records.push({ type, fields })
     }
   }
@@ -35,6 +45,7 @@ export function parseBC3File(content: string): BC3ParseResult {
   const prices: BudgetPrice[] = []
   const priceMap = new Map<string, BudgetPrice>()
   const itemMap = new Map<string, BudgetItem>()
+  const textMap = new Map<string, string>()
   const metadata: BC3ParseResult['metadata'] = {}
   
   for (const record of records) {
@@ -42,50 +53,85 @@ export function parseBC3File(content: string): BC3ParseResult {
       case 'V':
         parseVersionRecord(record, metadata)
         break
+      case 'K':
+        parseHeaderRecord(record, metadata)
+        break
       case 'C':
         parsePriceRecord(record, prices, priceMap)
         break
-      case 'D':
-        parseDecompositionRecord(record, items, itemMap, priceMap)
-        break
       case 'T':
-        parseTextRecord(record, itemMap)
+        parseTextRecord(record, textMap)
         break
-      case 'K':
-        parseHeaderRecord(record, metadata)
+      case 'D':
+        parseDecompositionRecord(record, itemMap, priceMap)
         break
     }
   }
   
+  applyTextsToItems(itemMap, textMap)
+  applyTextsToPrices(prices, textMap)
+  
   const rootItems = Array.from(itemMap.values()).filter(item => !item.parentId)
+  
+  const statistics = calculateStatistics(items, prices, itemMap)
   
   return {
     items: rootItems,
     prices,
-    metadata
+    metadata,
+    statistics
+  }
+}
+
+function calculateStatistics(
+  items: BudgetItem[],
+  prices: BudgetPrice[],
+  itemMap: Map<string, BudgetItem>
+): BC3ParseResult['statistics'] {
+  const allItems = Array.from(itemMap.values())
+  
+  return {
+    totalItems: allItems.length,
+    totalPrices: prices.length,
+    chapters: allItems.filter(i => i.type === 'chapter').length,
+    units: allItems.filter(i => i.type === 'unit').length,
+    materials: prices.filter(p => p.type === 'material').length,
+    labor: prices.filter(p => p.type === 'labor').length,
+    machinery: prices.filter(p => p.type === 'machinery').length
   }
 }
 
 function parseVersionRecord(record: BC3Record, metadata: BC3ParseResult['metadata']) {
   if (record.fields.length > 0) {
-    metadata.title = record.fields[0]
+    metadata.version = record.fields[0] || 'FIEBDC-3'
+    metadata.format = 'BC3'
   }
 }
 
 function parseHeaderRecord(record: BC3Record, metadata: BC3ParseResult['metadata']) {
-  const [field, value] = record.fields
+  const [field, ...valueParts] = record.fields
+  const value = valueParts.join('|').trim()
   
-  switch (field) {
+  if (!field || !value) return
+  
+  const fieldUpper = field.toUpperCase()
+  
+  switch (fieldUpper) {
     case 'OBRA':
+    case 'PROYECTO':
       metadata.title = value
       break
     case 'AUTOR':
+    case 'AUTHOR':
       metadata.author = value
       break
     case 'FECHA':
+    case 'DATE':
       metadata.date = value
       break
     case 'COMENTARIO':
+    case 'DESCRIPCION':
+    case 'DESCRIPTION':
       metadata.description = value
       break
   }
@@ -96,48 +142,70 @@ function parsePriceRecord(
   prices: BudgetPrice[], 
   priceMap: Map<string, BudgetPrice>
 ) {
-  if (record.fields.length < 3) return
+  if (record.fields.length < 2) return
   
-  const [code, unit, priceStr, , , type] = record.fields
-  const unitPrice = parseFloat(priceStr?.replace(',', '.') || '0')
+  const code = record.fields[0]?.trim()
+  if (!code) return
+  
+  const unit = record.fields[1]?.trim() || 'ud'
+  const priceStr = record.fields[2]?.replace(',', '.') || '0'
+  const unitPrice = parseFloat(priceStr)
+  
+  const typeStr = record.fields[5]?.trim() || '0'
   
   let priceType: 'material' | 'labor' | 'machinery' | 'unit' = 'unit'
-  if (type === '0') priceType = 'material'
-  else if (type === '1') priceType = 'labor'
-  else if (type === '2') priceType = 'machinery'
+  if (typeStr === '0') priceType = 'material'
+  else if (typeStr === '1') priceType = 'labor'
+  else if (typeStr === '2') priceType = 'machinery'
   
-  const price: BudgetPrice = {
-    id: `bc3-${code}-${Date.now()}`,
-    code: code.trim(),
-    description: '',
-    unit: normalizeUnit(unit),
-    unitPrice,
-    type: priceType,
-    lastUpdated: Date.now(),
-    source: 'BC3 Import'
+  if (!priceMap.has(code)) {
+    const price: BudgetPrice = {
+      id: `bc3-price-${code}-${Date.now()}-${Math.random()}`,
+      code,
+      description: code,
+      unit: normalizeUnit(unit),
+      unitPrice: isNaN(unitPrice) ? 0 : unitPrice,
+      type: priceType,
+      lastUpdated: Date.now(),
+      source: 'BC3 Import',
+      category: getCategoryFromType(priceType)
+    }
+    
+    prices.push(price)
+    priceMap.set(code, price)
   }
+}
+
+function parseTextRecord(
+  record: BC3Record,
+  textMap: Map<string, string>
+) {
+  if (record.fields.length < 2) return
   
-  prices.push(price)
-  priceMap.set(code.trim(), price)
+  const code = record.fields[0]?.trim()
+  const text = record.fields[1]?.trim()
+  
+  if (code && text) {
+    textMap.set(code, text)
+  }
 }
 
 function parseDecompositionRecord(
   record: BC3Record,
-  items: BudgetItem[],
   itemMap: Map<string, BudgetItem>,
   priceMap: Map<string, BudgetPrice>
 ) {
   if (record.fields.length < 2) return
   
-  const [parentCode, childCode, quantityStr, , , , , , typeStr] = record.fields
+  const parentCode = record.fields[0]?.trim()
+  const childCode = record.fields[1]?.trim()
   
-  const parent = parentCode.trim()
-  const child = childCode?.trim()
+  if (!parentCode || !childCode) return
   
-  if (!child) return
-  
-  const quantity = parseFloat(quantityStr?.replace(',', '.') || '0')
-  const typeCode = parseInt(typeStr || '0')
+  const quantityStr = record.fields[2]?.replace(',', '.') || '1'
+  const quantity = parseFloat(quantityStr)
+  const typeStr = record.fields[8]?.trim() || '0'
+  const typeCode = parseInt(typeStr)
   
   let itemType: BudgetItemType = 'unit'
   if (typeCode === 0) itemType = 'chapter'
@@ -146,56 +214,82 @@ function parseDecompositionRecord(
   else if (typeCode === 3) itemType = 'labor'
   else if (typeCode === 4) itemType = 'machinery'
   
-  if (!itemMap.has(parent)) {
-    const price = priceMap.get(parent)
+  if (!itemMap.has(parentCode)) {
+    const parentPrice = priceMap.get(parentCode)
     const parentItem: BudgetItem = {
-      id: `item-${parent}-${Date.now()}`,
-      code: parent,
+      id: `item-${parentCode}-${Date.now()}-${Math.random()}`,
+      code: parentCode,
       type: typeCode === 0 ? 'chapter' : 'unit',
-      description: price?.description || parent,
-      unit: price?.unit,
+      description: parentPrice?.description || parentCode,
+      unit: parentPrice?.unit,
       quantity: 1,
-      unitPrice: price?.unitPrice || 0,
-      totalPrice: price?.unitPrice || 0,
+      unitPrice: parentPrice?.unitPrice || 0,
+      totalPrice: parentPrice?.unitPrice || 0,
       children: [],
       order: itemMap.size
     }
-    itemMap.set(parent, parentItem)
-    items.push(parentItem)
+    itemMap.set(parentCode, parentItem)
   }
   
-  if (!itemMap.has(child)) {
-    const price = priceMap.get(child)
-    const childItem: BudgetItem = {
-      id: `item-${child}-${Date.now()}-${Math.random()}`,
-      code: child,
-      type: itemType,
-      description: price?.description || child,
-      unit: price?.unit,
-      quantity,
-      unitPrice: price?.unitPrice || 0,
-      totalPrice: (price?.unitPrice || 0) * quantity,
-      parentId: parent,
-      order: itemMap.size
-    }
-    itemMap.set(child, childItem)
+  const childPrice = priceMap.get(childCode)
+  const childId = `item-${childCode}-${parentCode}-${Date.now()}-${Math.random()}`
+  
+  const childItem: BudgetItem = {
+    id: childId,
+    code: childCode,
+    type: itemType,
+    description: childPrice?.description || childCode,
+    unit: childPrice?.unit,
+    quantity: isNaN(quantity) ? 0 : quantity,
+    unitPrice: childPrice?.unitPrice || 0,
+    totalPrice: (childPrice?.unitPrice || 0) * (isNaN(quantity) ? 0 : quantity),
+    parentId: parentCode,
+    order: itemMap.size
+  }
+  
+  const parentItem = itemMap.get(parentCode)
+  if (parentItem?.children) {
+    parentItem.children.push(childItem)
     
-    const parentItem = itemMap.get(parent)
-    if (parentItem?.children) {
-      parentItem.children.push(childItem)
+    parentItem.totalPrice = parentItem.children.reduce(
+      (sum, child) => sum + (child.totalPrice || 0),
+      0
+    )
+  }
+}
+
+function applyTextsToItems(
+  itemMap: Map<string, BudgetItem>,
+  textMap: Map<string, string>
+) {
+  for (const [code, item] of itemMap.entries()) {
+    const text = textMap.get(code)
+    if (text) {
+      item.description = text
     }
   }
 }
 
-function parseTextRecord(record: BC3Record, itemMap: Map<string, BudgetItem>) {
-  if (record.fields.length < 2) return
-  
-  const [code, description] = record.fields
-  const item = itemMap.get(code.trim())
-  
-  if (item && description) {
-    item.description = description.trim()
+function applyTextsToPrices(
+  prices: BudgetPrice[],
+  textMap: Map<string, string>
+) {
+  for (const price of prices) {
+    const text = textMap.get(price.code)
+    if (text) {
+      price.description = text
+    }
   }
+}
+
+function getCategoryFromType(type: 'material' | 'labor' | 'machinery' | 'unit'): string {
+  const categoryMap = {
+    'material': 'Materiales',
+    'labor': 'Mano de Obra',
+    'machinery': 'Maquinaria',
+    'unit': 'Unidades de Obra'
+  }
+  return categoryMap[type]
 }
 
 function normalizeUnit(unit: string): UnitType {
