@@ -44,7 +44,7 @@ export function BC3ImportDialog({ trigger, embedded = false }: BC3ImportDialogPr
       const result = await importBC3FromFile(selectedFile)
       setPreview(result)
       toast.success('Archivo BC3 analizado correctamente', {
-        description: `${result.statistics.totalPrices} precios y ${result.statistics.totalItems} partidas detectados`
+        description: `${result.metadata.totalPrices} precios y ${result.metadata.totalItems} partidas detectados`
       })
     } catch (error) {
       console.error('Error al importar BC3:', error)
@@ -200,8 +200,8 @@ export function BC3ImportDialog({ trigger, embedded = false }: BC3ImportDialogPr
                   {preview.metadata.author && (
                     <p className="text-sm text-muted-foreground">Autor: {preview.metadata.author}</p>
                   )}
-                  {preview.metadata.date && (
-                    <p className="text-sm text-muted-foreground">Fecha: {preview.metadata.date}</p>
+                  {preview.metadata.format && (
+                    <p className="text-sm text-muted-foreground">Formato: {preview.metadata.format}</p>
                   )}
                   {preview.metadata.description && (
                     <p className="text-sm text-muted-foreground mt-2">{preview.metadata.description}</p>
@@ -216,22 +216,22 @@ export function BC3ImportDialog({ trigger, embedded = false }: BC3ImportDialogPr
                     <Package size={20} className="text-primary" weight="duotone" />
                     <p className="text-xs text-muted-foreground">Precios</p>
                   </div>
-                  <p className="text-2xl font-bold text-primary">{preview.statistics.totalPrices}</p>
+                  <p className="text-2xl font-bold text-primary">{preview.metadata.totalPrices}</p>
                 </div>
                 <div className="p-3 rounded-lg bg-background border">
                   <div className="flex items-center gap-2 mb-1">
                     <TrendUp size={20} className="text-blue-500" weight="duotone" />
                     <p className="text-xs text-muted-foreground">Partidas</p>
                   </div>
-                  <p className="text-2xl font-bold text-blue-500">{preview.statistics.totalItems}</p>
+                  <p className="text-2xl font-bold text-blue-500">{preview.metadata.totalItems}</p>
                 </div>
                 <div className="p-3 rounded-lg bg-background border">
                   <p className="text-xs text-muted-foreground mb-1">Capítulos</p>
-                  <p className="text-2xl font-bold">{preview.statistics.chapters}</p>
+                  <p className="text-2xl font-bold">{preview.metadata.chapters}</p>
                 </div>
                 <div className="p-3 rounded-lg bg-background border">
                   <p className="text-xs text-muted-foreground mb-1">Unidades</p>
-                  <p className="text-2xl font-bold">{preview.statistics.units}</p>
+                  <p className="text-2xl font-bold">{preview.metadata.units}</p>
                 </div>
               </div>
             </div>
