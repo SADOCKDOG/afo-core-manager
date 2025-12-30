@@ -1,6 +1,6 @@
 # 📖 MANUAL DE USUARIO - AFO CORE MANAGER
 
-**Versión:** 1.0  
+**Versión:** 1.1  
 **Fecha:** Diciembre 2024
 
 ---
@@ -8,17 +8,20 @@
 ## 🎯 ÍNDICE RÁPIDO
 
 1. [Introducción](#introducción)
-2. [Dashboard](#dashboard)
-3. [Gestión de Proyectos](#gestión-de-proyectos)
-4. [Gestión Documental](#gestión-documental)
-5. [Cumplimiento Normativo](#cumplimiento-normativo)
-6. [Clientes y Facturación](#clientes-y-facturación)
-7. [Presupuestos](#presupuestos)
-8. [Visados](#visados)
-9. [Flujos de Aprobación](#flujos-de-aprobación)
-10. [Firma Digital](#firma-digital)
-11. [Calendario](#calendario)
-12. [Herramientas](#herramientas)
+2. [Primera Configuración](#primera-configuración)
+3. [Perfil Profesional](#perfil-profesional)
+4. [Dashboard](#dashboard)
+5. [Gestión de Proyectos](#gestión-de-proyectos)
+6. [Gestión Documental](#gestión-documental)
+7. [Cumplimiento Normativo](#cumplimiento-normativo)
+8. [Clientes y Facturación](#clientes-y-facturación)
+9. [Presupuestos](#presupuestos)
+10. [Visados](#visados)
+11. [Flujos de Aprobación](#flujos-de-aprobación)
+12. [Firma Digital](#firma-digital)
+13. [Calendario](#calendario)
+14. [Herramientas](#herramientas)
+15. [Gestión de Datos](#gestión-de-datos)
 
 ---
 
@@ -31,11 +34,98 @@
 - ✅ Facturación automática
 - ✅ Flujos de aprobación y firma digital
 - ✅ Gestión de clientes y presupuestos
+- ✅ Personalización con tu marca profesional
 
 ### Acceso Rápido
 - **Menú principal:** Navegación por módulos (Dashboard, Proyectos, Calendario, Clientes, Facturas)
 - **Herramientas:** Menú desplegable con funciones avanzadas
 - **Ayuda:** Botón "Ayuda" con manual interactivo completo
+
+---
+
+## 🚀 PRIMERA CONFIGURACIÓN
+
+**Ubicación:** Se muestra automáticamente al iniciar por primera vez
+
+### Pantalla de Bienvenida
+
+Al abrir AFO CORE MANAGER por primera vez, aparecerá un asistente de configuración de 3 pasos.
+
+#### Paso 1: Datos Básicos
+**Campos obligatorios (*):**
+- **Nombre Completo***: Tu nombre como profesional
+- **NIF/CIF***: Tu identificación fiscal
+
+**Campos opcionales:**
+- Razón Social (nombre de tu empresa)
+- Dirección completa
+- Código Postal, Localidad, Provincia
+- Teléfono de contacto
+- Email profesional
+
+#### Paso 2: Información Profesional
+**Todos opcionales:**
+- Número de Colegiado (ej: "COA-12345")
+- Colegio Oficial (ej: "COAM", "COACV")
+- Titulación (ej: "Arquitecto Superior")
+- Sitio Web profesional
+
+#### Paso 3: Logo y Configuración
+**Todos opcionales:**
+- **Logo Empresarial**:
+  - Formatos: PNG, JPG, SVG
+  - Tamaño máximo: 2MB
+  - Se usará en: cabecera, documentos, facturas
+- **IBAN**: Para incluir en facturas
+
+### Completar Configuración
+1. Navega entre pasos con "Siguiente" y "Anterior"
+2. Completa al menos Nombre y NIF (obligatorios)
+3. Haz clic en "Completar Configuración"
+4. Tu perfil se guardará y la aplicación se personalizará
+
+**Resultado:** La aplicación mostrará tu logo y nombre de empresa en la cabecera.
+
+---
+
+## 👤 PERFIL PROFESIONAL
+
+**Ubicación:** Herramientas > Configuración > Perfil Profesional
+
+### Editar Perfil
+
+Puedes actualizar tu información profesional en cualquier momento:
+
+1. Haz clic en el menú **"Herramientas"**
+2. Selecciona **"Perfil Profesional"**
+3. Se abre un diálogo con 3 pestañas:
+
+#### Pestaña "Personal"
+- Edita información personal y de contacto
+- Actualiza NIF, razón social, dirección
+- Modifica teléfono y email
+
+#### Pestaña "Profesional"
+- Actualiza datos de colegiación
+- Modifica titulación y número colegial
+- Cambia URL del sitio web
+
+#### Pestaña "Logo y Datos"
+- Cambia o carga nuevo logo
+- Actualiza IBAN bancario
+- El logo se actualizará inmediatamente en la cabecera
+
+### Guardar Cambios
+- Los campos obligatorios deben estar completos
+- Haz clic en "Guardar Cambios"
+- Los cambios se aplican instantáneamente
+- Recibirás confirmación de éxito
+
+### Personalización Automática
+- Tu logo reemplaza el icono predeterminado
+- Tu razón social aparece como título de la aplicación
+- El título de la pestaña del navegador se actualiza
+- Los datos se usarán en documentos y facturas generadas
 
 ---
 
@@ -364,6 +454,86 @@ Pestañas disponibles:
 - 📄 Genera informes de cumplimiento periódicamente
 - 🔖 Mantén control de versiones estricto (P01, P02)
 
+### Gestión de Datos
+- 💾 Exporta proyectos regularmente como respaldo
+- 🔄 Actualiza tu perfil cuando cambien tus datos
+- ⚠️ Usa "Eliminar Todos los Datos" solo cuando estés seguro
+
+---
+
+## 🗑️ GESTIÓN DE DATOS
+
+**Ubicación:** Herramientas > Configuración
+
+### Eliminar Todos los Datos
+
+Función para **resetear completamente** la aplicación.
+
+⚠️ **ADVERTENCIA: Esta acción es irreversible y permanente**
+
+#### Cuándo usar
+- Comenzar de nuevo con perfil limpio
+- Cambiar de estudio o empresa
+- Realizar pruebas con datos limpios
+- Transferir dispositivo a otra persona
+
+#### Proceso de eliminación
+
+**Paso 1: Acceso**
+1. Menú **"Herramientas"**
+2. Sección **"Configuración"** (al final)
+3. Clic en **"Eliminar Todos los Datos"** (botón rojo)
+
+**Paso 2: Primera advertencia**
+- Muestra lista completa de datos a eliminar:
+  * Tu perfil profesional y logo
+  * Todos los proyectos y documentos
+  * Todos los clientes
+  * Todas las facturas y presupuestos
+  * Todos los intervinientes
+  * Configuración de email
+  * Flujos de aprobación
+  * Plantillas personalizadas
+  * Registros de actividad
+  * Cualquier otro dato
+- Recomienda exportar proyectos antes de continuar
+- Opciones: **Cancelar** o **Continuar**
+
+**Paso 3: Confirmación final**
+1. Última advertencia sobre irreversibilidad
+2. Debes escribir **exactamente**: `ELIMINAR TODO`
+3. Mayúsculas y espacios deben coincidir
+4. Botón solo se activa con texto correcto
+5. Opciones: **Cancelar** o **Eliminar Todo Permanentemente**
+
+**Paso 4: Ejecución**
+- Se eliminan todos los datos
+- Notificación de éxito
+- Aplicación se reinicia automáticamente
+- Aparece pantalla de bienvenida
+- Puedes configurar nuevo perfil
+
+#### Qué NO se puede recuperar
+- ❌ **Todo**: Elimina absolutamente todos los datos
+- ❌ **Sin respaldo**: No hay papelera de reciclaje
+- ❌ **Sin deshacer**: No se puede restaurar
+
+#### Recomendaciones antes de eliminar
+1. ✅ **Exporta proyectos**: Herramientas > Exportar Proyectos
+2. ✅ **Descarga documentos importantes**: Revisa facturas y presupuestos
+3. ✅ **Anota configuraciones**: Email, plantillas personalizadas
+4. ✅ **Verifica que es lo que deseas**: No hay vuelta atrás
+
+### Exportar Proyectos (Respaldo)
+
+Antes de eliminar datos, **siempre exporta tus proyectos**:
+
+1. Herramientas > Exportar Proyectos
+2. Selecciona proyectos a exportar (o todos)
+3. Descarga archivo ZIP
+4. Guarda en lugar seguro
+5. Podrás importar posteriormente si es necesario
+
 ---
 
 ## ❓ AYUDA ADICIONAL
@@ -379,6 +549,10 @@ Pestañas disponibles:
 - Genera contenido de documentos
 - Asistencia contextual
 
+### Documentación Adicional
+- **PERFIL_ARQUITECTO.md**: Guía detallada de configuración de perfil
+- Consulta los documentos MD en la raíz del proyecto
+
 ---
 
 ## 📞 SOPORTE
@@ -387,6 +561,7 @@ Para dudas técnicas o sugerencias:
 - Consulta el manual interactivo (botón "Ayuda")
 - Usa el Asistente IA Regulatorio
 - Revisa los documentos MD en la raíz del proyecto
+- Lee PERFIL_ARQUITECTO.md para detalles de configuración
 
-**Versión del manual:** 1.0  
+**Versión del manual:** 1.1  
 **Última actualización:** Diciembre 2024

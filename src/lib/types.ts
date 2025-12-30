@@ -254,6 +254,27 @@ export interface ComplianceCategory {
   priority: 'high' | 'medium' | 'low'
 }
 
+export interface ArchitectProfile {
+  id: string
+  nombreCompleto: string
+  nif: string
+  razonSocial?: string
+  direccion?: string
+  codigoPostal?: string
+  localidad?: string
+  provincia?: string
+  telefono?: string
+  email?: string
+  numeroColegial?: string
+  colegioOficial?: string
+  titulacion?: string
+  logo?: string
+  web?: string
+  iban?: string
+  createdAt: number
+  updatedAt: number
+}
+
 export type UnitType = 
   | 'm'
   | 'm2'

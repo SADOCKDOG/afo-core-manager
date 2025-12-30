@@ -12,6 +12,34 @@ This MVP focuses on core project management functionality with client tracking, 
 
 ## Essential Features
 
+### Welcome Screen & Architect Profile Setup
+- **Functionality**: First-time setup wizard that captures the architect's professional information, branding (logo), and business details. Multi-step onboarding with progressive disclosure of optional fields.
+- **Purpose**: Personalize the application and capture essential data used throughout documents, invoices, and application branding
+- **Trigger**: First application launch when no architect profile exists
+- **Progression**: App detects no profile → Display welcome screen → Step 1: Basic data (name*, NIF*, razón social, address, location, phone, email) → Step 2: Professional data (collegiate number, official college, qualification, website) → Step 3: Logo upload and IBAN → Complete setup → Profile saved → Application initializes with personalized branding
+- **Success criteria**: Welcome screen appears only on first launch, required fields (name and NIF) are enforced, logo uploads validate size (<2MB) and format (PNG/JPG/SVG), profile data persists between sessions, logo displays in header and will be used in generated documents/invoices, smooth multi-step progression with progress indicator
+
+### Architect Profile Management
+- **Functionality**: Edit architect professional profile and business information at any time from settings, with same fields and validation as initial setup
+- **Purpose**: Keep professional information current as business details change (address, phone, logo updates, etc.)
+- **Trigger**: User selects "Perfil Profesional" from Herramientas dropdown menu in header
+- **Progression**: Click Perfil Profesional → Dialog opens with tabbed interface (Personal, Profesional, Logo y Datos) → Edit any field → Upload/change logo → Save → Profile updates → Success confirmation
+- **Success criteria**: All profile fields editable, changes persist immediately, logo changes reflect in header instantly, validation prevents saving incomplete required fields, organized tabs group related information logically
+
+### Application Data Reset
+- **Functionality**: Complete deletion of all application data including profile, projects, clients, invoices, budgets, stakeholders, configuration, and any other stored information. Multi-step confirmation process to prevent accidental deletion.
+- **Purpose**: Allow users to completely reset the application for testing, switching studios, or starting fresh
+- **Trigger**: User selects "Eliminar Todos los Datos" from Herramientas dropdown → Configuration section
+- **Progression**: Click delete option → First warning dialog shows complete list of data to be deleted with export recommendation → Confirm to continue → Second dialog requires typing "ELIMINAR TODO" exactly → Confirm → All KV storage keys deleted → Application resets to initial state → Page reloads → Welcome screen appears
+- **Success criteria**: Two-stage confirmation prevents accidental deletion, comprehensive list shows all affected data types, text input validation requires exact match, all data completely removed from storage, application successfully returns to welcome screen state, process cannot be reversed
+
+### Dynamic Application Branding
+- **Functionality**: Application header and title automatically use architect's logo and business name (razón social) when available
+- **Purpose**: Create a personalized, branded experience that reflects the architect's professional identity
+- **Trigger**: Profile is created or updated with logo/business name
+- **Progression**: Profile saved with logo/razón social → Header logo replaces default icon → Page title updates to business name → Branding persists across sessions
+- **Success criteria**: Logo displays properly in header badge, razón social appears as application title, defaults to "AFO CORE MANAGER" when not configured, logo images scale and fit within header constraints, changes apply immediately without page reload
+
 ### Project Creation & Management
 - **Functionality**: Create and track architectural projects with client details, contracted phases, and key metadata
 - **Purpose**: Centralize all project information in one authoritative location

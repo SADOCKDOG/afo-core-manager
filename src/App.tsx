@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
-import { Project, Stakeholder, Invoice, Client, Budget, ProjectMilestone } from '@/lib/types'
+import { Project, Stakeholder, Invoice, Client, Budget, ProjectMilestone, ArchitectProfile } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Dashboard } from '@/components/Dashboard'
 import { ProjectCard } from '@/components/ProjectCard'
@@ -28,6 +28,9 @@ import { QualifiedSignatureRequestViewer } from '@/components/QualifiedSignature
 import { UserManual } from '@/components/UserManual'
 import { DeveloperManual } from '@/components/DeveloperManual'
 import { ComponentRegistry } from '@/components/ComponentRegistry'
+import { WelcomeScreen } from '@/components/WelcomeScreen'
+import { ArchitectProfileEditor } from '@/components/ArchitectProfileEditor'
+import { DeleteAllDataDialog } from '@/components/DeleteAllDataDialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -57,7 +60,9 @@ import {
   Sparkle,
   Bank,
   CalendarBlank,
-  Question
+  Question,
+  UserCircle,
+  Trash
 } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Toaster, toast } from 'sonner'
@@ -70,6 +75,7 @@ type ViewMode = 'dashboard' | 'projects' | 'clients' | 'invoices' | 'calendar' |
 type ProjectFilter = 'all' | 'active' | 'archived'
 
 function App() {
+  const [architectProfile, setArchitectProfile] = useKV<ArchitectProfile | null>('architect-profile', null)
   const [projects, setProjects] = useKV<Project[]>('projects', [])
   const [stakeholders, setStakeholders] = useKV<Stakeholder[]>('stakeholders', [])
   const [invoices, setInvoices] = useKV<Invoice[]>('invoices', [])
@@ -78,6 +84,7 @@ function App() {
   const [milestones, setMilestones] = useKV<ProjectMilestone[]>('project-milestones', [])
   const { isConfigured } = useEmailConfig()
   
+  const [isInitialized, setIsInitialized] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>('dashboard')
   const [projectFilter, setProjectFilter] = useState<ProjectFilter>('all')
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
@@ -97,6 +104,57 @@ function App() {
     client?: Client
     projectBudget?: Budget
   } | null>(null)
+
+  useEffect(() => {
+    if (architectProfile) {
+      setIsInitialized(true)
+      document.title = architectProfile.razonSocial || architectProfile.nombreCompleto || 'AFO CORE MANAGER'
+    }
+  }, [architectProfile])
+
+  const handleWelcomeComplete = (profileData: Omit<ArchitectProfile, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const newProfile: ArchitectProfile = {
+      ...profileData,
+      id: Date.now().toString(),
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    }
+    setArchitectProfile(newProfile)
+    setIsInitialized(true)
+    toast.success('¡Bienvenido a AFO CORE MANAGER!', {
+      description: 'Tu perfil ha sido configurado correctamente'
+    })
+  }
+
+  const handleProfileUpdate = (updatedProfile: ArchitectProfile) => {
+    setArchitectProfile(updatedProfile)
+  }
+
+  const handleDeleteAllData = async () => {
+    const allKeys = await spark.kv.keys()
+    for (const key of allKeys) {
+      await spark.kv.delete(key)
+    }
+    
+    setArchitectProfile(null)
+    setProjects([])
+    setStakeholders([])
+    setInvoices([])
+    setClients([])
+    setBudgets([])
+    setMilestones([])
+    setIsInitialized(false)
+    setViewMode('dashboard')
+    setSelectedProject(null)
+    
+    setTimeout(() => {
+      window.location.reload()
+    }, 1000)
+  }
+
+  if (!isInitialized) {
+    return <WelcomeScreen onComplete={handleWelcomeComplete} />
+  }
 
   const filteredProjects = (projects || []).filter(project => {
     if (projectFilter === 'all') return true
@@ -336,11 +394,21 @@ function App() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-primary/20 text-primary ring-2 ring-primary/30">
-                  <Buildings size={28} weight="duotone" />
+                <div className="p-2.5 rounded-xl bg-primary/20 text-primary ring-2 ring-primary/30 overflow-hidden">
+                  {architectProfile?.logo ? (
+                    <img 
+                      src={architectProfile.logo} 
+                      alt="Logo" 
+                      className="w-7 h-7 object-contain"
+                    />
+                  ) : (
+                    <Buildings size={28} weight="duotone" />
+                  )}
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold tracking-tight">AFO CORE MANAGER</h1>
+                  <h1 className="text-2xl font-bold tracking-tight">
+                    {architectProfile?.razonSocial || 'AFO CORE MANAGER'}
+                  </h1>
                   <p className="text-xs text-muted-foreground">Gestión Integral Arquitectónica</p>
                 </div>
               </div>
@@ -416,6 +484,18 @@ function App() {
                   
                   <DropdownMenuSeparator />
                   <DropdownMenuLabel>Configuración</DropdownMenuLabel>
+                  {architectProfile && (
+                    <ArchitectProfileEditor 
+                      profile={architectProfile}
+                      onSave={handleProfileUpdate}
+                      trigger={
+                        <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground w-full">
+                          <UserCircle size={16} className="mr-2" weight="duotone" />
+                          Perfil Profesional
+                        </button>
+                      }
+                    />
+                  )}
                   <DropdownMenuItem onClick={() => setEmailLogsDialogOpen(true)}>
                     <ClockCounterClockwise size={16} className="mr-2" weight="duotone" />
                     Registro de Emails
@@ -424,6 +504,17 @@ function App() {
                     <Gear size={16} className="mr-2" weight="duotone" />
                     Configurar Email
                   </DropdownMenuItem>
+                  
+                  <DropdownMenuSeparator />
+                  <DeleteAllDataDialog 
+                    onConfirmDelete={handleDeleteAllData}
+                    trigger={
+                      <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-destructive hover:text-destructive-foreground w-full text-destructive">
+                        <Trash size={16} className="mr-2" weight="duotone" />
+                        Eliminar Todos los Datos
+                      </button>
+                    }
+                  />
                 </DropdownMenuContent>
               </DropdownMenu>
 
