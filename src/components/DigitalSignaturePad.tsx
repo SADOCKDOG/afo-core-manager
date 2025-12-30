@@ -16,24 +16,40 @@ import {
   Eraser, 
   PencilSimple,
   Check,
-  Warning
+  Warning,
+  Stamp
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
+import { QualifiedSignatureDialog } from './QualifiedSignatureDialog'
 
 interface DigitalSignaturePadProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   signerName: string
+  signerEmail?: string
+  signerNif?: string
+  signerPhone?: string
+  documentId?: string
   documentName: string
-  onSign: (signatureData: string, signatureType: 'drawn' | 'typed') => void
+  projectId?: string
+  projectName?: string
+  onSign: (signatureData: string, signatureType: 'drawn' | 'typed' | 'qualified', metadata?: any) => void
+  allowQualifiedSignature?: boolean
 }
 
 export function DigitalSignaturePad({
   open,
   onOpenChange,
   signerName,
+  signerEmail,
+  signerNif,
+  signerPhone,
+  documentId,
   documentName,
-  onSign
+  projectId,
+  projectName,
+  onSign,
+  allowQualifiedSignature = false
 }: DigitalSignaturePadProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isDrawing, setIsDrawing] = useState(false)
@@ -41,6 +57,7 @@ export function DigitalSignaturePad({
   const [typedSignature, setTypedSignature] = useState(signerName)
   const [selectedFont, setSelectedFont] = useState('Brush Script MT')
   const [agreeToTerms, setAgreeToTerms] = useState(false)
+  const [qualifiedDialogOpen, setQualifiedDialogOpen] = useState(false)
 
   useEffect(() => {
     if (open && canvasRef.current) {
@@ -183,7 +200,7 @@ export function DigitalSignaturePad({
         </DialogHeader>
 
         <Tabs defaultValue="draw" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="draw" className="gap-2">
               <PencilSimple size={16} />
               Dibujar Firma
@@ -192,6 +209,12 @@ export function DigitalSignaturePad({
               <Signature size={16} />
               Escribir Firma
             </TabsTrigger>
+            {allowQualifiedSignature && (
+              <TabsTrigger value="qualified" className="gap-2">
+                <Stamp size={16} />
+                Firma Cualificada
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="draw" className="space-y-4">
@@ -328,7 +351,58 @@ export function DigitalSignaturePad({
               Confirmar Firma Escrita
             </Button>
           </TabsContent>
+
+          {allowQualifiedSignature && (
+            <TabsContent value="qualified" className="space-y-4">
+              <div className="p-8 border-2 border-primary/20 rounded-lg bg-primary/5 text-center">
+                <div className="p-4 rounded-full bg-primary/10 text-primary inline-flex mb-4">
+                  <Stamp size={48} weight="duotone" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Firma Electrónica Cualificada</h3>
+                <p className="text-sm text-muted-foreground mb-6">
+                  Firma con validez legal plena mediante Cl@ve o ViafirmaPro según el reglamento eIDAS
+                </p>
+                <Button 
+                  onClick={() => setQualifiedDialogOpen(true)}
+                  className="gap-2"
+                  size="lg"
+                >
+                  <Stamp size={20} weight="bold" />
+                  Iniciar Firma Cualificada
+                </Button>
+              </div>
+
+              <div className="flex items-start gap-2 p-4 bg-green-500/10 rounded-lg border border-green-500/20">
+                <Check size={20} className="text-green-500 flex-shrink-0 mt-0.5" weight="bold" />
+                <div className="text-sm text-green-600">
+                  <p className="font-medium mb-1">Máxima Validez Legal</p>
+                  <p className="text-xs">
+                    La firma cualificada tiene el mismo valor jurídico que la firma manuscrita según la Ley 6/2020 y el Reglamento eIDAS (UE) 910/2014
+                  </p>
+                </div>
+              </div>
+            </TabsContent>
+          )}
         </Tabs>
+
+        {allowQualifiedSignature && documentId && (
+          <QualifiedSignatureDialog
+            open={qualifiedDialogOpen}
+            onOpenChange={setQualifiedDialogOpen}
+            documentId={documentId}
+            documentName={documentName}
+            projectId={projectId}
+            projectName={projectName}
+            signerName={signerName}
+            signerEmail={signerEmail || ''}
+            signerNif={signerNif}
+            signerPhone={signerPhone}
+            onSignComplete={(signatureData, metadata) => {
+              onSign(signatureData, 'qualified', metadata)
+              handleClose()
+            }}
+          />
+        )}
       </DialogContent>
     </Dialog>
   )

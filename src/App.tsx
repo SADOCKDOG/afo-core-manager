@@ -23,6 +23,8 @@ import { DocumentTemplateLibrary } from '@/components/DocumentTemplateLibrary'
 import { BoardPermitWorkflow } from '@/components/BoardPermitWorkflow'
 import { ProjectCalendar } from '@/components/ProjectCalendar'
 import { ApprovalFlowManager } from '@/components/ApprovalFlowManager'
+import { QualifiedSignatureProviderManager } from '@/components/QualifiedSignatureProviderManager'
+import { QualifiedSignatureRequestViewer } from '@/components/QualifiedSignatureRequestViewer'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -386,6 +388,8 @@ function App() {
                   <DropdownMenuLabel>Documentos y Aprobaciones</DropdownMenuLabel>
                   <DocumentTemplateLibrary />
                   <ApprovalFlowManager />
+                  <QualifiedSignatureProviderManager />
+                  <QualifiedSignatureRequestViewer />
                   <DropdownMenuItem onClick={() => setProjectImportDialogOpen(true)}>
                     <Upload size={16} className="mr-2" weight="duotone" />
                     Importar Proyecto

@@ -15,6 +15,15 @@ export interface SignatureData {
   rejectedAt?: number
   rejectionReason?: string
   signatureData?: string
+  signatureType?: 'drawn' | 'typed' | 'qualified'
+  qualifiedMetadata?: {
+    provider?: string
+    signatureLevel?: string
+    certificateSerialNumber?: string
+    certificateIssuer?: string
+    timestampToken?: string
+    signatureFormat?: string
+  }
   ipAddress?: string
   userAgent?: string
 }
