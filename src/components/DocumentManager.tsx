@@ -18,17 +18,22 @@ import {
   FileText,
   Wrench,
   Table,
-  ChartBar
+  ChartBar,
+  FilePdf,
+  Package,
+  Eye
 } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
 import { DocumentUploadDialog } from './DocumentUploadDialog'
 import { DocumentVersionDialog } from './DocumentVersionDialog'
+import { DocumentPreview } from './DocumentPreview'
 import { FolderStructureDialog } from './FolderStructureDialog'
 import { DocumentSearch, DocumentFilters } from './DocumentSearch'
 import { BulkDocumentUpload } from './BulkDocumentUpload'
 import { DocumentTemplateWithAI } from './DocumentTemplateWithAI'
 import { DocumentUtilities } from './DocumentUtilities'
 import { DocumentGeneratorHub } from './DocumentGeneratorHub'
+import { BulkPDFExportDialog } from './BulkPDFExportDialog'
 import { formatFileSize, sortVersions } from '@/lib/document-utils'
 import { toast } from 'sonner'
 import { PHASE_LABELS } from '@/lib/types'
@@ -41,6 +46,7 @@ interface DocumentManagerProps {
 
 export function DocumentManager({ project, stakeholders, onProjectUpdate }: DocumentManagerProps) {
   const [documents, setDocuments] = useKV<Document[]>('documents', [])
+  const [documentContents, setDocumentContents] = useKV<Record<string, string>>('document-contents', {})
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [bulkUploadOpen, setBulkUploadOpen] = useState(false)
   const [versionDialogOpen, setVersionDialogOpen] = useState(false)
@@ -48,7 +54,10 @@ export function DocumentManager({ project, stakeholders, onProjectUpdate }: Docu
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false)
   const [generatorHubOpen, setGeneratorHubOpen] = useState(false)
   const [utilitiesDialogOpen, setUtilitiesDialogOpen] = useState(false)
+  const [bulkPdfExportOpen, setBulkPdfExportOpen] = useState(false)
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null)
+  const [previewDocument, setPreviewDocument] = useState<Document | null>(null)
+  const [previewDialogOpen, setPreviewDialogOpen] = useState(false)
   const [viewMode, setViewMode] = useState<'list' | 'folders' | 'stats'>('list')
   const [filters, setFilters] = useState<DocumentFilters>({
     searchQuery: '',
@@ -117,6 +126,12 @@ export function DocumentManager({ project, stakeholders, onProjectUpdate }: Docu
     setVersionDialogOpen(true)
   }
 
+  const handlePreviewDocument = (doc: Document, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setPreviewDocument(doc)
+    setPreviewDialogOpen(true)
+  }
+
   const handleSetupStructure = () => {
     setStructureDialogOpen(true)
   }
@@ -135,8 +150,9 @@ export function DocumentManager({ project, stakeholders, onProjectUpdate }: Docu
       content += `${section.title}\n\n${sectionContent}\n\n\n`
     })
 
+    const docId = Date.now().toString()
     const newDocument: Document = {
-      id: Date.now().toString(),
+      id: docId,
       projectId: project.id,
       name: template.name,
       type: template.type,
@@ -165,6 +181,10 @@ export function DocumentManager({ project, stakeholders, onProjectUpdate }: Docu
     }
 
     setDocuments((currentDocs) => [...(currentDocs || []), newDocument])
+    setDocumentContents((currentContents) => ({
+      ...(currentContents || {}),
+      [docId]: content
+    }))
     
     const blob = new Blob([content], { type: 'text/plain' })
     const url = URL.createObjectURL(blob)
@@ -302,6 +322,15 @@ export function DocumentManager({ project, stakeholders, onProjectUpdate }: Docu
         <div className="flex gap-3">
           <Button 
             variant="outline" 
+            onClick={() => setBulkPdfExportOpen(true)} 
+            className="gap-2 text-accent border-accent/50 hover:bg-accent/10"
+            disabled={projectDocuments.length === 0}
+          >
+            <FilePdf size={18} weight="duotone" />
+            Exportar PDF
+          </Button>
+          <Button 
+            variant="outline" 
             onClick={() => setUtilitiesDialogOpen(true)} 
             className="gap-2"
           >
@@ -407,7 +436,7 @@ export function DocumentManager({ project, stakeholders, onProjectUpdate }: Docu
                     transition={{ delay: index * 0.03 }}
                   >
                     <Card 
-                      className="cursor-pointer hover:shadow-md hover:border-accent/50 transition-all"
+                      className="cursor-pointer hover:shadow-md hover:border-accent/50 transition-all group"
                       onClick={() => handleDocumentClick(doc)}
                     >
                       <CardContent className="p-4">
@@ -432,6 +461,17 @@ export function DocumentManager({ project, stakeholders, onProjectUpdate }: Docu
                                 </div>
                               </div>
                               <div className="flex items-center gap-2 shrink-0">
+                                {documentContents?.[doc.id] && (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={(e) => handlePreviewDocument(doc, e)}
+                                    className="gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  >
+                                    <Eye size={16} />
+                                    Ver
+                                  </Button>
+                                )}
                                 {getStatusIcon(latestVersion.status)}
                                 <Badge variant="outline">
                                   {latestVersion.version}
@@ -715,6 +755,28 @@ export function DocumentManager({ project, stakeholders, onProjectUpdate }: Docu
         open={utilitiesDialogOpen}
         onOpenChange={setUtilitiesDialogOpen}
       />
+
+      <BulkPDFExportDialog
+        open={bulkPdfExportOpen}
+        onOpenChange={setBulkPdfExportOpen}
+        documents={projectDocuments}
+        documentsContent={new Map(
+          Object.entries(documentContents || {}).filter(([docId]) => 
+            projectDocuments.some(doc => doc.id === docId)
+          )
+        )}
+        projectTitle={project.title}
+      />
+
+      {previewDocument && (
+        <DocumentPreview
+          open={previewDialogOpen}
+          onOpenChange={setPreviewDialogOpen}
+          document={previewDocument}
+          content={documentContents?.[previewDocument.id]}
+          projectTitle={project.title}
+        />
+      )}
     </div>
   )
 }

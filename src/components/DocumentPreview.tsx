@@ -14,9 +14,21 @@ import {
   Copy,
   Check,
   TextAlignLeft,
-  ListNumbers
+  ListNumbers,
+  FilePdf,
+  Gear
 } from '@phosphor-icons/react'
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuCheckboxItem
+} from '@/components/ui/dropdown-menu'
 import { Document } from '@/lib/types'
+import { exportDocumentToPDF, PDFExportOptions } from '@/lib/pdf-export'
 import { toast } from 'sonner'
 
 interface DocumentPreviewProps {
@@ -24,11 +36,20 @@ interface DocumentPreviewProps {
   onOpenChange: (open: boolean) => void
   document: Document
   content?: string
+  projectTitle?: string
 }
 
-export function DocumentPreview({ open, onOpenChange, document, content }: DocumentPreviewProps) {
+export function DocumentPreview({ open, onOpenChange, document, content, projectTitle }: DocumentPreviewProps) {
   const [viewMode, setViewMode] = useState<'formatted' | 'raw'>('formatted')
   const [copied, setCopied] = useState(false)
+  const [pdfOptions, setPdfOptions] = useState<PDFExportOptions>({
+    includeMetadata: true,
+    includeHeader: true,
+    includeFooter: true,
+    pageNumbers: true,
+    fontSize: 11,
+    lineSpacing: 1.5
+  })
 
   const latestVersion = document.versions[0]
 
@@ -56,6 +77,19 @@ export function DocumentPreview({ open, onOpenChange, document, content }: Docum
     window.document.body.removeChild(link)
     URL.revokeObjectURL(url)
     toast.success('Documento descargado correctamente')
+  }
+
+  const handleExportPDF = () => {
+    if (!content) return
+    try {
+      exportDocumentToPDF(document, content, projectTitle, pdfOptions)
+      toast.success('PDF generado correctamente', {
+        description: 'El documento se ha exportado con formato optimizado para impresión'
+      })
+    } catch (error) {
+      console.error('Error exporting PDF:', error)
+      toast.error('Error al generar el PDF')
+    }
   }
 
   const handlePrint = () => {
@@ -233,6 +267,71 @@ export function DocumentPreview({ open, onOpenChange, document, content }: Docum
                   </>
                 )}
               </Button>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90"
+                    disabled={!content}
+                  >
+                    <FilePdf size={16} weight="fill" />
+                    Exportar PDF
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-72">
+                  <DropdownMenuLabel className="flex items-center gap-2">
+                    <Gear size={16} />
+                    Opciones de Exportación
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  
+                  <DropdownMenuCheckboxItem
+                    checked={pdfOptions.includeMetadata}
+                    onCheckedChange={(checked) => 
+                      setPdfOptions(prev => ({ ...prev, includeMetadata: checked }))
+                    }
+                  >
+                    Incluir metadata del documento
+                  </DropdownMenuCheckboxItem>
+                  
+                  <DropdownMenuCheckboxItem
+                    checked={pdfOptions.includeHeader}
+                    onCheckedChange={(checked) => 
+                      setPdfOptions(prev => ({ ...prev, includeHeader: checked }))
+                    }
+                  >
+                    Incluir encabezado en páginas
+                  </DropdownMenuCheckboxItem>
+                  
+                  <DropdownMenuCheckboxItem
+                    checked={pdfOptions.includeFooter}
+                    onCheckedChange={(checked) => 
+                      setPdfOptions(prev => ({ ...prev, includeFooter: checked }))
+                    }
+                  >
+                    Incluir pie de página
+                  </DropdownMenuCheckboxItem>
+                  
+                  <DropdownMenuCheckboxItem
+                    checked={pdfOptions.pageNumbers}
+                    onCheckedChange={(checked) => 
+                      setPdfOptions(prev => ({ ...prev, pageNumbers: checked }))
+                    }
+                  >
+                    Numerar páginas
+                  </DropdownMenuCheckboxItem>
+                  
+                  <DropdownMenuSeparator />
+                  
+                  <DropdownMenuItem onClick={handleExportPDF}>
+                    <FilePdf size={16} className="mr-2" weight="fill" />
+                    Generar PDF
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
               <Button
                 variant="outline"
                 size="sm"
