@@ -4,6 +4,7 @@ import { Client, PAYMENT_TERMS_LABELS } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Card } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Users, Plus, Pencil, Trash, MagnifyingGlass, Percent, CalendarBlank } from '@phosphor-icons/react'
@@ -11,7 +12,11 @@ import { motion } from 'framer-motion'
 import { ClientDialog } from './ClientDialog'
 import { toast } from 'sonner'
 
-export function ClientManager() {
+interface ClientManagerProps {
+  asView?: boolean
+}
+
+export function ClientManager({ asView = false }: ClientManagerProps) {
   const [clients, setClients] = useKV<Client[]>('clients', [])
   const [open, setOpen] = useState(false)
   const [clientDialogOpen, setClientDialogOpen] = useState(false)
@@ -102,6 +107,168 @@ export function ClientManager() {
     return PAYMENT_TERMS_LABELS[client.paymentTerms]
   }
 
+  const clientListContent = (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between gap-4">
+        <div className="relative flex-1">
+          <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+          <Input
+            placeholder="Buscar por NIF, nombre, razón social o email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Button 
+          onClick={() => {
+            setSelectedClient(undefined)
+            setClientDialogOpen(true)
+          }}
+          className="gap-2"
+        >
+          <Plus size={18} weight="bold" />
+          Añadir Cliente
+        </Button>
+      </div>
+
+      {filteredClients.length === 0 ? (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center py-12"
+        >
+          <div className="inline-flex p-4 rounded-full bg-muted mb-4">
+            <Users size={48} className="text-muted-foreground" weight="duotone" />
+          </div>
+          <h3 className="text-lg font-semibold mb-2">
+            {searchTerm ? 'No se encontraron clientes' : 'No hay clientes registrados'}
+          </h3>
+          <p className="text-muted-foreground mb-4">
+            {searchTerm 
+              ? 'Intenta con otros términos de búsqueda'
+              : 'Comienza añadiendo tu primer cliente'
+            }
+          </p>
+          {!searchTerm && (
+            <Button 
+              onClick={() => {
+                setSelectedClient(undefined)
+                setClientDialogOpen(true)
+              }}
+              className="gap-2"
+            >
+              <Plus size={18} weight="bold" />
+              Añadir Primer Cliente
+            </Button>
+          )}
+        </motion.div>
+      ) : (
+        <div className="border rounded-lg overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Tipo</TableHead>
+                <TableHead>NIF/CIF</TableHead>
+                <TableHead>Nombre/Razón Social</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Teléfono</TableHead>
+                <TableHead className="text-center">
+                  <div className="flex items-center justify-center gap-1">
+                    <Percent size={14} />
+                    IVA
+                  </div>
+                </TableHead>
+                <TableHead className="text-center">
+                  <div className="flex items-center justify-center gap-1">
+                    <CalendarBlank size={14} />
+                    Plazo
+                  </div>
+                </TableHead>
+                <TableHead className="text-right">Acciones</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredClients.map((client) => (
+                <TableRow key={client.id}>
+                  <TableCell>
+                    <Badge variant={client.type === 'persona-fisica' ? 'default' : 'secondary'}>
+                      {client.type === 'persona-fisica' ? 'Física' : 'Jurídica'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="font-mono text-sm">{client.nif}</TableCell>
+                  <TableCell className="font-medium">
+                    {getClientDisplayName(client)}
+                    {client.representante && client.type === 'persona-juridica' && (
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Rep.: {client.representante}
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-sm">{client.email || '-'}</TableCell>
+                  <TableCell className="text-sm">{client.telefono || '-'}</TableCell>
+                  <TableCell className="text-center text-sm">
+                    {client.customTaxRate !== undefined ? (
+                      <Badge variant="outline" className="font-mono">
+                        {client.customTaxRate}%
+                      </Badge>
+                    ) : (
+                      <span className="text-muted-foreground">21%</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-center text-sm">
+                    <div className="flex flex-col items-center gap-1">
+                      <span>{getPaymentTermsLabel(client)}</span>
+                      {client.earlyPaymentDiscount !== undefined && client.earlyPaymentDiscount > 0 && (
+                        <Badge variant="secondary" className="text-xs">
+                          -{client.earlyPaymentDiscount}% PP
+                        </Badge>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEditClient(client)}
+                      >
+                        <Pencil size={16} weight="duotone" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteClient(client.id)}
+                      >
+                        <Trash size={16} weight="duotone" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+    </div>
+  )
+
+  if (asView) {
+    return (
+      <>
+        <Card className="p-6">
+          {clientListContent}
+        </Card>
+        
+        <ClientDialog
+          open={clientDialogOpen}
+          onOpenChange={setClientDialogOpen}
+          onSave={handleSaveClient}
+          client={selectedClient}
+        />
+      </>
+    )
+  }
+
   return (
     <>
       <Button
@@ -122,148 +289,7 @@ export function ClientManager() {
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-6">
-            <div className="flex items-center justify-between gap-4">
-              <div className="relative flex-1">
-                <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-                <Input
-                  placeholder="Buscar por NIF, nombre, razón social o email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Button 
-                onClick={() => {
-                  setSelectedClient(undefined)
-                  setClientDialogOpen(true)
-                }}
-                className="gap-2"
-              >
-                <Plus size={18} weight="bold" />
-                Añadir Cliente
-              </Button>
-            </div>
-
-            {filteredClients.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center py-12"
-              >
-                <div className="inline-flex p-4 rounded-full bg-muted mb-4">
-                  <Users size={48} className="text-muted-foreground" weight="duotone" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">
-                  {searchTerm ? 'No se encontraron clientes' : 'No hay clientes registrados'}
-                </h3>
-                <p className="text-muted-foreground mb-4">
-                  {searchTerm 
-                    ? 'Intenta con otros términos de búsqueda'
-                    : 'Comienza añadiendo tu primer cliente'
-                  }
-                </p>
-                {!searchTerm && (
-                  <Button 
-                    onClick={() => {
-                      setSelectedClient(undefined)
-                      setClientDialogOpen(true)
-                    }}
-                    className="gap-2"
-                  >
-                    <Plus size={18} weight="bold" />
-                    Añadir Primer Cliente
-                  </Button>
-                )}
-              </motion.div>
-            ) : (
-              <div className="border rounded-lg overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>NIF/CIF</TableHead>
-                      <TableHead>Nombre/Razón Social</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Teléfono</TableHead>
-                      <TableHead className="text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          <Percent size={14} />
-                          IVA
-                        </div>
-                      </TableHead>
-                      <TableHead className="text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          <CalendarBlank size={14} />
-                          Plazo
-                        </div>
-                      </TableHead>
-                      <TableHead className="text-right">Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredClients.map((client) => (
-                      <TableRow key={client.id}>
-                        <TableCell>
-                          <Badge variant={client.type === 'persona-fisica' ? 'default' : 'secondary'}>
-                            {client.type === 'persona-fisica' ? 'Física' : 'Jurídica'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="font-mono text-sm">{client.nif}</TableCell>
-                        <TableCell className="font-medium">
-                          {getClientDisplayName(client)}
-                          {client.representante && client.type === 'persona-juridica' && (
-                            <div className="text-xs text-muted-foreground mt-1">
-                              Rep.: {client.representante}
-                            </div>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-sm">{client.email || '-'}</TableCell>
-                        <TableCell className="text-sm">{client.telefono || '-'}</TableCell>
-                        <TableCell className="text-center text-sm">
-                          {client.customTaxRate !== undefined ? (
-                            <Badge variant="outline" className="font-mono">
-                              {client.customTaxRate}%
-                            </Badge>
-                          ) : (
-                            <span className="text-muted-foreground">21%</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-center text-sm">
-                          <div className="flex flex-col items-center gap-1">
-                            <span>{getPaymentTermsLabel(client)}</span>
-                            {client.earlyPaymentDiscount !== undefined && client.earlyPaymentDiscount > 0 && (
-                              <Badge variant="secondary" className="text-xs">
-                                -{client.earlyPaymentDiscount}% PP
-                              </Badge>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleEditClient(client)}
-                            >
-                              <Pencil size={16} weight="duotone" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDeleteClient(client.id)}
-                            >
-                              <Trash size={16} weight="duotone" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </div>
+          {clientListContent}
         </DialogContent>
       </Dialog>
 

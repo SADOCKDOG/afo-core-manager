@@ -9,17 +9,30 @@ import { Project, ProjectPhase, ProjectStatus, PHASE_LABELS, Client } from '@/li
 import { useState, useEffect } from 'react'
 import { Separator } from '@/components/ui/separator'
 import { useKV } from '@github/spark/hooks'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { Trash } from '@phosphor-icons/react'
+import { toast } from 'sonner'
 
 interface ProjectDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSave: (project: Partial<Project>) => void
+  onDelete?: (projectId: string) => void
   project?: Project
 }
 
 const ALL_PHASES: ProjectPhase[] = ['estudio-previo', 'anteproyecto', 'basico', 'ejecucion', 'direccion-obra']
 
-export function ProjectDialog({ open, onOpenChange, onSave, project }: ProjectDialogProps) {
+export function ProjectDialog({ open, onOpenChange, onSave, onDelete, project }: ProjectDialogProps) {
   const [clients] = useKV<Client[]>('clients', [])
   
   const [title, setTitle] = useState('')
@@ -29,6 +42,7 @@ export function ProjectDialog({ open, onOpenChange, onSave, project }: ProjectDi
   const [status, setStatus] = useState<ProjectStatus>('active')
   const [selectedPhases, setSelectedPhases] = useState<Set<ProjectPhase>>(new Set())
   const [phasePercentages, setPhasePercentages] = useState<Record<ProjectPhase, number>>({} as Record<ProjectPhase, number>)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
   useEffect(() => {
     if (project) {
@@ -97,6 +111,15 @@ export function ProjectDialog({ open, onOpenChange, onSave, project }: ProjectDi
     })
     
     onOpenChange(false)
+  }
+
+  const handleDeleteProject = () => {
+    if (project && onDelete) {
+      onDelete(project.id)
+      setDeleteDialogOpen(false)
+      onOpenChange(false)
+      toast.success('Proyecto eliminado correctamente')
+    }
   }
 
   return (
@@ -246,16 +269,52 @@ export function ProjectDialog({ open, onOpenChange, onSave, project }: ProjectDi
             )}
           </div>
 
-          <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={!title || !location || !clientId || selectedPhases.size === 0}>
-              {project ? 'Guardar Cambios' : 'Crear Proyecto'}
-            </Button>
+          <div className="flex justify-between gap-3 pt-4">
+            {project && onDelete ? (
+              <Button 
+                type="button" 
+                variant="destructive" 
+                onClick={() => setDeleteDialogOpen(true)}
+                className="gap-2"
+              >
+                <Trash size={16} weight="duotone" />
+                Eliminar Proyecto
+              </Button>
+            ) : (
+              <div />
+            )}
+            
+            <div className="flex gap-3">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={!title || !location || !clientId || selectedPhases.size === 0}>
+                {project ? 'Guardar Cambios' : 'Crear Proyecto'}
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar proyecto?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Se eliminará permanentemente el proyecto "{project?.title}" y todos sus datos asociados (documentos, presupuestos, hitos, etc.).
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteProject}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Eliminar Proyecto
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   )
 }

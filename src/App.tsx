@@ -212,6 +212,20 @@ function App() {
     }
   }
 
+  const handleDeleteProject = (projectId: string) => {
+    setProjects(currentProjects => (currentProjects || []).filter(p => p.id !== projectId))
+    
+    setDocuments(currentDocs => (currentDocs || []).filter(d => d.projectId !== projectId))
+    setBudgets(currentBudgets => (currentBudgets || []).filter(b => b.projectId !== projectId))
+    setMilestones(currentMilestones => (currentMilestones || []).filter(m => m.projectId !== projectId))
+    setInvoices(currentInvoices => (currentInvoices || []).filter(i => i.projectId !== projectId))
+    
+    if (selectedProject?.id === projectId) {
+      setSelectedProject(null)
+      setViewMode('projects')
+    }
+  }
+
   const handleImportComplete = (importData: {
     title: string
     location: string
@@ -717,13 +731,14 @@ function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.2 }}
-              className="text-center py-20"
             >
-              <UsersThree size={64} className="mx-auto mb-4 text-muted-foreground opacity-50" weight="duotone" />
-              <h3 className="text-xl font-semibold mb-2">Vista de Clientes</h3>
-              <p className="text-muted-foreground mb-6">
-                Usa el botón "Herramientas" en el menú superior para gestionar tus clientes
-              </p>
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h2 className="text-3xl font-bold tracking-tight mb-2">Gestión de Clientes</h2>
+                  <p className="text-muted-foreground">Administra tu cartera de clientes</p>
+                </div>
+              </div>
+              <ClientManager asView />
             </motion.div>
           )}
 
@@ -751,6 +766,7 @@ function App() {
         open={projectDialogOpen}
         onOpenChange={setProjectDialogOpen}
         onSave={handleSaveProject}
+        onDelete={handleDeleteProject}
         project={editingProject}
       />
 
