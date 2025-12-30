@@ -41,10 +41,12 @@ import {
   Gear,
   FilePdf,
   FileDoc,
-  X
+  X,
+  Camera
 } from '@phosphor-icons/react'
 import jsPDF from 'jspdf'
 import { toast } from 'sonner'
+import { VisualGuideViewer } from './VisualGuideViewer'
 
 interface UserManualProps {
   trigger?: React.ReactNode
@@ -1356,6 +1358,7 @@ export function UserManual({ trigger }: UserManualProps) {
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false)
   const [previewFormat, setPreviewFormat] = useState<'pdf' | 'markdown'>('pdf')
   const [previewSearchQuery, setPreviewSearchQuery] = useState('')
+  const [visualGuideOpen, setVisualGuideOpen] = useState(false)
 
   const categories = [
     { id: 'general', label: 'General', icon: Book },
@@ -1729,24 +1732,39 @@ export function UserManual({ trigger }: UserManualProps) {
                 </div>
               </div>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Download size={18} weight="duotone" />
-                    Exportar Manual
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => handleExportClick('pdf')}>
-                    <FilePdf size={18} weight="duotone" className="mr-2 text-red-500" />
-                    Exportar a PDF
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleExportClick('markdown')}>
-                    <FileDoc size={18} weight="duotone" className="mr-2 text-blue-500" />
-                    Exportar a Markdown
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="gap-2"
+                  onClick={() => {
+                    setOpen(false)
+                    setVisualGuideOpen(true)
+                  }}
+                >
+                  <Camera size={18} weight="duotone" />
+                  Guías Visuales
+                </Button>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <Download size={18} weight="duotone" />
+                      Exportar Manual
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleExportClick('pdf')}>
+                      <FilePdf size={18} weight="duotone" className="mr-2 text-red-500" />
+                      Exportar a PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExportClick('markdown')}>
+                      <FileDoc size={18} weight="duotone" className="mr-2 text-blue-500" />
+                      Exportar a Markdown
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
             
             <div className="relative">
@@ -2094,6 +2112,11 @@ export function UserManual({ trigger }: UserManualProps) {
           </div>
         </DialogContent>
       </Dialog>
+
+      <VisualGuideViewer 
+        open={visualGuideOpen} 
+        onOpenChange={setVisualGuideOpen}
+      />
     </>
   )
 }
