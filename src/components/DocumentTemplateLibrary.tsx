@@ -358,7 +358,7 @@ export function DocumentTemplateLibrary({ open: controlledOpen, onOpenChange }: 
                           <span>Ver contenido de la sección</span>
                         </summary>
                         <div className="mt-3 p-3 rounded bg-background border">
-                          <pre className="text-xs font-mono whitespace-pre-wrap text-muted-foreground leading-relaxed">
+                          <pre className="text-sm font-mono whitespace-pre-wrap text-muted-foreground leading-relaxed">
                             {section.content}
                           </pre>
                         </div>

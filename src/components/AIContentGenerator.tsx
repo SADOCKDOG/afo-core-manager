@@ -336,8 +336,8 @@ Genera el contenido de la sección:`
                   </div>
                 </div>
               ) : generatedContent ? (
-                <div className="prose prose-sm max-w-none">
-                  <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">
+                <div className="prose prose-lg max-w-none">
+                  <pre className="whitespace-pre-wrap font-sans text-base leading-loose text-foreground">
                     {generatedContent}
                   </pre>
                 </div>

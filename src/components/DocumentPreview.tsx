@@ -71,32 +71,36 @@ export function DocumentPreview({ open, onOpenChange, document, content }: Docum
           <style>
             body {
               font-family: 'Times New Roman', Times, serif;
-              padding: 40px;
-              line-height: 1.6;
-              max-width: 800px;
+              padding: 50px;
+              line-height: 1.8;
+              max-width: 900px;
               margin: 0 auto;
+              font-size: 13pt;
             }
             h1, h2, h3 {
               font-family: 'Arial', sans-serif;
-              margin-top: 24px;
-              margin-bottom: 12px;
+              margin-top: 28px;
+              margin-bottom: 16px;
             }
-            h1 { font-size: 24px; border-bottom: 2px solid #333; padding-bottom: 8px; }
-            h2 { font-size: 20px; }
-            h3 { font-size: 16px; }
-            p { margin: 12px 0; }
+            h1 { font-size: 22pt; border-bottom: 2px solid #333; padding-bottom: 10px; }
+            h2 { font-size: 18pt; }
+            h3 { font-size: 15pt; }
+            p { 
+              margin: 14px 0; 
+              text-align: justify;
+            }
             .header {
               text-align: center;
-              margin-bottom: 40px;
+              margin-bottom: 50px;
               border-bottom: 3px solid #333;
-              padding-bottom: 20px;
+              padding-bottom: 25px;
             }
             .metadata {
-              font-size: 12px;
+              font-size: 10pt;
               color: #666;
-              margin-top: 40px;
+              margin-top: 50px;
               border-top: 1px solid #ccc;
-              padding-top: 20px;
+              padding-top: 25px;
             }
           </style>
         </head>
@@ -128,28 +132,28 @@ export function DocumentPreview({ open, onOpenChange, document, content }: Docum
       const trimmed = line.trim()
       
       if (trimmed === '') {
-        formatted.push(<div key={index} className="h-4" />)
+        formatted.push(<div key={index} className="h-5" />)
       } else if (trimmed.match(/^[A-Z\s]{5,}$/)) {
         formatted.push(
-          <h2 key={index} className="text-xl font-bold mt-8 mb-4 text-primary border-b-2 border-primary/20 pb-2">
+          <h2 key={index} className="text-2xl font-bold mt-10 mb-5 text-primary border-b-2 border-primary/20 pb-3">
             {trimmed}
           </h2>
         )
       } else if (trimmed.match(/^\d+\./)) {
         formatted.push(
-          <h3 key={index} className="text-lg font-semibold mt-6 mb-3 text-foreground">
+          <h3 key={index} className="text-xl font-semibold mt-7 mb-4 text-foreground">
             {trimmed}
           </h3>
         )
       } else if (trimmed.match(/^-\s/)) {
         formatted.push(
-          <li key={index} className="ml-6 mb-2 text-foreground">
+          <li key={index} className="ml-8 mb-3 text-foreground text-base leading-relaxed">
             {trimmed.substring(2)}
           </li>
         )
       } else {
         formatted.push(
-          <p key={index} className="mb-3 text-foreground leading-relaxed text-justify">
+          <p key={index} className="mb-4 text-foreground text-base leading-loose text-justify">
             {trimmed}
           </p>
         )
@@ -258,11 +262,11 @@ export function DocumentPreview({ open, onOpenChange, document, content }: Docum
               <Card className="bg-white dark:bg-gray-900">
                 <CardContent className="p-10">
                   {viewMode === 'formatted' ? (
-                    <div className="prose prose-base max-w-none">
+                    <div className="prose prose-lg max-w-none">
                       {formatContent(content)}
                     </div>
                   ) : (
-                    <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed">
+                    <pre className="whitespace-pre-wrap font-mono text-base leading-loose">
                       {content}
                     </pre>
                   )}

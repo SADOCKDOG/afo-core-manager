@@ -296,7 +296,7 @@ export function ComplianceReportGenerator({
                   </CardHeader>
                   <CardContent>
                     <div
-                      className="prose prose-sm max-w-none max-h-[500px] overflow-y-auto pr-4"
+                      className="prose prose-base max-w-none max-h-[500px] overflow-y-auto pr-4 text-base leading-relaxed"
                       dangerouslySetInnerHTML={{
                         __html: marked(currentReport.reportContent)
                       }}

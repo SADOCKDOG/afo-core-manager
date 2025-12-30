@@ -210,7 +210,7 @@ export function AIRegulatoryAssistant({ projectId, open, onOpenChange }: AIRegul
                             ))}
                           </div>
 
-                          <div className="prose prose-sm max-w-none">
+                          <div className="prose prose-base max-w-none text-base leading-relaxed">
                             {renderResponse(activeQuery.response || '')}
                           </div>
 
