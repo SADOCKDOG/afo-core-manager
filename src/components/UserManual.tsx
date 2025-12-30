@@ -40,7 +40,8 @@ import {
   PaperPlaneTilt,
   Gear,
   FilePdf,
-  FileDoc
+  FileDoc,
+  X
 } from '@phosphor-icons/react'
 import jsPDF from 'jspdf'
 import { toast } from 'sonner'
@@ -766,6 +767,9 @@ export function UserManual({ trigger }: UserManualProps) {
   const [open, setOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('general')
   const [searchQuery, setSearchQuery] = useState('')
+  const [previewDialogOpen, setPreviewDialogOpen] = useState(false)
+  const [previewFormat, setPreviewFormat] = useState<'pdf' | 'markdown'>('pdf')
+  const [previewSearchQuery, setPreviewSearchQuery] = useState('')
 
   const categories = [
     { id: 'general', label: 'General', icon: Book },
@@ -784,14 +788,50 @@ export function UserManual({ trigger }: UserManualProps) {
     return matchesCategory && matchesSearch
   })
 
+  const getPreviewFilteredSections = () => {
+    if (previewSearchQuery === '') return manualSections
+
+    return manualSections.filter(section => {
+      const titleMatch = section.title.toLowerCase().includes(previewSearchQuery.toLowerCase())
+      const descMatch = section.content.description.toLowerCase().includes(previewSearchQuery.toLowerCase())
+      const featuresMatch = section.content.features?.some(f => 
+        f.toLowerCase().includes(previewSearchQuery.toLowerCase())
+      )
+      const stepsMatch = section.content.steps?.some(s => 
+        s.title.toLowerCase().includes(previewSearchQuery.toLowerCase()) ||
+        s.description.toLowerCase().includes(previewSearchQuery.toLowerCase())
+      )
+      const tipsMatch = section.content.tips?.some(t => 
+        t.toLowerCase().includes(previewSearchQuery.toLowerCase())
+      )
+      
+      return titleMatch || descMatch || featuresMatch || stepsMatch || tipsMatch
+    })
+  }
+
+  const highlightText = (text: string, query: string) => {
+    if (!query) return text
+    
+    const regex = new RegExp(`(${query})`, 'gi')
+    const parts = text.split(regex)
+    
+    return parts.map((part, i) => 
+      regex.test(part) 
+        ? `<mark class="bg-accent text-accent-foreground px-1 rounded">${part}</mark>`
+        : part
+    ).join('')
+  }
+
   const exportToMarkdown = () => {
     let markdown = `# Manual de Usuario - AFO CORE MANAGER\n\n`
     markdown += `**Gestión Integral Arquitectónica**\n\n`
     markdown += `Versión 1.0\n\n`
     markdown += `---\n\n`
 
+    const sectionsToExport = getPreviewFilteredSections()
+
     categories.forEach(category => {
-      const categorySections = manualSections.filter(s => s.category === category.id)
+      const categorySections = sectionsToExport.filter(s => s.category === category.id)
       if (categorySections.length === 0) return
 
       markdown += `## ${category.label}\n\n`
@@ -854,12 +894,15 @@ export function UserManual({ trigger }: UserManualProps) {
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
 
+    setPreviewDialogOpen(false)
     toast.success('Manual exportado a Markdown', {
-      description: 'El archivo se ha descargado correctamente'
+      description: `Exportadas ${sectionsToExport.length} secciones`
     })
   }
 
   const exportToPDF = () => {
+    const sectionsToExport = getPreviewFilteredSections()
+    
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -919,7 +962,7 @@ export function UserManual({ trigger }: UserManualProps) {
     yPosition += 10
 
     categories.forEach((category, catIdx) => {
-      const categorySections = manualSections.filter(s => s.category === category.id)
+      const categorySections = sectionsToExport.filter(s => s.category === category.id)
       if (categorySections.length === 0) return
 
       if (catIdx > 0) {
@@ -1062,220 +1105,409 @@ export function UserManual({ trigger }: UserManualProps) {
 
     pdf.save(`Manual-Usuario-AFO-CORE-${new Date().toISOString().split('T')[0]}.pdf`)
 
+    setPreviewDialogOpen(false)
     toast.success('Manual exportado a PDF', {
-      description: 'El archivo se ha descargado correctamente'
+      description: `Exportadas ${sectionsToExport.length} secciones`
     })
   }
 
+  const handleExportClick = (format: 'pdf' | 'markdown') => {
+    setPreviewFormat(format)
+    setPreviewSearchQuery('')
+    setPreviewDialogOpen(true)
+  }
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger || (
-          <Button variant="outline" size="sm" className="gap-2">
-            <Question size={18} weight="duotone" />
-            Ayuda
-          </Button>
-        )}
-      </DialogTrigger>
-      <DialogContent className="max-w-6xl h-[90vh] p-0 gap-0">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b bg-card">
-          <div className="flex items-center justify-between gap-3 mb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/20 text-primary">
-                <GraduationCap size={24} weight="duotone" />
+    <>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          {trigger || (
+            <Button variant="outline" size="sm" className="gap-2">
+              <Question size={18} weight="duotone" />
+              Ayuda
+            </Button>
+          )}
+        </DialogTrigger>
+        <DialogContent className="max-w-6xl h-[90vh] p-0 gap-0">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b bg-card">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/20 text-primary">
+                  <GraduationCap size={24} weight="duotone" />
+                </div>
+                <div>
+                  <DialogTitle className="text-2xl">Manual de Usuario</DialogTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Guía completa de AFO CORE MANAGER - Todos los módulos y funciones
+                  </p>
+                </div>
               </div>
-              <div>
-                <DialogTitle className="text-2xl">Manual de Usuario</DialogTitle>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Guía completa de AFO CORE MANAGER - Todos los módulos y funciones
-                </p>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Download size={18} weight="duotone" />
+                    Exportar Manual
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handleExportClick('pdf')}>
+                    <FilePdf size={18} weight="duotone" className="mr-2 text-red-500" />
+                    Exportar a PDF
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExportClick('markdown')}>
+                    <FileDoc size={18} weight="duotone" className="mr-2 text-blue-500" />
+                    Exportar a Markdown
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            
+            <div className="relative">
+              <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+              <Input
+                placeholder="Buscar en el manual..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-hidden">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+              <div className="border-b bg-muted/30 px-6">
+                <TabsList className="h-12 bg-transparent">
+                  {categories.map(cat => {
+                    const Icon = cat.icon
+                    return (
+                      <TabsTrigger 
+                        key={cat.id} 
+                        value={cat.id}
+                        className="gap-2 data-[state=active]:bg-background"
+                      >
+                        <Icon size={16} weight="duotone" />
+                        {cat.label}
+                      </TabsTrigger>
+                    )
+                  })}
+                </TabsList>
+              </div>
+
+              <ScrollArea className="flex-1">
+                <div className="p-6">
+                  {categories.map(cat => (
+                    <TabsContent key={cat.id} value={cat.id} className="mt-0">
+                      <div className="space-y-6">
+                        {filteredSections.length === 0 ? (
+                          <div className="text-center py-12">
+                            <MagnifyingGlass size={48} className="mx-auto mb-3 text-muted-foreground opacity-50" />
+                            <p className="text-muted-foreground">No se encontraron resultados</p>
+                          </div>
+                        ) : (
+                          filteredSections.map(section => {
+                            const Icon = section.icon
+                            return (
+                              <Card key={section.id} className="overflow-hidden">
+                                <CardHeader className="bg-muted/30">
+                                  <div className="flex items-center gap-3">
+                                    <div className="p-2 rounded-lg bg-primary/20 text-primary">
+                                      <Icon size={20} weight="duotone" />
+                                    </div>
+                                    <div>
+                                      <CardTitle className="text-xl">{section.title}</CardTitle>
+                                      <CardDescription className="mt-1">
+                                        {section.content.description}
+                                      </CardDescription>
+                                    </div>
+                                  </div>
+                                </CardHeader>
+                                <CardContent className="pt-6 space-y-6">
+                                  {section.content.features && (
+                                    <div>
+                                      <h4 className="font-semibold mb-3 flex items-center gap-2">
+                                        <CheckCircle size={18} weight="duotone" className="text-primary" />
+                                        Características
+                                      </h4>
+                                      <ul className="space-y-2">
+                                        {section.content.features.map((feature, idx) => (
+                                          <li key={idx} className="flex items-start gap-2 text-sm">
+                                            <ArrowRight size={16} className="text-muted-foreground mt-0.5 shrink-0" />
+                                            <span>{feature}</span>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+
+                                  {section.content.steps && (
+                                    <div>
+                                      <h4 className="font-semibold mb-3 flex items-center gap-2">
+                                        <BookOpen size={18} weight="duotone" className="text-primary" />
+                                        Cómo usar
+                                      </h4>
+                                      <div className="space-y-4">
+                                        {section.content.steps.map((step, idx) => (
+                                          <div key={idx} className="flex gap-3">
+                                            <div className="flex items-center justify-center w-7 h-7 rounded-full bg-primary/20 text-primary font-semibold text-sm shrink-0">
+                                              {idx + 1}
+                                            </div>
+                                            <div className="flex-1 pt-0.5">
+                                              <p className="font-medium text-sm mb-1">{step.title}</p>
+                                              <p className="text-sm text-muted-foreground">{step.description}</p>
+                                              {step.note && (
+                                                <div className="mt-2 flex items-start gap-2 text-xs bg-blue-500/10 text-blue-700 dark:text-blue-300 p-2 rounded">
+                                                  <Info size={14} className="mt-0.5 shrink-0" />
+                                                  <span>{step.note}</span>
+                                                </div>
+                                              )}
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {section.content.tips && section.content.tips.length > 0 && (
+                                    <div>
+                                      <h4 className="font-semibold mb-3 flex items-center gap-2">
+                                        <Lightbulb size={18} weight="duotone" className="text-amber-500" />
+                                        Consejos
+                                      </h4>
+                                      <div className="space-y-2">
+                                        {section.content.tips.map((tip, idx) => (
+                                          <div key={idx} className="flex items-start gap-2 text-sm bg-amber-500/10 text-amber-700 dark:text-amber-300 p-3 rounded-lg">
+                                            <Lightbulb size={16} className="mt-0.5 shrink-0" weight="fill" />
+                                            <span>{tip}</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {section.content.warnings && section.content.warnings.length > 0 && (
+                                    <div>
+                                      <h4 className="font-semibold mb-3 flex items-center gap-2">
+                                        <Warning size={18} weight="duotone" className="text-orange-500" />
+                                        Advertencias
+                                      </h4>
+                                      <div className="space-y-2">
+                                        {section.content.warnings.map((warning, idx) => (
+                                          <div key={idx} className="flex items-start gap-2 text-sm bg-orange-500/10 text-orange-700 dark:text-orange-300 p-3 rounded-lg">
+                                            <Warning size={16} className="mt-0.5 shrink-0" weight="fill" />
+                                            <span>{warning}</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            )
+                          })
+                        )}
+                      </div>
+                    </TabsContent>
+                  ))}
+                </div>
+              </ScrollArea>
+            </Tabs>
+          </div>
+
+          <div className="border-t bg-muted/30 px-6 py-4">
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary">v1.0</Badge>
+                <span>AFO CORE MANAGER</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Info size={16} />
+                <span>¿Necesitas más ayuda? Consulta el Asistente IA</span>
               </div>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Download size={18} weight="duotone" />
-                  Exportar Manual
+      <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
+        <DialogContent className="max-w-6xl h-[90vh] p-0 gap-0">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b bg-card">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-accent/20 text-accent">
+                  {previewFormat === 'pdf' ? (
+                    <FilePdf size={24} weight="duotone" />
+                  ) : (
+                    <FileDoc size={24} weight="duotone" />
+                  )}
+                </div>
+                <div>
+                  <DialogTitle className="text-2xl">Vista Previa de Exportación</DialogTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Busca y filtra el contenido antes de exportar a {previewFormat === 'pdf' ? 'PDF' : 'Markdown'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setPreviewDialogOpen(false)}
+                >
+                  Cancelar
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={exportToPDF}>
-                  <FilePdf size={18} weight="duotone" className="mr-2 text-red-500" />
-                  Exportar a PDF
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={exportToMarkdown}>
-                  <FileDoc size={18} weight="duotone" className="mr-2 text-blue-500" />
-                  Exportar a Markdown
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          
-          <div className="relative">
-            <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-            <Input
-              placeholder="Buscar en el manual..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </DialogHeader>
-
-        <div className="flex-1 overflow-hidden">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-            <div className="border-b bg-muted/30 px-6">
-              <TabsList className="h-12 bg-transparent">
-                {categories.map(cat => {
-                  const Icon = cat.icon
-                  return (
-                    <TabsTrigger 
-                      key={cat.id} 
-                      value={cat.id}
-                      className="gap-2 data-[state=active]:bg-background"
-                    >
-                      <Icon size={16} weight="duotone" />
-                      {cat.label}
-                    </TabsTrigger>
-                  )
-                })}
-              </TabsList>
-            </div>
-
-            <ScrollArea className="flex-1">
-              <div className="p-6">
-                {categories.map(cat => (
-                  <TabsContent key={cat.id} value={cat.id} className="mt-0">
-                    <div className="space-y-6">
-                      {filteredSections.length === 0 ? (
-                        <div className="text-center py-12">
-                          <MagnifyingGlass size={48} className="mx-auto mb-3 text-muted-foreground opacity-50" />
-                          <p className="text-muted-foreground">No se encontraron resultados</p>
-                        </div>
-                      ) : (
-                        filteredSections.map(section => {
-                          const Icon = section.icon
-                          return (
-                            <Card key={section.id} className="overflow-hidden">
-                              <CardHeader className="bg-muted/30">
-                                <div className="flex items-center gap-3">
-                                  <div className="p-2 rounded-lg bg-primary/20 text-primary">
-                                    <Icon size={20} weight="duotone" />
-                                  </div>
-                                  <div>
-                                    <CardTitle className="text-xl">{section.title}</CardTitle>
-                                    <CardDescription className="mt-1">
-                                      {section.content.description}
-                                    </CardDescription>
-                                  </div>
-                                </div>
-                              </CardHeader>
-                              <CardContent className="pt-6 space-y-6">
-                                {section.content.features && (
-                                  <div>
-                                    <h4 className="font-semibold mb-3 flex items-center gap-2">
-                                      <CheckCircle size={18} weight="duotone" className="text-primary" />
-                                      Características
-                                    </h4>
-                                    <ul className="space-y-2">
-                                      {section.content.features.map((feature, idx) => (
-                                        <li key={idx} className="flex items-start gap-2 text-sm">
-                                          <ArrowRight size={16} className="text-muted-foreground mt-0.5 shrink-0" />
-                                          <span>{feature}</span>
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                )}
-
-                                {section.content.steps && (
-                                  <div>
-                                    <h4 className="font-semibold mb-3 flex items-center gap-2">
-                                      <BookOpen size={18} weight="duotone" className="text-primary" />
-                                      Cómo usar
-                                    </h4>
-                                    <div className="space-y-4">
-                                      {section.content.steps.map((step, idx) => (
-                                        <div key={idx} className="flex gap-3">
-                                          <div className="flex items-center justify-center w-7 h-7 rounded-full bg-primary/20 text-primary font-semibold text-sm shrink-0">
-                                            {idx + 1}
-                                          </div>
-                                          <div className="flex-1 pt-0.5">
-                                            <p className="font-medium text-sm mb-1">{step.title}</p>
-                                            <p className="text-sm text-muted-foreground">{step.description}</p>
-                                            {step.note && (
-                                              <div className="mt-2 flex items-start gap-2 text-xs bg-blue-500/10 text-blue-700 dark:text-blue-300 p-2 rounded">
-                                                <Info size={14} className="mt-0.5 shrink-0" />
-                                                <span>{step.note}</span>
-                                              </div>
-                                            )}
-                                          </div>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-
-                                {section.content.tips && section.content.tips.length > 0 && (
-                                  <div>
-                                    <h4 className="font-semibold mb-3 flex items-center gap-2">
-                                      <Lightbulb size={18} weight="duotone" className="text-amber-500" />
-                                      Consejos
-                                    </h4>
-                                    <div className="space-y-2">
-                                      {section.content.tips.map((tip, idx) => (
-                                        <div key={idx} className="flex items-start gap-2 text-sm bg-amber-500/10 text-amber-700 dark:text-amber-300 p-3 rounded-lg">
-                                          <Lightbulb size={16} className="mt-0.5 shrink-0" weight="fill" />
-                                          <span>{tip}</span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-
-                                {section.content.warnings && section.content.warnings.length > 0 && (
-                                  <div>
-                                    <h4 className="font-semibold mb-3 flex items-center gap-2">
-                                      <Warning size={18} weight="duotone" className="text-orange-500" />
-                                      Advertencias
-                                    </h4>
-                                    <div className="space-y-2">
-                                      {section.content.warnings.map((warning, idx) => (
-                                        <div key={idx} className="flex items-start gap-2 text-sm bg-orange-500/10 text-orange-700 dark:text-orange-300 p-3 rounded-lg">
-                                          <Warning size={16} className="mt-0.5 shrink-0" weight="fill" />
-                                          <span>{warning}</span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-                              </CardContent>
-                            </Card>
-                          )
-                        })
-                      )}
-                    </div>
-                  </TabsContent>
-                ))}
+                <Button 
+                  size="sm"
+                  className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90"
+                  onClick={previewFormat === 'pdf' ? exportToPDF : exportToMarkdown}
+                >
+                  <Download size={18} weight="bold" />
+                  Descargar {previewFormat === 'pdf' ? 'PDF' : 'Markdown'}
+                </Button>
               </div>
-            </ScrollArea>
-          </Tabs>
-        </div>
-
-        <div className="border-t bg-muted/30 px-6 py-4">
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary">v1.0</Badge>
-              <span>AFO CORE MANAGER</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Info size={16} />
-              <span>¿Necesitas más ayuda? Consulta el Asistente IA</span>
+            
+            <div className="relative">
+              <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+              <Input
+                placeholder="Buscar para filtrar contenido a exportar..."
+                value={previewSearchQuery}
+                onChange={(e) => setPreviewSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+              {previewSearchQuery && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                  onClick={() => setPreviewSearchQuery('')}
+                >
+                  <X size={16} />
+                </Button>
+              )}
+            </div>
+          </DialogHeader>
+
+          <ScrollArea className="flex-1">
+            <div className="p-6">
+              <div className="mb-6">
+                <Badge variant="outline" className="text-sm">
+                  {getPreviewFilteredSections().length} de {manualSections.length} secciones
+                </Badge>
+                {previewSearchQuery && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Filtrando por: "{previewSearchQuery}"
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-6">
+                {getPreviewFilteredSections().length === 0 ? (
+                  <div className="text-center py-12">
+                    <MagnifyingGlass size={48} className="mx-auto mb-3 text-muted-foreground opacity-50" />
+                    <p className="text-muted-foreground">No se encontraron secciones que coincidan con tu búsqueda</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-4"
+                      onClick={() => setPreviewSearchQuery('')}
+                    >
+                      Limpiar búsqueda
+                    </Button>
+                  </div>
+                ) : (
+                  categories.map(category => {
+                    const categorySections = getPreviewFilteredSections().filter(s => s.category === category.id)
+                    if (categorySections.length === 0) return null
+
+                    return (
+                      <div key={category.id}>
+                        <div className="flex items-center gap-2 mb-4">
+                          <div className="p-1.5 rounded-lg bg-primary/20 text-primary">
+                            {<category.icon size={18} weight="duotone" />}
+                          </div>
+                          <h3 className="text-lg font-bold">{category.label}</h3>
+                          <Badge variant="secondary" className="ml-2">
+                            {categorySections.length}
+                          </Badge>
+                        </div>
+                        
+                        <div className="space-y-4 ml-2 mb-8">
+                          {categorySections.map(section => {
+                            const Icon = section.icon
+                            return (
+                              <Card key={section.id} className="overflow-hidden">
+                                <CardHeader className="bg-muted/30 py-4">
+                                  <div className="flex items-center gap-3">
+                                    <div className="p-1.5 rounded-lg bg-primary/20 text-primary">
+                                      <Icon size={18} weight="duotone" />
+                                    </div>
+                                    <CardTitle className="text-base">{section.title}</CardTitle>
+                                  </div>
+                                </CardHeader>
+                                <CardContent className="pt-4 pb-4">
+                                  <p className="text-sm text-muted-foreground mb-3">
+                                    {section.content.description}
+                                  </p>
+                                  
+                                  {section.content.features && section.content.features.length > 0 && (
+                                    <div className="mb-3">
+                                      <p className="text-xs font-semibold text-muted-foreground mb-1">
+                                        {section.content.features.length} característica(s)
+                                      </p>
+                                    </div>
+                                  )}
+                                  
+                                  {section.content.steps && section.content.steps.length > 0 && (
+                                    <div className="mb-3">
+                                      <p className="text-xs font-semibold text-muted-foreground mb-1">
+                                        {section.content.steps.length} paso(s)
+                                      </p>
+                                    </div>
+                                  )}
+                                  
+                                  {section.content.tips && section.content.tips.length > 0 && (
+                                    <Badge variant="outline" className="text-xs mr-2">
+                                      <Lightbulb size={12} className="mr-1" />
+                                      {section.content.tips.length} consejo(s)
+                                    </Badge>
+                                  )}
+                                  
+                                  {section.content.warnings && section.content.warnings.length > 0 && (
+                                    <Badge variant="outline" className="text-xs">
+                                      <Warning size={12} className="mr-1" />
+                                      {section.content.warnings.length} advertencia(s)
+                                    </Badge>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
+              </div>
+            </div>
+          </ScrollArea>
+
+          <div className="border-t bg-muted/30 px-6 py-4">
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Info size={16} />
+                <span>
+                  Se exportarán {getPreviewFilteredSections().length} secciones
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span>Formato: {previewFormat === 'pdf' ? 'PDF' : 'Markdown'}</span>
+              </div>
             </div>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
