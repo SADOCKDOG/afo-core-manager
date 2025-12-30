@@ -82,7 +82,7 @@ export function AIRegulatoryAssistant({ projectId, open, onOpenChange }: AIRegul
   }
 
   const renderResponse = (response: string) => {
-    const html = marked.parse(response)
+    const html = marked.parse(response, { async: false }) as string
     return <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: html }} />
   }
 
