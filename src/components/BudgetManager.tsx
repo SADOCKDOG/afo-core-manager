@@ -17,6 +17,7 @@ import { BudgetItemDialog } from './BudgetItemDialog'
 import { PriceDatabaseDialog } from './PriceDatabaseDialog'
 import { BC3ImportDialog } from './BC3ImportDialog'
 import { OnlineDatabaseBrowser } from './OnlineDatabaseBrowser'
+import { AutomatedBudgetGenerator } from './AutomatedBudgetGenerator'
 import { motion } from 'framer-motion'
 
 interface BudgetManagerProps {
@@ -32,6 +33,7 @@ export function BudgetManager({ projectId, projectName }: BudgetManagerProps) {
   const [itemDialogOpen, setItemDialogOpen] = useState(false)
   const [priceDbOpen, setPriceDbOpen] = useState(false)
   const [onlineDbOpen, setOnlineDbOpen] = useState(false)
+  const [autoGenOpen, setAutoGenOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<BudgetItem | undefined>()
   
   const projectBudgets = (budgets || []).filter(b => b.projectId === projectId)
@@ -224,6 +226,13 @@ export function BudgetManager({ projectId, projectName }: BudgetManagerProps) {
                     </Button>
                   }
                 />
+                <Button 
+                  onClick={() => setAutoGenOpen(true)} 
+                  className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90"
+                >
+                  <Calculator size={18} weight="bold" />
+                  Generación Automática
+                </Button>
                 <Button onClick={handleCreateBudget} className="gap-2">
                   <Plus size={18} weight="bold" />
                   Nuevo Presupuesto
@@ -305,6 +314,13 @@ export function BudgetManager({ projectId, projectName }: BudgetManagerProps) {
                           </Button>
                         }
                       />
+                      <Button 
+                        onClick={() => setAutoGenOpen(true)} 
+                        className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90"
+                      >
+                        <Calculator size={18} weight="bold" />
+                        Generación Automática
+                      </Button>
                       <Button onClick={handleCreateBudget} className="gap-2">
                         <Plus size={18} weight="bold" />
                         Crear Presupuesto
@@ -511,6 +527,16 @@ export function BudgetManager({ projectId, projectName }: BudgetManagerProps) {
               open={onlineDbOpen}
               onOpenChange={setOnlineDbOpen}
               onImportPrices={handleOnlinePriceImport}
+            />
+
+            <AutomatedBudgetGenerator
+              projectId={projectId}
+              projectTitle={projectName}
+              open={autoGenOpen}
+              onOpenChange={setAutoGenOpen}
+              onBudgetGenerated={() => {
+                setAutoGenOpen(false)
+              }}
             />
           </>
         )}
