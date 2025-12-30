@@ -187,15 +187,15 @@ export function AIDocumentClassifier({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh] flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[95vh] h-[95vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10">
           <div className="flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-primary/10 text-primary">
-              <Sparkle size={24} weight="duotone" />
+            <div className="p-3 rounded-xl bg-primary/20 text-primary">
+              <Sparkle size={32} weight="duotone" />
             </div>
             <div className="flex-1">
-              <DialogTitle className="text-2xl">Clasificación Inteligente de Documentos</DialogTitle>
-              <DialogDescription className="mt-1">
+              <DialogTitle className="text-2xl font-bold">Clasificación Inteligente de Documentos</DialogTitle>
+              <DialogDescription className="mt-2 text-base">
                 Utiliza IA avanzada para clasificar automáticamente {contexts.length} documentos con alta precisión
               </DialogDescription>
             </div>

@@ -1,6 +1,7 @@
 import { Document, DocumentType, DocumentStatus, FolderStructureType, DOCUMENT_TYPE_LABELS } from './types'
 
 export interface ImportedFile {
+  fileName: string
   name: string
   path: string
   size: number
@@ -239,6 +240,7 @@ export async function analyzeProjectFiles(
     const analysis = analyzeFileName(file.name, folderPath)
 
     const importedFile: ImportedFile = {
+      fileName: file.name,
       name: file.name,
       path: path,
       size: file.size,

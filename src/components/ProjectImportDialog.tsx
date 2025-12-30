@@ -70,6 +70,8 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
   const [typeFilter, setTypeFilter] = useState<DocumentType | 'all'>('all')
   const [aiClassifierOpen, setAiClassifierOpen] = useState(false)
   const [classificationContexts, setClassificationContexts] = useState<ClassificationContext[]>([])
+  const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set())
+  const [previewFile, setPreviewFile] = useState<ImportedFile | null>(null)
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || [])
@@ -86,6 +88,10 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
       setProjectTitle(result.projectNameSuggestion || '')
       setProjectLocation(result.locationSuggestion || '')
       setSelectedStructure(result.suggestedStructure)
+      
+      const allFileNames = new Set(result.analyzedFiles.map(f => f.fileName))
+      setSelectedFiles(allFileNames)
+      
       setStep('review')
     } catch (error) {
       console.error('Error analyzing files:', error)
