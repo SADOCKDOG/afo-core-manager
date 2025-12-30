@@ -1,13 +1,14 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
+import { Card, CardContent } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
 import { 
   FileText, 
   ArrowLeft, 
@@ -22,7 +23,10 @@ import {
   CaretDown,
   CaretUp,
   Robot,
-  Lightning
+  Lightning,
+  MagicWand,
+  Eye,
+  EyeSlash
 } from '@phosphor-icons/react'
 import { DocumentTemplate, TEMPLATE_CATEGORIES, TemplateCategory, TemplateSection, Project, Stakeholder } from '@/lib/types'
 import { ARCHITECTURAL_TEMPLATES, getTemplatesByCategory } from '@/lib/document-templates'
@@ -279,18 +283,18 @@ Ejemplo de formato:
     toast.success('Plantilla preparada con contenido personalizado')
   }
 
-  const getCategoryIcon = (category: TemplateCategory) => {
+  const getCategoryIcon = (category: TemplateCategory, size: number = 18) => {
     switch (category) {
       case 'memoria':
-        return <BookOpen size={18} weight="duotone" />
+        return <BookOpen size={size} weight="duotone" />
       case 'planos':
-        return <Blueprint size={18} weight="duotone" />
+        return <Blueprint size={size} weight="duotone" />
       case 'administrativo':
-        return <FileArchive size={18} weight="duotone" />
+        return <FileArchive size={size} weight="duotone" />
       case 'presupuesto':
-        return <Calculator size={18} weight="duotone" />
+        return <Calculator size={size} weight="duotone" />
       case 'calculo':
-        return <Files size={18} weight="duotone" />
+        return <Files size={size} weight="duotone" />
     }
   }
 
@@ -339,17 +343,27 @@ Ejemplo de formato:
                   />
                 </div>
 
-                <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <TabsList className="w-full justify-start overflow-x-auto">
-                    <TabsTrigger value="all">Todas</TabsTrigger>
-                    {Object.entries(TEMPLATE_CATEGORIES).map(([key, label]) => (
-                      <TabsTrigger key={key} value={key} className="gap-2">
-                        {getCategoryIcon(key as TemplateCategory)}
-                        {label}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                </Tabs>
+                <div className="flex gap-2 overflow-x-auto pb-2">
+                  <Button
+                    variant={selectedCategory === 'all' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setSelectedCategory('all')}
+                  >
+                    Todas
+                  </Button>
+                  {Object.entries(TEMPLATE_CATEGORIES).map(([key, label]) => (
+                    <Button
+                      key={key}
+                      variant={selectedCategory === key ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setSelectedCategory(key)}
+                      className="gap-2 shrink-0"
+                    >
+                      {getCategoryIcon(key as TemplateCategory, 16)}
+                      {label}
+                    </Button>
+                  ))}
+                </div>
               </div>
 
               <ScrollArea className="h-[450px] px-6">

@@ -6,7 +6,9 @@ import { Label } from '@/components/ui/label'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Sparkle, ArrowsClockwise, Check, Copy, MagicWand } from '@phosphor-icons/react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
+import { Sparkle, ArrowsClockwise, Check, Copy, MagicWand, Lightning } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 
 interface AIContentGeneratorProps {
@@ -49,6 +51,7 @@ export function AIContentGenerator({
   const [length, setLength] = useState('medium')
   const [generatedContent, setGeneratedContent] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
+  const [generationProgress, setGenerationProgress] = useState(0)
 
   const handleGenerate = async () => {
     if (!prompt.trim() && !sectionContext) {
@@ -58,6 +61,11 @@ export function AIContentGenerator({
 
     setIsGenerating(true)
     setGeneratedContent('')
+    setGenerationProgress(0)
+
+    const progressInterval = setInterval(() => {
+      setGenerationProgress(prev => Math.min(prev + 10, 90))
+    }, 200)
 
     try {
       const contextInfo = projectContext 
@@ -96,12 +104,15 @@ Genera el contenido de la sección:`
 
       const aiPrompt = window.spark.llmPrompt([promptText], promptText)
       const content = await window.spark.llm(aiPrompt, 'gpt-4o')
+      setGenerationProgress(100)
       setGeneratedContent(content)
       toast.success('Contenido generado correctamente')
     } catch (error) {
       console.error('Error generating content:', error)
       toast.error('Error al generar contenido. Intente nuevamente.')
     } finally {
+      clearInterval(progressInterval)
+      setGenerationProgress(0)
       setIsGenerating(false)
     }
   }
@@ -214,20 +225,47 @@ Genera el contenido de la sección:`
             </div>
 
             {projectContext && (
-              <div className="p-4 rounded-lg bg-muted/50 border">
-                <div className="flex items-center gap-2 mb-2">
-                  <MagicWand size={16} className="text-primary" weight="duotone" />
-                  <span className="text-sm font-medium">Contexto del Proyecto</span>
-                </div>
-                <div className="space-y-1 text-xs text-muted-foreground">
-                  {projectContext.title && <p><strong>Proyecto:</strong> {projectContext.title}</p>}
-                  {projectContext.location && <p><strong>Ubicación:</strong> {projectContext.location}</p>}
-                  {projectContext.phase && <p><strong>Fase:</strong> {projectContext.phase}</p>}
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Este contexto se utilizará para personalizar el contenido generado
-                </p>
-              </div>
+              <Card className="bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                      <MagicWand size={20} weight="duotone" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-sm font-semibold">Contexto del Proyecto</span>
+                        <Badge variant="secondary" className="text-xs gap-1">
+                          <Lightning size={10} weight="fill" />
+                          Auto-detectado
+                        </Badge>
+                      </div>
+                      <div className="space-y-1 text-xs text-muted-foreground">
+                        {projectContext.title && (
+                          <div className="flex gap-2">
+                            <span className="font-medium min-w-[80px]">Proyecto:</span>
+                            <span>{projectContext.title}</span>
+                          </div>
+                        )}
+                        {projectContext.location && (
+                          <div className="flex gap-2">
+                            <span className="font-medium min-w-[80px]">Ubicación:</span>
+                            <span>{projectContext.location}</span>
+                          </div>
+                        )}
+                        {projectContext.phase && (
+                          <div className="flex gap-2">
+                            <span className="font-medium min-w-[80px]">Fase:</span>
+                            <span>{projectContext.phase}</span>
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2 italic">
+                        Este contexto se utilizará para personalizar el contenido generado
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             )}
 
             <Button 
@@ -282,14 +320,20 @@ Genera el contenido de la sección:`
               {isGenerating ? (
                 <div className="flex flex-col items-center justify-center h-full gap-4">
                   <div className="relative">
-                    <div className="p-4 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white animate-pulse">
-                      <Sparkle size={32} weight="fill" />
+                    <div className="p-6 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+                      <Sparkle size={40} weight="fill" className="animate-pulse" />
                     </div>
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 animate-ping opacity-75"></div>
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 animate-ping opacity-40"></div>
                   </div>
-                  <p className="text-sm text-muted-foreground animate-pulse">
-                    Generando contenido profesional...
-                  </p>
+                  <div className="w-64 space-y-2">
+                    <p className="text-sm font-medium text-center animate-pulse">
+                      Generando contenido profesional...
+                    </p>
+                    <Progress value={generationProgress} className="h-2" />
+                    <p className="text-xs text-muted-foreground text-center">
+                      {generationProgress}% completado
+                    </p>
+                  </div>
                 </div>
               ) : generatedContent ? (
                 <div className="prose prose-sm max-w-none">

@@ -28,6 +28,7 @@ import { DocumentSearch, DocumentFilters } from './DocumentSearch'
 import { BulkDocumentUpload } from './BulkDocumentUpload'
 import { DocumentTemplateWithAI } from './DocumentTemplateWithAI'
 import { DocumentUtilities } from './DocumentUtilities'
+import { DocumentGeneratorHub } from './DocumentGeneratorHub'
 import { formatFileSize, sortVersions } from '@/lib/document-utils'
 import { toast } from 'sonner'
 import { PHASE_LABELS } from '@/lib/types'
@@ -45,6 +46,7 @@ export function DocumentManager({ project, stakeholders, onProjectUpdate }: Docu
   const [versionDialogOpen, setVersionDialogOpen] = useState(false)
   const [structureDialogOpen, setStructureDialogOpen] = useState(false)
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false)
+  const [generatorHubOpen, setGeneratorHubOpen] = useState(false)
   const [utilitiesDialogOpen, setUtilitiesDialogOpen] = useState(false)
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null)
   const [viewMode, setViewMode] = useState<'list' | 'folders' | 'stats'>('list')
@@ -310,9 +312,13 @@ export function DocumentManager({ project, stakeholders, onProjectUpdate }: Docu
             <TreeStructure size={18} weight="duotone" />
             Cambiar Estructura
           </Button>
-          <Button variant="outline" onClick={() => setTemplateDialogOpen(true)} className="gap-2 bg-accent/10 hover:bg-accent/20 border-accent/30">
+          <Button 
+            variant="default" 
+            onClick={() => setGeneratorHubOpen(true)} 
+            className="gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 shadow-lg"
+          >
             <FileText size={18} weight="duotone" />
-            Plantillas
+            Hub de Generación
           </Button>
           <Button variant="outline" onClick={() => setBulkUploadOpen(true)} className="gap-2">
             <Plus size={18} weight="bold" />
@@ -679,6 +685,14 @@ export function DocumentManager({ project, stakeholders, onProjectUpdate }: Docu
           onProjectUpdate({ folderStructure: type })
           setStructureDialogOpen(false)
         }}
+      />
+
+      <DocumentGeneratorHub
+        open={generatorHubOpen}
+        onOpenChange={setGeneratorHubOpen}
+        project={project}
+        stakeholders={stakeholders}
+        onGenerateFromTemplate={handleTemplateSelect}
       />
 
       <DocumentTemplateWithAI
