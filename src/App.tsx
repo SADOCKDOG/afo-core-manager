@@ -143,29 +143,12 @@ function App() {
         console.log(`Clave eliminada: ${key}`)
       }
       
-      deleteArchitectProfile()
-      deleteProjects()
-      deleteStakeholders()
-      deleteInvoices()
-      deleteClients()
-      deleteBudgets()
-      deleteMilestones()
-      deleteDocuments()
-      
       const remainingKeys = await spark.kv.keys()
       console.log('Claves después de eliminar:', remainingKeys)
       
-      setIsInitialized(false)
-      setViewMode('dashboard')
-      setSelectedProject(null)
-      
-      toast.success('Todos los datos han sido eliminados correctamente', {
-        description: 'La aplicación se reiniciará en breve'
-      })
-      
       setTimeout(() => {
         window.location.reload()
-      }, 800)
+      }, 100)
     } catch (error) {
       console.error('Error al eliminar datos:', error)
       toast.error('Error al eliminar los datos', {
