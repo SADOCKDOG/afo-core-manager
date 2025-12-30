@@ -185,7 +185,7 @@ export function QualifiedSignatureProviderManager() {
           Proveedores de Firma
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-5xl max-h-[90vh]">
+      <DialogContent className="max-w-6xl max-h-[95vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 text-2xl">
             <div className="p-2 rounded-lg bg-primary/10 text-primary">

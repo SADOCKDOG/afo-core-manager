@@ -201,7 +201,7 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh] flex flex-col">
+      <DialogContent className="max-w-7xl max-h-[95vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FolderOpen size={24} weight="duotone" />

@@ -134,7 +134,7 @@ export function ComplianceReportGenerator({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh]">
+      <DialogContent className="max-w-7xl max-h-[95vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText size={24} weight="duotone" />

@@ -194,7 +194,7 @@ export function CreateApprovalFlowDialog({
           Nuevo Flujo
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh]">
+      <DialogContent className="max-w-6xl max-h-[95vh]">
         <DialogHeader>
           <DialogTitle className="text-xl">Crear Flujo de Aprobación</DialogTitle>
         </DialogHeader>

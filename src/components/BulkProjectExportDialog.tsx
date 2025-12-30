@@ -112,7 +112,7 @@ export function BulkProjectExportDialog({ open, onOpenChange }: BulkProjectExpor
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh]">
+      <DialogContent className="max-w-5xl max-h-[95vh]">
         <DialogHeader>
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 rounded-lg bg-accent/20 text-accent">
@@ -152,7 +152,7 @@ export function BulkProjectExportDialog({ open, onOpenChange }: BulkProjectExpor
             </div>
           </div>
 
-          <ScrollArea className="h-[300px] rounded-lg border">
+          <ScrollArea className="h-[400px] rounded-lg border">
             <div className="p-4 space-y-2">
               {(projects || []).length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground text-sm">

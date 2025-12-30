@@ -110,7 +110,7 @@ export function BC3ImportDialog({ open, onOpenChange, onImport }: BC3ImportDialo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh]">
+      <DialogContent className="max-w-6xl max-h-[95vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileArrowDown size={24} />
@@ -213,7 +213,7 @@ export function BC3ImportDialog({ open, onOpenChange, onImport }: BC3ImportDialo
 
                 <div className="space-y-2">
                   <Label>Vista Previa de Partidas</Label>
-                  <ScrollArea className="h-[300px] rounded border p-4">
+                  <ScrollArea className="h-[400px] rounded border p-4">
                     <div className="space-y-2">
                       {preview.items.slice(0, 20).map((item, index) => (
                         <motion.div

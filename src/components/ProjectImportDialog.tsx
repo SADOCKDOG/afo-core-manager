@@ -137,7 +137,7 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col">
+      <DialogContent className="max-w-7xl max-h-[95vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Upload size={24} weight="duotone" />
@@ -327,7 +327,7 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
                   </TabsContent>
 
                   <TabsContent value="files" className="flex-1">
-                    <ScrollArea className="h-[400px] border rounded-lg">
+                    <ScrollArea className="h-[500px] border rounded-lg">
                       <div className="p-4 space-y-2">
                         {analysis.analyzedFiles.map((file, idx) => (
                           <div
