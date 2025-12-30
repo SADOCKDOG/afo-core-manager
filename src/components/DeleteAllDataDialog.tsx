@@ -1,38 +1,37 @@
 import { useState } from 'react'
-import { Input } from '@/components/ui/input'
-import {
-  AlertDialogContent,
 import {
   AlertDialog,
   AlertDialogContent,
   AlertDialogDescription,
-} from '@/components
-import { Trash, Warn
-import { createFull
-interface DeleteAllDa
-  trigger?: React.ReactNode
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Trash, Warning, FloppyDisk, Download } from '@phosphor-icons/react'
+import { toast } from 'sonner'
+import { createFullBackup, exportBackupToFile } from '@/lib/backup-restore'
 
+interface DeleteAllDataDialogProps {
+  onConfirmDelete: () => void
+  trigger?: React.ReactNode
+}
+
+export function DeleteAllDataDialog({ onConfirmDelete, trigger }: DeleteAllDataDialogProps) {
   const [open, setOpen] = useState(false)
-  const [step, setStep] = useS
+  const [step, setStep] = useState<1 | 2>(1)
+  const [confirmText, setConfirmText] = useState('')
+  const [isCreatingBackup, setIsCreatingBackup] = useState(false)
   const [backupCreated, setBackupCreated] = useState(false)
 
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen)
     if (!newOpen) {
       setStep(1)
-      setIsCreatingBackup(f
- 
-
-    try {
-      await exportBackupToFile(backup)
-      toast.success('Respaldo creado y descargado', 
-      })
-      toast.error('Error al crear respaldo', {
-      })
-
-  }
-  const handleFirstC
-    if (!newOpen) {
       setConfirmText('')
-      setStep(1)
       setBackupCreated(false)
       setIsCreatingBackup(false)
     }
@@ -62,70 +61,63 @@ interface DeleteAllDa
 
   const handleFinalConfirm = () => {
     if (confirmText === 'ELIMINAR TODO') {
-          <AlertDialogD
+      onConfirmDelete()
+      handleOpenChange(false)
+    }
+  }
+
+  return (
+    <AlertDialog open={open} onOpenChange={handleOpenChange}>
+      {trigger && (
+        <div onClick={() => setOpen(true)}>
+          {trigger}
+        </div>
+      )}
+      <AlertDialogContent className="max-w-2xl">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2 text-xl text-destructive">
+            <Trash size={24} weight="duotone" />
+            Eliminar Todos los Datos
+          </AlertDialogTitle>
+          <AlertDialogDescription asChild>
+            <div className="space-y-4">
               {step === 1 ? (
-                  <Alert variant="destructive" cla
-        
-                    </AlertDe
-
-                    <p className="font-
-                      <li>Tu perfil profesional y logo</li>
-        
-     
-   
-
-          
-
-                    <FloppyDisk si
-                     
-                          <p><strong>✓ Respaldo creado y d
-                        </div>
-                        <div classNa
-                   
-          
-                           
-                          >
-                           
-                        </div>
-                    </AlertDescription>
-                </>
                 <>
-                    <Warning size={20} wei
-                      <strong>Última adverte
+                  <Alert variant="destructive" className="border-2">
+                    <Warning size={20} weight="duotone" className="h-5 w-5" />
+                    <AlertDescription className="ml-2">
+                      <strong>¡ADVERTENCIA!</strong> Esta acción eliminará permanentemente todos tus datos
+                    </AlertDescription>
                   </Alert>
-                  
-                      Para confirmar que deseas eliminar <strong>per
-                    <div className="space-y-2">
-                        ELIMINAR TODO
-                      <Input
-                        value={confirmT
-                        pl
 
-                    </div>
-                </>
-            </div>
-        </AlertDialogHeader>
-          <Button variant="outline" onClick={() => handleOpenChange
-          </Button>
-            <Button variant="destructive" onClick={handleFirstCo
-              Continuar
-          ) : (
-              variant="destructive"
-              disabled={confirmText !== 'ELIMINAR TODO'}
-            >
-              Eliminar Todo Permanentemente
-          )}
-      </AlertDialogConte
+                  <div className="text-sm space-y-3 text-foreground">
+                    <p className="font-medium">Se eliminarán los siguientes datos:</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Tu perfil profesional y logo</li>
+                      <li>Todos los proyectos y documentos</li>
+                      <li>Clientes y promotores</li>
+                      <li>Facturas y presupuestos</li>
+                      <li>Intervinientes</li>
+                      <li>Configuraciones de email</li>
+                      <li>Plantillas de documentos</li>
+                      <li>Flujos de aprobación</li>
+                      <li>Toda la configuración de la aplicación</li>
+                    </ul>
 
-
-
-
-
-
-
-
-
-
+                    {backupCreated ? (
+                      <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
+                        <div className="flex items-start gap-2">
+                          <FloppyDisk size={18} weight="duotone" className="text-green-500 mt-0.5" />
+                          <div className="flex-1">
+                            <p><strong>✓ Respaldo creado y descargado</strong></p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Tus datos han sido respaldados de forma segura
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-muted/50 border rounded-lg p-3">
                         <div className="space-y-3">
                           <p><strong>Recomendación:</strong> Crea un respaldo de tus datos antes de continuar</p>
                           <Button
@@ -139,9 +131,9 @@ interface DeleteAllDa
                             {isCreatingBackup ? 'Creando respaldo...' : 'Crear Respaldo Ahora'}
                           </Button>
                         </div>
-                      )}
-                    </AlertDescription>
-                  </Alert>
+                      </div>
+                    )}
+                  </div>
                 </>
               ) : (
                 <>

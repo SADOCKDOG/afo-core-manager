@@ -222,18 +222,18 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[96vw] w-[96vw] max-h-[96vh] h-[96vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FolderOpen size={24} weight="duotone" />
+      <DialogContent className="max-w-[98vw] w-[98vw] max-h-[98vh] h-[98vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b bg-muted/30">
+          <DialogTitle className="flex items-center gap-2 text-xl">
+            <FolderOpen size={28} weight="duotone" />
             Importación Múltiple de Proyectos
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-base">
             Importe varios proyectos simultáneamente desde carpetas diferentes con análisis automático completo
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden px-6">
           <AnimatePresence mode="wait">
             {step === 'select' && (
               <motion.div
@@ -318,12 +318,12 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
                 exit={{ opacity: 0, x: -20 }}
                 className="h-full flex flex-col"
               >
-                <div className="mb-4 flex items-center justify-between">
-                  <div className="text-sm text-muted-foreground">
+                <div className="mb-5 flex items-center justify-between">
+                  <div className="text-base text-muted-foreground font-medium">
                     {validProjectsCount} de {projects.length} proyectos detectados • {selectedCount} seleccionados
                   </div>
                   <Button
-                    size="sm"
+                    size="default"
                     variant="outline"
                     onClick={() => setProjects(projects.map(p => ({ ...p, selected: !p.selected })))}
                   >
@@ -331,8 +331,8 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
                   </Button>
                 </div>
 
-                <ScrollArea className="flex-1 border rounded-lg h-[calc(96vh-340px)]">
-                  <div className="p-4 space-y-4">
+                <ScrollArea className="flex-1 border rounded-lg h-[calc(98vh-300px)]">
+                  <div className="p-5 space-y-5">
                     {projects.map((project) => {
                       const stats = project.analysis ? getImportStatistics(project.analysis) : null
 
@@ -341,7 +341,7 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
                           key={project.id}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className={`border rounded-lg p-4 ${
+                          className={`border rounded-lg p-5 ${
                             project.error ? 'border-destructive/50 bg-destructive/5' : 
                             project.selected ? 'border-primary/50 bg-primary/5' : 
                             'bg-card'
@@ -353,19 +353,20 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
                                 checked={project.selected}
                                 onCheckedChange={() => handleToggleProject(project.id)}
                                 disabled={!!project.error}
+                                className="w-5 h-5"
                               />
                             </div>
 
-                            <div className="flex-1 space-y-3">
+                            <div className="flex-1 space-y-4">
                               <div className="flex items-start justify-between">
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <Folder size={20} weight="duotone" className="text-primary" />
-                                  <span className="font-medium">{project.folderName}</span>
+                                  <Folder size={24} weight="duotone" className="text-primary" />
+                                  <span className="font-medium text-lg">{project.folderName}</span>
                                   {project.error && (
-                                    <Badge variant="destructive" className="text-xs">Error</Badge>
+                                    <Badge variant="destructive" className="text-sm">Error</Badge>
                                   )}
                                   {!project.error && project.analysis && (
-                                    <Badge variant="secondary" className="text-xs">
+                                    <Badge variant="secondary" className="text-sm py-1 px-3">
                                       {project.analysis.totalFiles} archivos
                                     </Badge>
                                   )}
@@ -375,20 +376,20 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
                                   variant="ghost"
                                   onClick={() => handleRemoveProject(project.id)}
                                 >
-                                  <X size={16} />
+                                  <X size={18} />
                                 </Button>
                               </div>
 
                               {project.error ? (
-                                <div className="flex items-center gap-2 text-sm text-destructive">
-                                  <Warning size={16} weight="fill" />
+                                <div className="flex items-center gap-2 text-base text-destructive">
+                                  <Warning size={18} weight="fill" />
                                   {project.error}
                                 </div>
                               ) : project.analysis ? (
                                 <>
-                                  <div className="grid grid-cols-2 gap-3">
+                                  <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                      <Label htmlFor={`title-${project.id}`} className="text-xs">
+                                      <Label htmlFor={`title-${project.id}`} className="text-sm">
                                         Nombre del Proyecto *
                                       </Label>
                                       <Input
@@ -396,11 +397,11 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
                                         value={project.title}
                                         onChange={(e) => handleUpdateProject(project.id, { title: e.target.value })}
                                         placeholder="Nombre del proyecto"
-                                        className="mt-1 h-9"
+                                        className="mt-2 h-10 text-base"
                                       />
                                     </div>
                                     <div>
-                                      <Label htmlFor={`location-${project.id}`} className="text-xs">
+                                      <Label htmlFor={`location-${project.id}`} className="text-sm">
                                         Ubicación *
                                       </Label>
                                       <Input
@@ -408,20 +409,20 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
                                         value={project.location}
                                         onChange={(e) => handleUpdateProject(project.id, { location: e.target.value })}
                                         placeholder="Ciudad, Provincia"
-                                        className="mt-1 h-9"
+                                        className="mt-2 h-10 text-base"
                                       />
                                     </div>
                                   </div>
 
                                   <div>
-                                    <Label htmlFor={`client-${project.id}`} className="text-xs">
+                                    <Label htmlFor={`client-${project.id}`} className="text-sm">
                                       Cliente (Promotor) *
                                     </Label>
                                     <Select
                                       value={project.clientId}
                                       onValueChange={(value) => handleUpdateProject(project.id, { clientId: value })}
                                     >
-                                      <SelectTrigger className="mt-1 h-9">
+                                      <SelectTrigger className="mt-2 h-10">
                                         <SelectValue placeholder="Seleccionar cliente" />
                                       </SelectTrigger>
                                       <SelectContent>
@@ -442,21 +443,21 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
                                       </SelectContent>
                                     </Select>
                                     {(clients || []).length === 0 && (
-                                      <p className="text-xs text-destructive mt-1">
-                                        Debe crear un cliente antes de importar proyectos
+                                      <p className="text-sm text-destructive mt-2">
+                                        ⚠️ Debe crear un cliente antes de importar proyectos
                                       </p>
                                     )}
                                   </div>
 
                                   <div>
-                                    <Label htmlFor={`structure-${project.id}`} className="text-xs">
+                                    <Label htmlFor={`structure-${project.id}`} className="text-sm">
                                       Estructura de Carpetas
                                     </Label>
                                     <Select
                                       value={project.folderStructure}
                                       onValueChange={(value) => handleUpdateProject(project.id, { folderStructure: value as FolderStructureType })}
                                     >
-                                      <SelectTrigger className="mt-1 h-9">
+                                      <SelectTrigger className="mt-2 h-10">
                                         <SelectValue />
                                       </SelectTrigger>
                                       <SelectContent>
@@ -470,21 +471,21 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
                                   </div>
 
                                   {stats && (
-                                    <div className="flex gap-4 text-xs text-muted-foreground flex-wrap">
-                                      <div className="flex items-center gap-1">
-                                        <FileText size={12} />
+                                    <div className="flex gap-5 text-sm text-muted-foreground flex-wrap">
+                                      <div className="flex items-center gap-1.5">
+                                        <FileText size={14} />
                                         {stats.totalSize > 0 ? `${(stats.totalSize / 1024 / 1024).toFixed(1)} MB` : '0 MB'}
                                       </div>
-                                      <div className="flex items-center gap-1">
-                                        <CheckCircle size={12} className="text-green-500" />
+                                      <div className="flex items-center gap-1.5">
+                                        <CheckCircle size={14} className="text-green-500" />
                                         {stats.byConfidence.high} alta confianza
                                       </div>
-                                      <div className="flex items-center gap-1">
-                                        <Warning size={12} className="text-yellow-500" />
+                                      <div className="flex items-center gap-1.5">
+                                        <Warning size={14} className="text-yellow-500" />
                                         {stats.byConfidence.medium} media
                                       </div>
-                                      <div className="flex items-center gap-1">
-                                        <Warning size={12} className="text-red-500" />
+                                      <div className="flex items-center gap-1.5">
+                                        <Warning size={14} className="text-red-500" />
                                         {stats.byConfidence.low} baja
                                       </div>
                                     </div>
@@ -523,9 +524,10 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
           </AnimatePresence>
         </div>
 
-        <div className="flex items-center justify-between pt-4 border-t">
+        <div className="flex items-center justify-between px-6 py-4 border-t bg-muted/30">
           <Button
             variant="ghost"
+            size="lg"
             onClick={() => {
               if (step === 'configure' && !isProcessing) {
                 handleReset()
@@ -540,12 +542,13 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
 
           {step === 'configure' && (
             <Button
+              size="lg"
               onClick={handleImportAll}
               disabled={selectedCount === 0 || isProcessing}
               className="gap-2"
             >
               Importar {selectedCount} Proyecto{selectedCount !== 1 ? 's' : ''}
-              <ArrowRight size={16} weight="bold" />
+              <ArrowRight size={18} weight="bold" />
             </Button>
           )}
         </div>
