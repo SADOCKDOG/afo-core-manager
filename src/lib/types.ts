@@ -98,6 +98,9 @@ export interface Project {
   stakeholders: string[]
   clientId: string
   folderStructure?: FolderStructureType
+  buildingType?: BuildingType
+  buildingUse?: BuildingUse
+  buildingSurface?: number
   createdAt: number
   updatedAt: number
 }
@@ -126,6 +129,46 @@ export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
   'instalaciones': 'Instalaciones',
   'detalles-constructivos': 'Detalles Constructivos',
   'otros': 'Otros'
+}
+
+export const BUILDING_TYPE_LABELS: Record<BuildingType, string> = {
+  'vivienda-unifamiliar': 'Vivienda Unifamiliar',
+  'vivienda-colectiva': 'Vivienda Colectiva',
+  'vivienda-plurifamiliar': 'Vivienda Plurifamiliar',
+  'rehabilitacion': 'Rehabilitación',
+  'ampliacion': 'Ampliación',
+  'edificio-oficinas': 'Edificio de Oficinas',
+  'centro-comercial': 'Centro Comercial',
+  'local-comercial': 'Local Comercial',
+  'hotel': 'Hotel',
+  'restaurante': 'Restaurante/Cafetería',
+  'nave-industrial': 'Nave Industrial',
+  'almacen-logistico': 'Almacén Logístico',
+  'taller-industrial': 'Taller Industrial',
+  'centro-produccion': 'Centro de Producción',
+  'parking-industrial': 'Parking Industrial',
+  'colegio': 'Colegio',
+  'instituto': 'Instituto',
+  'universidad': 'Universidad',
+  'centro-formacion': 'Centro de Formación',
+  'guarderia': 'Guardería'
+}
+
+export const BUILDING_USE_LABELS: Record<BuildingUse, string> = {
+  'residencial-vivienda': 'Residencial Vivienda',
+  'residencial-publico': 'Residencial Público',
+  'administrativo': 'Administrativo',
+  'sanitario': 'Sanitario',
+  'docente': 'Docente',
+  'comercial': 'Comercial',
+  'aparcamiento': 'Aparcamiento',
+  'hotelero': 'Hotelero',
+  'restauracion': 'Restauración',
+  'industrial': 'Industrial',
+  'logistico': 'Logístico',
+  'deportivo': 'Deportivo',
+  'cultural': 'Cultural',
+  'religioso': 'Religioso'
 }
 
 export const FOLDER_STRUCTURES: Record<FolderStructureType, { name: string; folders: string[] }> = {
@@ -220,6 +263,21 @@ export type BuildingType =
   | 'vivienda-plurifamiliar'
   | 'rehabilitacion'
   | 'ampliacion'
+  | 'edificio-oficinas'
+  | 'centro-comercial'
+  | 'local-comercial'
+  | 'hotel'
+  | 'restaurante'
+  | 'nave-industrial'
+  | 'almacen-logistico'
+  | 'taller-industrial'
+  | 'centro-produccion'
+  | 'parking-industrial'
+  | 'colegio'
+  | 'instituto'
+  | 'universidad'
+  | 'centro-formacion'
+  | 'guarderia'
 
 export type BuildingUse = 
   | 'residencial-vivienda'
@@ -229,6 +287,13 @@ export type BuildingUse =
   | 'docente'
   | 'comercial'
   | 'aparcamiento'
+  | 'hotelero'
+  | 'restauracion'
+  | 'industrial'
+  | 'logistico'
+  | 'deportivo'
+  | 'cultural'
+  | 'religioso'
 
 export interface ComplianceChecklist {
   id: string

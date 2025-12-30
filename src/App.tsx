@@ -35,6 +35,7 @@ import { SelectiveDeleteDialog } from '@/components/SelectiveDeleteDialog'
 import { BackupRestoreDialog } from '@/components/BackupRestoreDialog'
 import { BC3ImportDialog } from '@/components/BC3ImportDialog'
 import { PriceDatabaseManager } from '@/components/PriceDatabaseManager'
+import { BuildingTypeLibrary } from '@/components/BuildingTypeLibrary'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -490,6 +491,7 @@ function App() {
             </div>
             
             <div className="flex items-center gap-2">
+              <BuildingTypeLibrary />
               <ComponentRegistry />
               <UserManual />
               <DeveloperManual />

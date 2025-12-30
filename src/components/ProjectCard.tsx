@@ -1,8 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { Project, PHASE_LABELS } from '@/lib/types'
-import { Buildings, Clock, CheckCircle } from '@phosphor-icons/react'
+import { Project, PHASE_LABELS, BUILDING_TYPE_LABELS } from '@/lib/types'
+import { Buildings, Clock, CheckCircle, Building } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
 
 interface ProjectCardProps {
@@ -62,6 +62,20 @@ export function ProjectCard({ project, onClick, index }: ProjectCardProps) {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
+          {project.buildingType && (
+            <div className="flex items-center gap-2">
+              <Building size={16} className="text-primary" weight="duotone" />
+              <Badge variant="secondary" className="text-xs">
+                {BUILDING_TYPE_LABELS[project.buildingType]}
+              </Badge>
+              {project.buildingSurface && (
+                <span className="text-xs text-muted-foreground">
+                  {project.buildingSurface.toLocaleString('es-ES')} m²
+                </span>
+              )}
+            </div>
+          )}
+
           {project.description && (
             <p className="text-sm text-muted-foreground line-clamp-2">
               {project.description}

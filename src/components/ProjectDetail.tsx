@@ -15,6 +15,7 @@ import { VisaManager } from './VisaManager'
 import { BoardPermitWorkflow } from './BoardPermitWorkflow'
 import { InvoiceManager } from './InvoiceManager'
 import { ProjectExportDialog } from './ProjectExportDialog'
+import { BuildingTypeInfo } from './BuildingTypeInfo'
 
 interface ProjectDetailProps {
   project: Project
@@ -121,6 +122,13 @@ export function ProjectDetail({ project, stakeholders, onBack, onEdit, onUpdateP
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6 mt-6">
+          {project.buildingType && (
+            <BuildingTypeInfo 
+              buildingType={project.buildingType} 
+              buildingSurface={project.buildingSurface}
+            />
+          )}
+
           {project.description && (
             <Card>
               <CardHeader>

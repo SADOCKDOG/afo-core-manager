@@ -19,9 +19,12 @@ import {
 } from '@/components/ui/alert-dialog'
 import { useState, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
-import { Project, ProjectPhase, ProjectStatus, Client, PHASE_LABELS } from '@/lib/types'
+import { Project, ProjectPhase, ProjectStatus, Client, PHASE_LABELS, BuildingType, BuildingUse, BUILDING_TYPE_LABELS, BUILDING_USE_LABELS } from '@/lib/types'
 import { toast } from 'sonner'
-import { Trash } from '@phosphor-icons/react'
+import { Trash, Info } from '@phosphor-icons/react'
+import { getBuildingTypeTemplate } from '@/lib/building-type-templates'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 
 interface ProjectDialogProps {
   open: boolean
@@ -49,6 +52,11 @@ export function ProjectDialog({ open, onOpenChange, onSave, onDelete, project }:
   const [selectedPhases, setSelectedPhases] = useState<Set<ProjectPhase>>(new Set())
   const [phasePercentages, setPhasePercentages] = useState<Record<ProjectPhase, number>>({} as Record<ProjectPhase, number>)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [buildingType, setBuildingType] = useState<BuildingType | undefined>(undefined)
+  const [buildingUse, setBuildingUse] = useState<BuildingUse | undefined>(undefined)
+  const [buildingSurface, setBuildingSurface] = useState<string>('')
+
+  const buildingTemplate = buildingType ? getBuildingTypeTemplate(buildingType) : undefined
 
   useEffect(() => {
     if (project) {
@@ -57,6 +65,9 @@ export function ProjectDialog({ open, onOpenChange, onSave, onDelete, project }:
       setDescription(project.description || '')
       setClientId(project.clientId)
       setStatus(project.status)
+      setBuildingType(project.buildingType)
+      setBuildingUse(project.buildingUse)
+      setBuildingSurface(project.buildingSurface?.toString() || '')
       const phases = new Set(project.phases.map(p => p.phase))
       setSelectedPhases(phases)
       const percentages = project.phases.reduce((acc, p) => {
@@ -70,6 +81,9 @@ export function ProjectDialog({ open, onOpenChange, onSave, onDelete, project }:
       setDescription('')
       setClientId('')
       setStatus('active')
+      setBuildingType(undefined)
+      setBuildingUse(undefined)
+      setBuildingSurface('')
       setSelectedPhases(new Set())
       setPhasePercentages({} as Record<ProjectPhase, number>)
     }
@@ -115,6 +129,9 @@ export function ProjectDialog({ open, onOpenChange, onSave, onDelete, project }:
       clientId,
       status,
       phases,
+      buildingType,
+      buildingUse,
+      buildingSurface: buildingSurface ? parseFloat(buildingSurface) : undefined,
     })
     onOpenChange(false)
   }
@@ -223,6 +240,130 @@ export function ProjectDialog({ open, onOpenChange, onSave, onDelete, project }:
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+                    Tipología del Edificio
+                    <Badge variant="secondary" className="text-xs">Nuevo</Badge>
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="buildingType">Tipo de Edificio</Label>
+                    <Select 
+                      value={buildingType} 
+                      onValueChange={(v) => {
+                        setBuildingType(v as BuildingType)
+                        const template = getBuildingTypeTemplate(v as BuildingType)
+                        if (template) {
+                          setBuildingUse(template.defaultUse)
+                        }
+                      }}
+                    >
+                      <SelectTrigger id="buildingType">
+                        <SelectValue placeholder="Selecciona tipo de edificio" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <div className="p-2">
+                          <div className="text-xs font-semibold text-muted-foreground mb-1 px-2">RESIDENCIAL</div>
+                          <SelectItem value="vivienda-unifamiliar">Vivienda Unifamiliar</SelectItem>
+                          <SelectItem value="vivienda-colectiva">Vivienda Colectiva</SelectItem>
+                          <SelectItem value="vivienda-plurifamiliar">Vivienda Plurifamiliar</SelectItem>
+                          <SelectItem value="rehabilitacion">Rehabilitación</SelectItem>
+                          <SelectItem value="ampliacion">Ampliación</SelectItem>
+                          
+                          <Separator className="my-2" />
+                          <div className="text-xs font-semibold text-muted-foreground mb-1 px-2">COMERCIAL</div>
+                          <SelectItem value="edificio-oficinas">Edificio de Oficinas</SelectItem>
+                          <SelectItem value="centro-comercial">Centro Comercial</SelectItem>
+                          <SelectItem value="local-comercial">Local Comercial</SelectItem>
+                          <SelectItem value="hotel">Hotel</SelectItem>
+                          <SelectItem value="restaurante">Restaurante/Cafetería</SelectItem>
+                          
+                          <Separator className="my-2" />
+                          <div className="text-xs font-semibold text-muted-foreground mb-1 px-2">INDUSTRIAL</div>
+                          <SelectItem value="nave-industrial">Nave Industrial</SelectItem>
+                          <SelectItem value="almacen-logistico">Almacén Logístico</SelectItem>
+                          <SelectItem value="taller-industrial">Taller Industrial</SelectItem>
+                          <SelectItem value="centro-produccion">Centro de Producción</SelectItem>
+                          <SelectItem value="parking-industrial">Parking Industrial</SelectItem>
+                          
+                          <Separator className="my-2" />
+                          <div className="text-xs font-semibold text-muted-foreground mb-1 px-2">EDUCATIVO</div>
+                          <SelectItem value="colegio">Colegio</SelectItem>
+                          <SelectItem value="instituto">Instituto</SelectItem>
+                          <SelectItem value="universidad">Universidad</SelectItem>
+                          <SelectItem value="centro-formacion">Centro de Formación</SelectItem>
+                          <SelectItem value="guarderia">Guardería</SelectItem>
+                        </div>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="buildingUse">Uso del Edificio</Label>
+                    <Select value={buildingUse} onValueChange={(v) => setBuildingUse(v as BuildingUse)}>
+                      <SelectTrigger id="buildingUse">
+                        <SelectValue placeholder="Selecciona uso" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(BUILDING_USE_LABELS).map(([value, label]) => (
+                          <SelectItem key={value} value={value}>{label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="buildingSurface">Superficie Construida (m²)</Label>
+                  <Input
+                    id="buildingSurface"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={buildingSurface}
+                    onChange={(e) => setBuildingSurface(e.target.value)}
+                    placeholder="Ej: 250.50"
+                  />
+                </div>
+
+                {buildingTemplate && (
+                  <Card className="border-accent/20 bg-accent/5">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Info size={16} weight="duotone" className="text-accent" />
+                        Información de la Tipología
+                      </CardTitle>
+                      <CardDescription className="text-xs">
+                        {buildingTemplate.description}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3 text-xs">
+                      <div>
+                        <div className="font-semibold mb-1">Requisitos Específicos:</div>
+                        <ul className="list-disc list-inside space-y-0.5 text-muted-foreground">
+                          {buildingTemplate.specificRequirements.slice(0, 4).map((req, i) => (
+                            <li key={i}>{req}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <div className="font-semibold mb-1">Normativa Principal:</div>
+                        <div className="flex flex-wrap gap-1">
+                          {buildingTemplate.regulatoryFocus.slice(0, 4).map((reg, i) => (
+                            <Badge key={i} variant="outline" className="text-xs">{reg}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
 
               <Separator />
