@@ -27,6 +27,7 @@ import { QualifiedSignatureProviderManager } from '@/components/QualifiedSignatu
 import { QualifiedSignatureRequestViewer } from '@/components/QualifiedSignatureRequestViewer'
 import { UserManual } from '@/components/UserManual'
 import { DeveloperManual } from '@/components/DeveloperManual'
+import { ComponentRegistry } from '@/components/ComponentRegistry'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -364,6 +365,7 @@ function App() {
             </div>
             
             <div className="flex items-center gap-2">
+              <ComponentRegistry />
               <UserManual />
               <DeveloperManual />
 

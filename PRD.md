@@ -163,6 +163,13 @@ This MVP focuses on core project management functionality with client tracking, 
 - **Qualified Signature Missing Contact Info**: OTP-based methods require phone number; missing phone shows clear error with guidance to update signer profile; certificate methods work without phone
 - **Qualified Signature Network Errors**: Network failures during signature show retry option; partial signatures never saved; user can restart process without duplicates
 
+### Component Registry System
+- **Functionality**: Complete registry and documentation of all system components with categorization, search, filtering, and detailed technical information
+- **Purpose**: Provide developers and advanced users with comprehensive documentation of the application architecture, component relationships, dependencies, and technical specifications
+- **Trigger**: User clicks "Registro de Componentes" button in header
+- **Progression**: Open registry dialog → Browse all components by category (Business, Manager, Dialog, Utility, Form, UI) → Search by name or description → Filter by category → View component summary cards → Click component for detailed view → See props, features, dependencies, related components, hooks, APIs → Navigate between related components → View utility modules list → See system statistics → Export complete documentation to Markdown or PDF
+- **Success criteria**: All 45+ components documented with complete information; category filtering works correctly; search returns relevant results instantly; detailed view shows all technical information (props, features, dependencies, related components, hooks, APIs); navigation between related components functional; export generates complete documentation in Markdown and PDF formats with proper formatting; system statistics accurately reflect component counts; utility modules section lists all 25+ modules with exports; documentation matches actual implementation
+
 ## Design Direction
 
 The design should evoke **authority, precision, and technical sophistication** - reflecting the architectural profession itself with a modern dark theme that feels **contemporary, vibrant, and professional**. The interface combines deep, rich backgrounds with vivid accent colors creating a dynamic, energetic experience while maintaining excellent readability. Think premium technical tools with personality - clean lines, structured layouts, and a sophisticated dark color palette enhanced by brighter, more saturated accent colors that pop against the dark canvas and reduce eye strain during long work sessions. The interface should feel like a next-generation tool built by architects, for architects.
