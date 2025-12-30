@@ -26,6 +26,7 @@ import { ApprovalFlowManager } from '@/components/ApprovalFlowManager'
 import { QualifiedSignatureProviderManager } from '@/components/QualifiedSignatureProviderManager'
 import { QualifiedSignatureRequestViewer } from '@/components/QualifiedSignatureRequestViewer'
 import { UserManual } from '@/components/UserManual'
+import { DeveloperManual } from '@/components/DeveloperManual'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -364,6 +365,7 @@ function App() {
             
             <div className="flex items-center gap-2">
               <UserManual />
+              <DeveloperManual />
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
