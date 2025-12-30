@@ -138,6 +138,31 @@ This MVP focuses on core project management functionality with client tracking, 
 - **Progression**: Create budget → Define chapters and units → Add resources (materials, labor, machinery) from price database → Import prices from external BC3 files or online databases → Calculate totals with GG, BI, IVA → Export to BC3 format
 - **Success criteria**: Budget calculations are accurate, BC3 files import/export successfully, price database is searchable, hierarchical structure is maintained, percentage calculations (GG, BI, IVA) are correct
 
+### Advanced Project Import with Multi-Folder Support
+- **Functionality**: Comprehensive project import system supporting single or multiple folders with recursive scanning of all subfolders, intelligent document classification, automated metadata extraction, visual folder tree preview, and real-time filtering/search of imported files
+- **Purpose**: Dramatically accelerate project onboarding by automatically organizing chaotic project folders into structured document repositories with 60-70% classification confidence, eliminating hours of manual file organization
+- **Trigger**: User clicks "Importar Proyecto" or "Importación Múltiple" from Tools menu
+- **Progression**: 
+  - **Single Project**: Select folder (recursive) or individual files → System scans all subfolders and files → AI analyzes each file based on name, path, extension, and folder keywords → Generate analysis showing 4-tab interface (Resumen/Árbol/Lista Archivos/Configuración) → Review statistics (total files, size, confidence distribution) → Explore visual folder tree with collapsible folders → Browse complete file list with search and type filters → Configure project name (auto-suggested from folder/file analysis) → Configure location (auto-detected from file patterns) → Select folder structure (by-type or screaming-architecture, intelligently recommended) → Review classification (edit individual file types if needed) → Confirm import → System creates project with organized documents → Success toast shows files imported from X folders with Y high-confidence classifications
+  - **Bulk Import**: Select parent folder containing multiple projects → System detects all first-level subfolders as individual projects → Analyzes each project folder recursively → Shows list of all detected projects with configurable details → Select/deselect projects to import → Configure title, location, folder structure per project → View statistics per project (file count, size, confidence) → Import all selected simultaneously → System creates multiple projects with organized documents → Success toast shows total projects, documents, and folders processed
+- **Success criteria**: 
+  - Handles deeply nested folder structures (10+ levels) without performance issues
+  - File analysis achieves 60-70% high-confidence classifications using multi-factor scoring (filename keywords, path keywords, file extension, folder context)
+  - Folder tree displays complete hierarchy with expand/collapse, file counts per folder, and proper sorting (folders first, then files)
+  - Search filters files instantly across name and path with type dropdown filter
+  - Filter counter shows "X of Y files" in real-time
+  - Project metadata extraction detects project names and locations from common patterns in filenames/folders
+  - Supports 15+ file formats (PDF, DWG, DXF, DOC, DOCX, XLS, XLSX, BC3, JPG, JPEG, PNG, TIF, RVT, SKP, IFC, TXT, ODT, ODS, PPT, PPTX)
+  - Imported documents automatically assigned to correct folders based on selected structure
+  - Document metadata includes original path, size, format, and classification confidence
+  - Bulk import detects and separately configures 10+ projects simultaneously
+  - Visual progress indicator during analysis phase
+  - Individual file type corrections persist through import
+  - Zero data loss - all imported files tracked with complete provenance
+  - Graceful handling of duplicate filenames and special characters
+  - Toast notifications show detailed import summary (projects, documents, folders, confidence distribution)
+  - Responsive dialog sizing (96vw x 96vh) for optimal content visibility
+
 ### COAM/COACM Visa Processing Workflow with Document Validation
 - **Functionality**: Comprehensive workflow for submitting project documentation for professional college visa (visado colegial) with automated validation, requirement tracking, and status management
 - **Purpose**: Streamline the complex administrative process of obtaining mandatory professional college approval for architectural projects in Spain, reducing submission errors and expediting approval
@@ -190,6 +215,20 @@ This MVP focuses on core project management functionality with client tracking, 
 - **Qualified Signature Test Mode**: Providers in test mode show clear badge; test signatures marked differently in audit trail; production-ready guidance shown when configuring providers
 - **Qualified Signature Missing Contact Info**: OTP-based methods require phone number; missing phone shows clear error with guidance to update signer profile; certificate methods work without phone
 - **Qualified Signature Network Errors**: Network failures during signature show retry option; partial signatures never saved; user can restart process without duplicates
+- **Project Import with No Files**: Selecting empty folder shows informative message guiding user to select folder with documents; prevents empty project creation
+- **Project Import with Unsupported Files**: Files with unsupported extensions classified as "Otros" with low confidence; toast notification warns about files that couldn't be classified
+- **Project Import with Deep Nesting**: Folder tree performance optimized for 500+ files across 50+ folders; initial folders auto-expanded to 2 levels for quick overview
+- **Project Import Analysis Failure**: Network or processing errors during analysis show clear error message with retry option; user returns to upload step without data loss
+- **Project Import Duplicate Files**: Duplicate filenames in different folders handled correctly; full path displayed to distinguish files; import preserves all files with unique IDs
+- **Project Import Missing Metadata**: Projects with no detectable name/location show placeholders (""Proyecto Sin Nombre"", ""Ubicación Por Determinar"") with clear prompts to fill manually
+- **Project Import File Search**: Search across 1000+ files returns instant results; empty search state shows clear "No files match" message with active filters displayed
+- **Project Import Type Filtering**: Type filter dropdown shows all document types; "all" option resets filter; filter works in combination with search
+- **Bulk Import with Mixed Folders**: Parent folder with mix of project folders and loose files handled correctly; loose files ignored or bundled into separate "Archivos Sueltos" project
+- **Bulk Import Zero Valid Projects**: Selecting folder with no valid subfolders shows informative error explaining folder structure requirements
+- **Bulk Import Partial Selection**: Can deselect individual projects from bulk import; unselected projects ignored; import count updates in real-time
+- **Bulk Import Configuration**: Each project independently configurable; changes to one project don't affect others; validation per-project before allowing import
+- **Bulk Import Analysis Progress**: Progress bar shows percentage during multi-project analysis; estimated time remaining displayed; can't cancel mid-analysis (fast enough not needed)
+- **Import Statistics Display**: Statistics calculate correctly for any number of files; percentage bars scale properly; confidence distribution always sums to total files
 
 ### Component Registry System
 - **Functionality**: Complete registry and documentation of all system components with categorization, search, filtering, and detailed technical information

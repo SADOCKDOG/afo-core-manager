@@ -16,7 +16,8 @@ import {
   Folder,
   ArrowRight,
   Eye,
-  Pencil
+  Pencil,
+  Tree
 } from '@phosphor-icons/react'
 import { 
   analyzeProjectFiles, 
@@ -33,6 +34,7 @@ import {
 } from '@/lib/types'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
+import { FolderTree } from '@/components/FolderTree'
 
 interface ProjectImportDialogProps {
   open: boolean
@@ -56,6 +58,8 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
   const [projectLocation, setProjectLocation] = useState('')
   const [selectedStructure, setSelectedStructure] = useState<FolderStructureType>('by-type')
   const [editingFile, setEditingFile] = useState<ImportedFile | null>(null)
+  const [searchFilter, setSearchFilter] = useState('')
+  const [typeFilter, setTypeFilter] = useState<DocumentType | 'all'>('all')
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || [])
@@ -119,8 +123,13 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
     })
 
     const stats = getImportStatistics(analysis)
-    toast.success(`Proyecto importado con ${analysis.totalFiles} documentos`, {
-      description: `${stats.byConfidence.high} archivos con alta confianza clasificados automáticamente`
+    const totalFolders = new Set(analysis.analyzedFiles.map(f => {
+      const parts = f.path.split('/')
+      return parts.slice(0, -1).join('/')
+    })).size
+
+    toast.success(`Proyecto "${projectTitle}" importado correctamente`, {
+      description: `${analysis.totalFiles} documentos desde ${totalFolders} carpetas • ${stats.byConfidence.high} con alta confianza`
     })
     handleReset()
     onOpenChange(false)
@@ -134,20 +143,32 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
     setProjectLocation('')
     setSelectedStructure('by-type')
     setEditingFile(null)
+    setSearchFilter('')
+    setTypeFilter('all')
   }
 
   const statistics = analysis ? getImportStatistics(analysis) : null
 
+  const filteredFiles = analysis?.analyzedFiles.filter(file => {
+    const matchesSearch = searchFilter === '' || 
+      file.name.toLowerCase().includes(searchFilter.toLowerCase()) ||
+      file.path.toLowerCase().includes(searchFilter.toLowerCase())
+    
+    const matchesType = typeFilter === 'all' || file.suggestedType === typeFilter
+
+    return matchesSearch && matchesType
+  }) || []
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] max-h-[95vh] flex flex-col">
+      <DialogContent className="max-w-[96vw] w-[96vw] max-h-[96vh] h-[96vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Upload size={24} weight="duotone" />
             Importar Proyecto Existente
           </DialogTitle>
           <DialogDescription>
-            Organice automáticamente archivos de proyectos caóticos con análisis inteligente
+            Organice automáticamente archivos de proyectos caóticos con análisis inteligente de múltiples carpetas y subcarpetas
           </DialogDescription>
         </DialogHeader>
 
@@ -167,7 +188,7 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
                   </div>
                   <h3 className="text-lg font-semibold">Seleccione carpeta o archivos del proyecto</h3>
                   <p className="text-sm text-muted-foreground max-w-md">
-                    La herramienta analizará la estructura, nombrará archivos y clasificará documentos automáticamente
+                    La herramienta analizará todas las carpetas y subcarpetas, clasificando automáticamente cada documento detectado
                   </p>
                 </div>
 
@@ -187,7 +208,7 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
                       className="gap-2"
                     >
                       <Folder size={20} weight="duotone" />
-                      Seleccionar Carpeta
+                      Seleccionar Carpeta Completa
                     </Button>
                   </div>
 
@@ -198,7 +219,7 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
                       onChange={handleFileSelect}
                       className="hidden"
                       multiple
-                      accept=".pdf,.dwg,.dxf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.rvt,.skp,.ifc"
+                      accept=".pdf,.dwg,.dxf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.rvt,.skp,.ifc,.txt,.odt,.ods,.ppt,.pptx"
                     />
                     <Button
                       size="lg"
@@ -207,7 +228,7 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
                       className="gap-2"
                     >
                       <FileText size={20} weight="duotone" />
-                      Seleccionar Archivos
+                      Seleccionar Archivos Individuales
                     </Button>
                   </div>
                 </div>
@@ -215,10 +236,12 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
                 <div className="bg-muted/50 rounded-lg p-4 max-w-2xl">
                   <h4 className="font-medium mb-2 text-sm">✨ Análisis Automático Incluye:</h4>
                   <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>• Escaneo recursivo de todas las carpetas y subcarpetas</li>
                     <li>• Clasificación inteligente por tipo de documento</li>
                     <li>• Sugerencia de estructura de carpetas óptima</li>
                     <li>• Extracción de metadatos del proyecto</li>
-                    <li>• Detección de ubicación y nombre del proyecto</li>
+                    <li>• Detección automática de ubicación y nombre del proyecto</li>
+                    <li>• Visualización de árbol de carpetas completo</li>
                   </ul>
                 </div>
               </motion.div>
@@ -254,9 +277,10 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
                 className="h-full flex flex-col"
               >
                 <Tabs defaultValue="overview" className="flex-1 flex flex-col">
-                  <TabsList className="grid grid-cols-3 w-full mb-4">
+                  <TabsList className="grid grid-cols-4 w-full mb-4">
                     <TabsTrigger value="overview">Resumen</TabsTrigger>
-                    <TabsTrigger value="files">Archivos ({analysis.totalFiles})</TabsTrigger>
+                    <TabsTrigger value="tree">Árbol ({analysis.totalFiles})</TabsTrigger>
+                    <TabsTrigger value="files">Lista Archivos</TabsTrigger>
                     <TabsTrigger value="settings">Configuración</TabsTrigger>
                   </TabsList>
 
@@ -329,48 +353,94 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
                     </div>
                   </TabsContent>
 
+                  <TabsContent value="tree" className="flex-1">
+                    <div className="border rounded-lg bg-card">
+                      <div className="p-3 border-b bg-muted/50">
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                          <Tree size={16} weight="duotone" />
+                          Estructura de Carpetas Detectada
+                        </div>
+                      </div>
+                      <ScrollArea className="h-[calc(96vh-400px)]">
+                        <div className="p-3">
+                          <FolderTree files={analysis.analyzedFiles} />
+                        </div>
+                      </ScrollArea>
+                    </div>
+                  </TabsContent>
+
                   <TabsContent value="files" className="flex-1">
-                    <ScrollArea className="h-[calc(95vh-380px)] border rounded-lg">
+                    <div className="mb-3 flex gap-2">
+                      <Input
+                        placeholder="Buscar archivos..."
+                        value={searchFilter}
+                        onChange={(e) => setSearchFilter(e.target.value)}
+                        className="flex-1"
+                      />
+                      <Select value={typeFilter} onValueChange={(value) => setTypeFilter(value as DocumentType | 'all')}>
+                        <SelectTrigger className="w-48">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos los tipos</SelectItem>
+                          {Object.entries(DOCUMENT_TYPE_LABELS).map(([key, label]) => (
+                            <SelectItem key={key} value={key}>
+                              {label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <ScrollArea className="h-[calc(96vh-420px)] border rounded-lg">
                       <div className="p-4 space-y-2">
-                        {analysis.analyzedFiles.map((file, idx) => (
-                          <div
-                            key={idx}
-                            className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-                          >
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <FileText size={16} weight="duotone" />
-                                <span className="font-medium text-sm truncate">{file.name}</span>
-                                {file.confidence === 'high' && (
-                                  <CheckCircle size={14} weight="fill" className="text-green-500" />
-                                )}
-                                {file.confidence === 'medium' && (
-                                  <Warning size={14} weight="fill" className="text-yellow-500" />
-                                )}
-                                {file.confidence === 'low' && (
-                                  <Warning size={14} weight="fill" className="text-red-500" />
-                                )}
+                        {filteredFiles.length > 0 ? (
+                          filteredFiles.map((file, idx) => (
+                            <div
+                              key={idx}
+                              className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                            >
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <FileText size={16} weight="duotone" />
+                                  <span className="font-medium text-sm truncate">{file.name}</span>
+                                  {file.confidence === 'high' && (
+                                    <CheckCircle size={14} weight="fill" className="text-green-500" />
+                                  )}
+                                  {file.confidence === 'medium' && (
+                                    <Warning size={14} weight="fill" className="text-yellow-500" />
+                                  )}
+                                  {file.confidence === 'low' && (
+                                    <Warning size={14} weight="fill" className="text-red-500" />
+                                  )}
+                                </div>
+                                <div className="text-xs text-muted-foreground truncate">
+                                  {file.path} • {file.suggestedFolder} • {(file.size / 1024).toFixed(0)} KB
+                                </div>
                               </div>
-                              <div className="text-xs text-muted-foreground">
-                                {file.suggestedFolder} • {(file.size / 1024).toFixed(0)} KB
+                              <div className="flex items-center gap-2">
+                                <Badge variant="outline" className="text-xs">
+                                  {DOCUMENT_TYPE_LABELS[file.suggestedType]}
+                                </Badge>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => setEditingFile(file)}
+                                >
+                                  <Pencil size={14} />
+                                </Button>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline" className="text-xs">
-                                {DOCUMENT_TYPE_LABELS[file.suggestedType]}
-                              </Badge>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => setEditingFile(file)}
-                              >
-                                <Pencil size={14} />
-                              </Button>
-                            </div>
+                          ))
+                        ) : (
+                          <div className="text-center py-8 text-muted-foreground text-sm">
+                            No se encontraron archivos con los filtros aplicados
                           </div>
-                        ))}
+                        )}
                       </div>
                     </ScrollArea>
+                    <div className="mt-2 text-xs text-muted-foreground">
+                      Mostrando {filteredFiles.length} de {analysis?.totalFiles || 0} archivos
+                    </div>
                   </TabsContent>
 
                   <TabsContent value="settings" className="flex-1 space-y-4">

@@ -176,9 +176,20 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
         }
       })
 
+      const totalDocs = importedProjects.reduce((sum, p) => sum + p.documents.length, 0)
+      const totalFolders = selectedProjects.reduce((sum, p) => {
+        const uniqueFolders = new Set(p.analysis!.analyzedFiles.map(f => {
+          const parts = f.path.split('/')
+          return parts.slice(0, -1).join('/')
+        }))
+        return sum + uniqueFolders.size
+      }, 0)
+
       onImportComplete(importedProjects)
       
-      toast.success(`${importedProjects.length} proyecto${importedProjects.length !== 1 ? 's' : ''} importado${importedProjects.length !== 1 ? 's' : ''} correctamente`)
+      toast.success(`${importedProjects.length} proyecto${importedProjects.length !== 1 ? 's' : ''} importado${importedProjects.length !== 1 ? 's' : ''} correctamente`, {
+        description: `${totalDocs} documentos desde ${totalFolders} carpetas procesados automáticamente`
+      })
       handleReset()
       onOpenChange(false)
     } catch (error) {
@@ -201,14 +212,14 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[92vw] max-h-[95vh] flex flex-col">
+      <DialogContent className="max-w-[96vw] w-[96vw] max-h-[96vh] h-[96vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FolderOpen size={24} weight="duotone" />
             Importación Múltiple de Proyectos
           </DialogTitle>
           <DialogDescription>
-            Importe varios proyectos simultáneamente desde carpetas diferentes
+            Importe varios proyectos simultáneamente desde carpetas diferentes con análisis automático completo
           </DialogDescription>
         </DialogHeader>
 
@@ -310,7 +321,7 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
                   </Button>
                 </div>
 
-                <ScrollArea className="flex-1 border rounded-lg h-[calc(95vh-360px)]">
+                <ScrollArea className="flex-1 border rounded-lg h-[calc(96vh-340px)]">
                   <div className="p-4 space-y-4">
                     {projects.map((project) => {
                       const stats = project.analysis ? getImportStatistics(project.analysis) : null
@@ -337,7 +348,7 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
 
                             <div className="flex-1 space-y-3">
                               <div className="flex items-start justify-between">
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 flex-wrap">
                                   <Folder size={20} weight="duotone" className="text-primary" />
                                   <span className="font-medium">{project.folderName}</span>
                                   {project.error && (
@@ -414,7 +425,7 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
                                   </div>
 
                                   {stats && (
-                                    <div className="flex gap-4 text-xs text-muted-foreground">
+                                    <div className="flex gap-4 text-xs text-muted-foreground flex-wrap">
                                       <div className="flex items-center gap-1">
                                         <FileText size={12} />
                                         {stats.totalSize > 0 ? `${(stats.totalSize / 1024 / 1024).toFixed(1)} MB` : '0 MB'}
@@ -426,6 +437,10 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
                                       <div className="flex items-center gap-1">
                                         <Warning size={12} className="text-yellow-500" />
                                         {stats.byConfidence.medium} media
+                                      </div>
+                                      <div className="flex items-center gap-1">
+                                        <Warning size={12} className="text-red-500" />
+                                        {stats.byConfidence.low} baja
                                       </div>
                                     </div>
                                   )}
