@@ -25,6 +25,7 @@ import { ProjectCalendar } from '@/components/ProjectCalendar'
 import { ApprovalFlowManager } from '@/components/ApprovalFlowManager'
 import { QualifiedSignatureProviderManager } from '@/components/QualifiedSignatureProviderManager'
 import { QualifiedSignatureRequestViewer } from '@/components/QualifiedSignatureRequestViewer'
+import { UserManual } from '@/components/UserManual'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,7 +54,8 @@ import {
   FileText,
   Sparkle,
   Bank,
-  CalendarBlank
+  CalendarBlank,
+  Question
 } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Toaster, toast } from 'sonner'
@@ -361,6 +363,8 @@ function App() {
             </div>
             
             <div className="flex items-center gap-2">
+              <UserManual />
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-2 hidden md:flex">
