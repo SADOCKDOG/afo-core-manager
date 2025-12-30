@@ -570,3 +570,52 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   'cheque': 'Cheque',
   'otros': 'Otros'
 }
+
+export type MilestoneType = 
+  | 'phase-deadline'
+  | 'visa-submission'
+  | 'permit-submission'
+  | 'payment-due'
+  | 'meeting'
+  | 'site-visit'
+  | 'construction-start'
+  | 'construction-end'
+  | 'custom'
+
+export type MilestonePriority = 'low' | 'medium' | 'high' | 'critical'
+
+export interface ProjectMilestone {
+  id: string
+  projectId: string
+  title: string
+  description?: string
+  type: MilestoneType
+  date: number
+  priority: MilestonePriority
+  status: 'pending' | 'completed' | 'overdue' | 'cancelled'
+  relatedPhase?: ProjectPhase
+  relatedInvoiceId?: string
+  relatedVisaId?: string
+  completedAt?: number
+  createdAt: number
+  updatedAt: number
+}
+
+export const MILESTONE_TYPE_LABELS: Record<MilestoneType, string> = {
+  'phase-deadline': 'Plazo de Fase',
+  'visa-submission': 'Presentación de Visado',
+  'permit-submission': 'Presentación de Licencia',
+  'payment-due': 'Vencimiento de Pago',
+  'meeting': 'Reunión',
+  'site-visit': 'Visita de Obra',
+  'construction-start': 'Inicio de Obra',
+  'construction-end': 'Fin de Obra',
+  'custom': 'Personalizado'
+}
+
+export const MILESTONE_PRIORITY_LABELS: Record<MilestonePriority, string> = {
+  'low': 'Baja',
+  'medium': 'Media',
+  'high': 'Alta',
+  'critical': 'Crítica'
+}

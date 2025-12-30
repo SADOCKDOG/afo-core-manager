@@ -1,15 +1,20 @@
-import { Project, Client, Invoice, Budget } from '@/lib/types'
+import { Project, Client, Invoice, Budget, ProjectMilestone } from '@/lib/types'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { 
   CheckCircle,
   Buildings,
   UsersThree,
   Receipt,
   TrendUp,
-  Clock
+  Clock,
+  CalendarBlank,
+  WarningCircle
 } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
+import { format, isPast } from 'date-fns'
+import { es } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 
 interface DashboardProps {
@@ -17,10 +22,11 @@ interface DashboardProps {
   clients: Client[]
   invoices: Invoice[]
   budgets: Budget[]
-  onNavigate: (view: 'dashboard' | 'projects' | 'clients' | 'invoices' | 'project-detail') => void
+  milestones?: ProjectMilestone[]
+  onNavigate: (view: 'dashboard' | 'projects' | 'clients' | 'invoices' | 'calendar' | 'project-detail') => void
 }
 
-export function Dashboard({ projects, clients, invoices, budgets, onNavigate }: DashboardProps) {
+export function Dashboard({ projects, clients, invoices, budgets, milestones = [], onNavigate }: DashboardProps) {
   const activeProjects = projects.filter(p => p.status === 'active')
   const issuedInvoices = invoices.filter(i => i.status === 'issued')
   const totalRevenue = issuedInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
@@ -32,6 +38,25 @@ export function Dashboard({ projects, clients, invoices, budgets, onNavigate }: 
   const recentProjects = projects
     .sort((a, b) => b.updatedAt - a.updatedAt)
     .slice(0, 5)
+
+  const upcomingMilestones = milestones
+    .filter(m => m.status === 'pending')
+    .sort((a, b) => a.date - b.date)
+    .slice(0, 5)
+
+  const overdueMilestones = milestones.filter(m => 
+    m.status === 'pending' && isPast(new Date(m.date))
+  )
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'critical': return 'bg-destructive/10 text-destructive border-destructive/20'
+      case 'high': return 'bg-orange-500/10 text-orange-600 border-orange-500/20'
+      case 'medium': return 'bg-primary/10 text-primary border-primary/20'
+      case 'low': return 'bg-muted text-muted-foreground border-muted'
+      default: return 'bg-muted text-muted-foreground border-muted'
+    }
+  }
 
   const stats = [
     {
@@ -181,30 +206,128 @@ export function Dashboard({ projects, clients, invoices, budgets, onNavigate }: 
         </Card>
       </motion.div>
 
-      {totalRevenue > 0 && (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <Card className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-accent/10">
-                <TrendUp size={28} weight="duotone" className="text-accent" />
-              </div>
+          <Card className="p-6 h-full">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <p className="text-sm text-muted-foreground font-medium">Ingresos Facturados</p>
-                <p className="text-3xl font-bold mt-1">
-                  {totalRevenue.toLocaleString('es-ES', { 
-                    style: 'currency', 
-                    currency: 'EUR' 
-                  })}
-                </p>
+                <h3 className="text-xl font-semibold flex items-center gap-2">
+                  <CalendarBlank size={24} weight="duotone" className="text-primary" />
+                  Próximos Hitos
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">Fechas importantes pendientes</p>
               </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onNavigate('calendar')}
+                className="gap-2"
+              >
+                Ver calendario
+              </Button>
             </div>
+
+            {overdueMilestones.length > 0 && (
+              <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                <div className="flex items-center gap-2 text-destructive">
+                  <WarningCircle size={18} weight="fill" />
+                  <span className="text-sm font-medium">
+                    {overdueMilestones.length} {overdueMilestones.length === 1 ? 'hito vencido' : 'hitos vencidos'}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {upcomingMilestones.length > 0 ? (
+              <div className="space-y-3">
+                {upcomingMilestones.map((milestone) => {
+                  const project = projects.find(p => p.id === milestone.projectId)
+                  const isOverdue = isPast(new Date(milestone.date))
+                  
+                  return (
+                    <div
+                      key={milestone.id}
+                      className={cn(
+                        "p-3 rounded-lg border-2 hover:shadow-md transition-all cursor-pointer",
+                        isOverdue ? 'bg-destructive/5 border-destructive/20' : 'bg-card border-border'
+                      )}
+                      onClick={() => onNavigate('calendar')}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-semibold text-sm truncate">{milestone.title}</h4>
+                            {isOverdue && (
+                              <Badge variant="destructive" className="text-xs">
+                                Vencido
+                              </Badge>
+                            )}
+                          </div>
+                          
+                          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <CalendarBlank size={12} />
+                              {format(new Date(milestone.date), 'dd MMM yyyy', { locale: es })}
+                            </span>
+                            
+                            {project && (
+                              <Badge variant="secondary" className="text-xs">
+                                {project.title}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <CalendarBlank size={48} className="mx-auto mb-3 text-muted-foreground opacity-50" weight="duotone" />
+                <p className="text-muted-foreground text-sm">No hay hitos próximos</p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onNavigate('calendar')}
+                  className="mt-4"
+                >
+                  Ir al calendario
+                </Button>
+              </div>
+            )}
           </Card>
         </motion.div>
-      )}
+
+        {totalRevenue > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+          >
+            <Card className="p-6 h-full">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-accent/10">
+                  <TrendUp size={28} weight="duotone" className="text-accent" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground font-medium">Ingresos Facturados</p>
+                  <p className="text-3xl font-bold mt-1">
+                    {totalRevenue.toLocaleString('es-ES', { 
+                      style: 'currency', 
+                      currency: 'EUR' 
+                    })}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+        )}
+      </div>
     </div>
   )
 }

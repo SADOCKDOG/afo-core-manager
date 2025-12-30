@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useKV } from '@github/spark/hooks'
-import { Project, Stakeholder, Invoice, Client, Budget } from '@/lib/types'
+import { Project, Stakeholder, Invoice, Client, Budget, ProjectMilestone } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Dashboard } from '@/components/Dashboard'
 import { ProjectCard } from '@/components/ProjectCard'
@@ -21,6 +21,7 @@ import { BillingManager } from '@/components/BillingManager'
 import { AutoInvoiceConfirmDialog } from '@/components/AutoInvoiceConfirmDialog'
 import { DocumentTemplateLibrary } from '@/components/DocumentTemplateLibrary'
 import { BoardPermitWorkflow } from '@/components/BoardPermitWorkflow'
+import { ProjectCalendar } from '@/components/ProjectCalendar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,7 +49,8 @@ import {
   Stamp,
   FileText,
   Sparkle,
-  Bank
+  Bank,
+  CalendarBlank
 } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Toaster, toast } from 'sonner'
@@ -57,7 +59,7 @@ import { generatePhaseCompletionInvoice } from '@/lib/invoice-utils'
 import { PHASE_LABELS } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
-type ViewMode = 'dashboard' | 'projects' | 'clients' | 'invoices' | 'project-detail'
+type ViewMode = 'dashboard' | 'projects' | 'clients' | 'invoices' | 'calendar' | 'project-detail'
 type ProjectFilter = 'all' | 'active' | 'archived'
 
 function App() {
@@ -66,6 +68,7 @@ function App() {
   const [invoices, setInvoices] = useKV<Invoice[]>('invoices', [])
   const [clients, setClients] = useKV<Client[]>('clients', [])
   const [budgets, setBudgets] = useKV<Budget[]>('budgets', [])
+  const [milestones, setMilestones] = useKV<ProjectMilestone[]>('project-milestones', [])
   const { isConfigured } = useEmailConfig()
   
   const [viewMode, setViewMode] = useState<ViewMode>('dashboard')
@@ -312,6 +315,7 @@ function App() {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: SquaresFour },
     { id: 'projects', label: 'Proyectos', icon: Buildings },
+    { id: 'calendar', label: 'Calendario', icon: CalendarBlank },
     { id: 'clients', label: 'Clientes', icon: UsersThree },
     { id: 'invoices', label: 'Facturas', icon: Receipt },
   ] as const
@@ -444,6 +448,7 @@ function App() {
                 clients={clients || []}
                 invoices={invoices || []}
                 budgets={budgets || []}
+                milestones={milestones || []}
                 onNavigate={setViewMode}
               />
             </motion.div>
@@ -531,6 +536,18 @@ function App() {
                 onUpdatePhaseStatus={handleUpdatePhaseStatus}
                 onProjectUpdate={(updates) => handleSaveProject({ ...updates, id: selectedProject.id })}
               />
+            </motion.div>
+          )}
+
+          {viewMode === 'calendar' && (
+            <motion.div
+              key="calendar"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ProjectCalendar projects={projects || []} />
             </motion.div>
           )}
 
