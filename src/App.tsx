@@ -31,6 +31,7 @@ import { ComponentRegistry } from '@/components/ComponentRegistry'
 import { WelcomeScreen } from '@/components/WelcomeScreen'
 import { ArchitectProfileEditor } from '@/components/ArchitectProfileEditor'
 import { DeleteAllDataDialog } from '@/components/DeleteAllDataDialog'
+import { SelectiveDeleteDialog } from '@/components/SelectiveDeleteDialog'
 import { BackupRestoreDialog } from '@/components/BackupRestoreDialog'
 import {
   DropdownMenu,
@@ -100,6 +101,7 @@ function App() {
   const [bulkProjectExportDialogOpen, setBulkProjectExportDialogOpen] = useState(false)
   const [editingProject, setEditingProject] = useState<Project | undefined>()
   const [autoInvoiceDialogOpen, setAutoInvoiceDialogOpen] = useState(false)
+  const [selectiveDeleteDialogOpen, setSelectiveDeleteDialogOpen] = useState(false)
   const [pendingInvoiceData, setPendingInvoiceData] = useState<{
     invoiceData: Partial<Invoice>
     projectTitle: string
@@ -552,6 +554,10 @@ function App() {
                       </button>
                     }
                   />
+                  <DropdownMenuItem onClick={() => setSelectiveDeleteDialogOpen(true)}>
+                    <Trash size={16} className="mr-2" weight="duotone" />
+                    Eliminación Selectiva
+                  </DropdownMenuItem>
                   
                   <DropdownMenuSeparator />
                   <DeleteAllDataDialog 
@@ -794,6 +800,11 @@ function App() {
           projectBudget={pendingInvoiceData.projectBudget}
         />
       )}
+
+      <SelectiveDeleteDialog
+        open={selectiveDeleteDialogOpen}
+        onOpenChange={setSelectiveDeleteDialogOpen}
+      />
     </div>
   )
 }
