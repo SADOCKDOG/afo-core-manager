@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Users, Plus, Pencil, Trash, MagnifyingGlass, Percent, CalendarBlank } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
 import { ClientDialog } from './ClientDialog'
+import { ClientImportExportDialog } from './ClientImportExportDialog'
 import { toast } from 'sonner'
 
 interface ClientManagerProps {
@@ -119,16 +120,19 @@ export function ClientManager({ asView = false }: ClientManagerProps) {
             className="pl-10"
           />
         </div>
-        <Button 
-          onClick={() => {
-            setSelectedClient(undefined)
-            setClientDialogOpen(true)
-          }}
-          className="gap-2"
-        >
-          <Plus size={18} weight="bold" />
-          Añadir Cliente
-        </Button>
+        <div className="flex items-center gap-2">
+          <ClientImportExportDialog />
+          <Button 
+            onClick={() => {
+              setSelectedClient(undefined)
+              setClientDialogOpen(true)
+            }}
+            className="gap-2"
+          >
+            <Plus size={18} weight="bold" />
+            Añadir Cliente
+          </Button>
+        </div>
       </div>
 
       {filteredClients.length === 0 ? (

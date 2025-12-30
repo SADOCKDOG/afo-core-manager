@@ -1,12 +1,12 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { Separator } from '@/components/ui/separator'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -128,21 +128,27 @@ export function ProjectDialog({ open, onOpenChange, onSave, onDelete, project }:
     }
   }
 
+  const getClientDisplayName = (client: Client) => {
+    if (client.type === 'persona-juridica') {
+      return client.razonSocial || 'Sin nombre'
+    }
+    return `${client.nombre || ''} ${client.apellido1 || ''} ${client.apellido2 || ''}`.trim() || 'Sin nombre'
+  }
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-3xl max-h-[90vh]" key={open ? 'open' : 'closed'}>
+        <DialogContent className="max-w-3xl max-h-[95vh]">
           <DialogHeader>
             <DialogTitle className="text-2xl">
               {project ? 'Editar Proyecto' : 'Nuevo Proyecto'}
             </DialogTitle>
             <DialogDescription>
-              Complete la información básica del proyecto y seleccione las fases contratadas.
+              {project ? 'Modifica los datos del proyecto' : 'Crea un nuevo proyecto arquitectónico'}
             </DialogDescription>
           </DialogHeader>
-
           <ScrollArea className="max-h-[calc(90vh-200px)] pr-4">
-            <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="title">Título del Proyecto *</Label>
@@ -150,7 +156,7 @@ export function ProjectDialog({ open, onOpenChange, onSave, onDelete, project }:
                     id="title"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Ej: Vivienda Unifamiliar en Cartagena"
+                    placeholder="Ej: Vivienda Unifamiliar en..."
                     required
                   />
                 </div>
@@ -172,56 +178,48 @@ export function ProjectDialog({ open, onOpenChange, onSave, onDelete, project }:
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Breve descripción del proyecto..."
+                    placeholder="Descripción opcional del proyecto..."
                     rows={3}
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="client">Cliente (Promotor) *</Label>
-                  <Select 
-                    value={clientId || undefined} 
-                    onValueChange={(value) => {
-                      setClientId(value)
-                    }}
-                  >
+                  <Select value={clientId} onValueChange={setClientId} required>
                     <SelectTrigger id="client">
-                      <SelectValue placeholder="Seleccionar cliente" />
+                      <SelectValue placeholder="Selecciona un cliente" />
                     </SelectTrigger>
                     <SelectContent>
                       {(clients || []).length === 0 ? (
-                        <SelectItem value="__no_clients__" disabled>No hay clientes disponibles</SelectItem>
+                        <div className="p-2 text-sm text-muted-foreground text-center">
+                          No hay clientes registrados
+                        </div>
                       ) : (
-                        (clients || []).map(client => {
-                          const name = client.type === 'persona-juridica' 
-                            ? client.razonSocial 
-                            : `${client.nombre} ${client.apellido1 || ''}`
-                          return (
-                            <SelectItem key={client.id} value={client.id}>
-                              {name} - {client.nif}
-                            </SelectItem>
-                          )
-                        })
+                        (clients || []).map((client) => (
+                          <SelectItem key={client.id} value={client.id}>
+                            {getClientDisplayName(client)} ({client.nif})
+                          </SelectItem>
+                        ))
                       )}
                     </SelectContent>
                   </Select>
                   {(clients || []).length === 0 && (
-                    <p className="text-sm text-destructive">
-                      Debe crear un cliente antes de crear un proyecto
+                    <p className="text-xs text-muted-foreground">
+                      Necesitas crear un cliente primero desde el menú de Herramientas
                     </p>
                   )}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="status">Estado del Proyecto</Label>
-                  <Select value={status} onValueChange={(val) => setStatus(val as ProjectStatus)}>
+                  <Select value={status} onValueChange={(v) => setStatus(v as ProjectStatus)}>
                     <SelectTrigger id="status">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="active">Activo</SelectItem>
-                      <SelectItem value="on-hold">En Pausa</SelectItem>
                       <SelectItem value="archived">Archivado</SelectItem>
+                      <SelectItem value="on-hold">En Pausa</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -231,21 +229,20 @@ export function ProjectDialog({ open, onOpenChange, onSave, onDelete, project }:
 
               <div className="space-y-4">
                 <div>
-                  <Label className="text-base">Fases Contratadas</Label>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Seleccione las fases del proyecto y asigne el porcentaje de participación.
+                  <h3 className="font-semibold mb-2">Fases del Proyecto *</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Seleccione las fases del proyecto y asigne el porcentaje de honorarios a cada una
                   </p>
                 </div>
-
                 <div className="space-y-3">
-                  {ALL_PHASES.map(phase => (
-                    <div key={phase} className="flex items-center gap-4 p-3 rounded-lg border bg-muted/30">
+                  {ALL_PHASES.map((phase) => (
+                    <div key={phase} className="flex items-center gap-4 p-3 border rounded-lg">
                       <Checkbox
                         id={phase}
                         checked={selectedPhases.has(phase)}
                         onCheckedChange={() => handlePhaseToggle(phase)}
                       />
-                      <Label htmlFor={phase} className="flex-1 cursor-pointer font-normal">
+                      <Label htmlFor={phase} className="flex-1 cursor-pointer">
                         {PHASE_LABELS[phase]}
                       </Label>
                       {selectedPhases.has(phase) && (
@@ -256,7 +253,7 @@ export function ProjectDialog({ open, onOpenChange, onSave, onDelete, project }:
                             max="100"
                             value={phasePercentages[phase] || 0}
                             onChange={(e) => handlePercentageChange(phase, e.target.value)}
-                            className="w-20 font-mono text-right"
+                            className="w-20"
                           />
                           <span className="text-sm text-muted-foreground">%</span>
                         </div>
@@ -264,9 +261,8 @@ export function ProjectDialog({ open, onOpenChange, onSave, onDelete, project }:
                     </div>
                   ))}
                 </div>
-
                 {selectedPhases.size > 0 && (
-                  <div className={`p-3 rounded-lg border ${totalPercentage === 100 ? 'bg-primary/10 border-primary/30' : 'bg-accent/10 border-accent/30'}`}>
+                  <div className="p-4 bg-muted rounded-lg">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">Total de porcentaje asignado:</span>
                       <span className={`text-lg font-bold ${totalPercentage === 100 ? 'text-primary' : 'text-accent'}`}>
