@@ -6,6 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Code, Download, FileCode, MagnifyingGlass } from '@phosphor-icons/react'
+import { ArchitectureDiagrams } from '@/components/ArchitectureDiagrams'
 import jsPDF from 'jspdf'
 import { toast } from 'sonner'
 
@@ -70,6 +71,10 @@ export function DeveloperManual() {
 
   const getDocContent = () => {
     return [
+      {
+        title: 'Diagramas de Arquitectura',
+        content: 'La aplicación incluye diagramas visuales interactivos: 1) Arquitectura de Componentes - muestra la jerarquía desde App.tsx hasta componentes UI. 2) Flujo de Datos - ilustra cómo los datos fluyen desde la interacción del usuario hasta la persistencia y renderizado. 3) Workflows - muestra flujos completos como creación de proyectos, facturación automática y aprobación de documentos con firmas digitales. Ver pestaña "Diagramas" en este manual.'
+      },
       {
         title: 'Arquitectura del Sistema',
         content: 'AFO CORE MANAGER utiliza React 19 con TypeScript, Vite como build tool, y Tailwind CSS v4. La arquitectura sigue un patrón de componentes funcionales con hooks personalizados para lógica reutilizable. El estado global se gestiona mediante useKV (persistencia local). Componentes UI de shadcn v4 proporcionan la base visual.'
@@ -155,20 +160,33 @@ export function DeveloperManual() {
           </Button>
         </div>
 
-        <ScrollArea className="h-[600px] pr-4">
-          <div className="space-y-4">
-            {filteredSections.map((section, idx) => (
-              <Card key={idx}>
-                <CardHeader>
-                  <CardTitle>{section.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm leading-relaxed whitespace-pre-line">{section.content}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </ScrollArea>
+        <Tabs defaultValue="content" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="content">Contenido</TabsTrigger>
+            <TabsTrigger value="diagrams">Diagramas</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="content">
+            <ScrollArea className="h-[600px] pr-4">
+              <div className="space-y-4">
+                {filteredSections.map((section, idx) => (
+                  <Card key={idx}>
+                    <CardHeader>
+                      <CardTitle>{section.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm leading-relaxed whitespace-pre-line">{section.content}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </ScrollArea>
+          </TabsContent>
+
+          <TabsContent value="diagrams">
+            <ArchitectureDiagrams />
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   )
