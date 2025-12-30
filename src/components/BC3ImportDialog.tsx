@@ -213,7 +213,7 @@ export function BC3ImportDialog({ open, onOpenChange, onImport }: BC3ImportDialo
 
                 <div className="space-y-2">
                   <Label>Vista Previa de Partidas</Label>
-                  <ScrollArea className="h-[400px] rounded border p-4">
+                  <ScrollArea className="h-[550px] rounded border p-4">
                     <div className="space-y-2">
                       {preview.items.slice(0, 20).map((item, index) => (
                         <motion.div

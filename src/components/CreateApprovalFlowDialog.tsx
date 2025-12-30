@@ -199,7 +199,7 @@ export function CreateApprovalFlowDialog({
           <DialogTitle className="text-xl">Crear Flujo de Aprobación</DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[calc(90vh-200px)] pr-4">
+        <ScrollArea className="h-[650px] pr-4">
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">

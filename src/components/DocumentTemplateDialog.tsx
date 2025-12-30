@@ -146,7 +146,7 @@ export function DocumentTemplateDialog({ open, onOpenChange, onSelectTemplate }:
               </Tabs>
             </div>
 
-            <ScrollArea className="h-[450px] px-6">
+            <ScrollArea className="h-[600px] px-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-6">
                 {filteredTemplates.map((template) => (
                   <button
@@ -209,7 +209,7 @@ export function DocumentTemplateDialog({ open, onOpenChange, onSelectTemplate }:
               </div>
             </DialogHeader>
 
-            <ScrollArea className="h-[500px] px-6">
+            <ScrollArea className="h-[600px] px-6">
               <div className="space-y-6 pb-6">
                 <div>
                   <h3 className="font-semibold mb-3 flex items-center gap-2">

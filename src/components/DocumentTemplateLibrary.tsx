@@ -155,7 +155,7 @@ export function DocumentTemplateLibrary({ open: controlledOpen, onOpenChange }: 
             </div>
           </div>
 
-          <ScrollArea className="h-[500px] px-6">
+          <ScrollArea className="h-[650px] px-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-6">
               {filteredTemplates.map((template, index) => (
                 <motion.div
@@ -265,7 +265,7 @@ export function DocumentTemplateLibrary({ open: controlledOpen, onOpenChange }: 
             </div>
           </DialogHeader>
 
-          <ScrollArea className="h-[580px] px-6">
+          <ScrollArea className="h-[700px] px-6">
             <div className="space-y-6 py-6">
               <Card>
                 <CardHeader>

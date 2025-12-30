@@ -274,7 +274,7 @@ export function BudgetManager({ projectId, projectName }: BudgetManagerProps) {
               </div>
             </div>
 
-            <ScrollArea className="h-[500px]">
+            <ScrollArea className="h-[650px]">
               <div className="space-y-3">
                 {projectBudgets.map((budget, index) => (
                   <motion.div
@@ -444,7 +444,7 @@ export function BudgetManager({ projectId, projectName }: BudgetManagerProps) {
                 </div>
               </div>
 
-              <ScrollArea className="h-[400px] border rounded-lg">
+              <ScrollArea className="h-[550px] border rounded-lg">
                 <Table>
                   <TableHeader>
                     <TableRow>
