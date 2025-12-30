@@ -17,7 +17,8 @@ import {
   ArrowRight,
   Trash,
   FolderOpen,
-  X
+  X,
+  Sparkle
 } from '@phosphor-icons/react'
 import { 
   analyzeProjectFiles, 
@@ -29,6 +30,8 @@ import {
   FolderStructureType,
   FOLDER_STRUCTURES
 } from '@/lib/types'
+import { ClassificationContext } from '@/lib/ai-document-classifier'
+import { AIDocumentClassifier } from './AIDocumentClassifier'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 

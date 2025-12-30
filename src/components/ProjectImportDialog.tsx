@@ -17,7 +17,8 @@ import {
   ArrowRight,
   Eye,
   Pencil,
-  Tree
+  Tree,
+  Sparkle
 } from '@phosphor-icons/react'
 import { 
   analyzeProjectFiles, 
@@ -32,6 +33,8 @@ import {
   FolderStructureType,
   FOLDER_STRUCTURES
 } from '@/lib/types'
+import { ClassificationContext } from '@/lib/ai-document-classifier'
+import { AIDocumentClassifier } from './AIDocumentClassifier'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FolderTree } from '@/components/FolderTree'
@@ -47,7 +50,7 @@ interface ProjectImportDialogProps {
   }) => void
 }
 
-type ImportStep = 'upload' | 'analyze' | 'review' | 'confirm'
+type ImportStep = 'upload' | 'analyze' | 'ai-classify' | 'review' | 'confirm'
 
 export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: ProjectImportDialogProps) {
   const [step, setStep] = useState<ImportStep>('upload')
@@ -60,6 +63,8 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
   const [editingFile, setEditingFile] = useState<ImportedFile | null>(null)
   const [searchFilter, setSearchFilter] = useState('')
   const [typeFilter, setTypeFilter] = useState<DocumentType | 'all'>('all')
+  const [aiClassifierOpen, setAiClassifierOpen] = useState(false)
+  const [classificationContexts, setClassificationContexts] = useState<ClassificationContext[]>([])
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || [])
@@ -84,6 +89,63 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
     } finally {
       setIsAnalyzing(false)
     }
+  }
+
+  const handleOpenAIClassifier = () => {
+    if (!analysis) return
+
+    const contexts: ClassificationContext[] = analysis.analyzedFiles.map(file => ({
+      fileName: file.name,
+      folderPath: file.path.split('/').slice(0, -1).join('/'),
+      fileExtension: file.extension,
+      fileSize: file.size,
+      projectContext: {
+        projectName: projectTitle,
+        location: projectLocation,
+        existingDocuments: analysis.analyzedFiles.map(f => ({
+          name: f.name,
+          type: f.suggestedType
+        }))
+      }
+    }))
+
+    setClassificationContexts(contexts)
+    setAiClassifierOpen(true)
+  }
+
+  const handleAIClassificationComplete = (classifications: Array<{
+    fileName: string
+    type: DocumentType
+    confidence: number
+    metadata: any
+  }>) => {
+    if (!analysis) return
+
+    const updatedFiles = analysis.analyzedFiles.map(file => {
+      const classification = classifications.find(c => c.fileName === file.name)
+      if (classification) {
+        return {
+          ...file,
+          suggestedType: classification.type,
+          confidence: classification.confidence >= 80 ? 'high' : 
+                     classification.confidence >= 50 ? 'medium' : 'low' as 'high' | 'medium' | 'low',
+          metadata: {
+            ...file.metadata,
+            ...classification.metadata
+          }
+        }
+      }
+      return file
+    })
+
+    setAnalysis({
+      ...analysis,
+      analyzedFiles: updatedFiles
+    })
+
+    toast.success('Clasificación con IA completada', {
+      description: `${classifications.length} documentos clasificados automáticamente`
+    })
   }
 
   const handleFolderSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -535,7 +597,42 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
             {step === 'review' ? 'Cancelar' : 'Cerrar'}
           </Button>
 
-          {step === 'review' && (
+          <div className="flex gap-2">
+            {step === 'review' && (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={handleOpenAIClassifier}
+                  className="gap-2"
+                >
+                  <Sparkle size={18} weight="duotone" />
+                  Mejorar con IA
+                </Button>
+                <Button
+                  onClick={handleImport}
+                  disabled={!projectTitle || !projectLocation}
+                  className="gap-2"
+                >
+                  <CheckCircle size={18} weight="duotone" />
+                  Importar Proyecto
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {analysis && (
+          <AIDocumentClassifier
+            open={aiClassifierOpen}
+            onOpenChange={setAiClassifierOpen}
+            contexts={classificationContexts}
+            onClassificationComplete={handleAIClassificationComplete}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  )
+}
             <Button
               onClick={handleImport}
               disabled={!projectTitle || !projectLocation}
