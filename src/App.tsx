@@ -335,7 +335,8 @@ function App() {
         projectClient?.nif || '',
         projectClient?.direccion,
         projectBudget?.totalPEM,
-        projectClient
+        projectClient,
+        architectProfile
       )
       
       setPendingInvoiceData({

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useKV } from '@github/spark/hooks'
-import { VisaApplication, Project, Invoice, Stakeholder, Client, VISA_STATUS_LABELS, PROFESSIONAL_COLLEGE_LABELS } from '@/lib/types'
+import { VisaApplication, Project, Invoice, Stakeholder, Client, ArchitectProfile, VISA_STATUS_LABELS, PROFESSIONAL_COLLEGE_LABELS } from '@/lib/types'
 import { generateVisaFeeInvoice } from '@/lib/invoice-utils'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
@@ -23,6 +23,7 @@ export function VisaManager({ project }: VisaManagerProps) {
   const [invoices, setInvoices] = useKV<Invoice[]>('invoices', [])
   const [stakeholders] = useKV<Stakeholder[]>('stakeholders', [])
   const [clients] = useKV<Client[]>('clients', [])
+  const [architectProfile] = useKV<ArchitectProfile | null>('architect-profile', null)
   const [selectedVisa, setSelectedVisa] = useState<VisaApplication | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [detailDialogOpen, setDetailDialogOpen] = useState(false)
@@ -114,7 +115,8 @@ export function VisaManager({ project }: VisaManagerProps) {
       clientName,
       clientNIF,
       clientAddress,
-      projectClient
+      projectClient,
+      architectProfile
     )
 
     const newInvoice: Invoice = {

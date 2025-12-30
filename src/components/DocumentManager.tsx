@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useKV } from '@github/spark/hooks'
-import { Document, Project, FOLDER_STRUCTURES, DOCUMENT_TYPE_LABELS, DocumentTemplate, Stakeholder } from '@/lib/types'
+import { Document, Project, FOLDER_STRUCTURES, DOCUMENT_TYPE_LABELS, DocumentTemplate, Stakeholder, ArchitectProfile } from '@/lib/types'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -34,7 +34,7 @@ import { DocumentTemplateWithAI } from './DocumentTemplateWithAI'
 import { DocumentUtilities } from './DocumentUtilities'
 import { DocumentGeneratorHub } from './DocumentGeneratorHub'
 import { BulkPDFExportDialog } from './BulkPDFExportDialog'
-import { formatFileSize, sortVersions } from '@/lib/document-utils'
+import { formatFileSize, sortVersions, replaceArchitectPlaceholders } from '@/lib/document-utils'
 import { toast } from 'sonner'
 import { PHASE_LABELS } from '@/lib/types'
 
@@ -47,6 +47,7 @@ interface DocumentManagerProps {
 export function DocumentManager({ project, stakeholders, onProjectUpdate }: DocumentManagerProps) {
   const [documents, setDocuments] = useKV<Document[]>('documents', [])
   const [documentContents, setDocumentContents] = useKV<Record<string, string>>('document-contents', {})
+  const [architectProfile] = useKV<ArchitectProfile | null>('architect-profile', null)
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [bulkUploadOpen, setBulkUploadOpen] = useState(false)
   const [versionDialogOpen, setVersionDialogOpen] = useState(false)
@@ -146,6 +147,8 @@ export function DocumentManager({ project, stakeholders, onProjectUpdate }: Docu
         const placeholder = `[${key.toUpperCase()}]`
         sectionContent = sectionContent.replace(new RegExp(placeholder, 'g'), value)
       })
+      
+      sectionContent = replaceArchitectPlaceholders(sectionContent, architectProfile)
       
       content += `${section.title}\n\n${sectionContent}\n\n\n`
     })

@@ -6,7 +6,8 @@ import {
   ProfessionalCollege,
   PROFESSIONAL_COLLEGE_LABELS,
   Client,
-  PaymentTerms
+  PaymentTerms,
+  ArchitectProfile
 } from './types'
 
 const STANDARD_TAX_RATE = 21
@@ -79,7 +80,8 @@ export function generateVisaFeeInvoice(
   clientName: string,
   clientNIF: string,
   clientAddress?: string,
-  client?: Client
+  client?: Client,
+  architectProfile?: ArchitectProfile | null
 ): Partial<Invoice> {
   const taxRate = getClientTaxRate(client)
   const paymentDays = getClientPaymentDays(client)
@@ -110,6 +112,13 @@ export function generateVisaFeeInvoice(
     clientName,
     clientNIF,
     clientAddress,
+    issuerName: architectProfile?.razonSocial || architectProfile?.nombreCompleto,
+    issuerNIF: architectProfile?.nif,
+    issuerAddress: architectProfile?.direccion,
+    issuerEmail: architectProfile?.email,
+    issuerPhone: architectProfile?.telefono,
+    issuerIBAN: architectProfile?.iban,
+    issuerLogo: architectProfile?.logo,
     status: 'issued',
     lineItems: [lineItem],
     subtotal: totals.subtotal,
@@ -166,7 +175,8 @@ export function generatePhaseCompletionInvoice(
   clientNIF: string,
   clientAddress?: string,
   projectPEM?: number,
-  client?: Client
+  client?: Client,
+  architectProfile?: ArchitectProfile | null
 ): Partial<Invoice> {
   const taxRate = getClientTaxRate(client)
   const paymentDays = getClientPaymentDays(client)
@@ -201,6 +211,13 @@ export function generatePhaseCompletionInvoice(
     clientName,
     clientNIF,
     clientAddress,
+    issuerName: architectProfile?.razonSocial || architectProfile?.nombreCompleto,
+    issuerNIF: architectProfile?.nif,
+    issuerAddress: architectProfile?.direccion,
+    issuerEmail: architectProfile?.email,
+    issuerPhone: architectProfile?.telefono,
+    issuerIBAN: architectProfile?.iban,
+    issuerLogo: architectProfile?.logo,
     status: 'draft',
     lineItems: [lineItem],
     subtotal: totals.subtotal,

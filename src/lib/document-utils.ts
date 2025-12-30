@@ -116,3 +116,30 @@ export function validateFileName(fileName: string): { valid: boolean; error?: st
   
   return { valid: true }
 }
+
+export function replaceArchitectPlaceholders(content: string, architectProfile: any): string {
+  if (!architectProfile) return content
+
+  const replacements: Record<string, string> = {
+    '[NOMBRE_ARQUITECTO]': architectProfile.nombreCompleto || '',
+    '[RAZON_SOCIAL_ARQUITECTO]': architectProfile.razonSocial || '',
+    '[NIF_ARQUITECTO]': architectProfile.nif || '',
+    '[COLEGIADO]': architectProfile.numeroColegial || '',
+    '[COLEGIO_PROFESIONAL]': architectProfile.colegioOficial || '',
+    '[DIRECCION_ARQUITECTO]': architectProfile.direccion 
+      ? `${architectProfile.direccion}${architectProfile.codigoPostal ? ', ' + architectProfile.codigoPostal : ''}${architectProfile.localidad ? ', ' + architectProfile.localidad : ''}${architectProfile.provincia ? ', ' + architectProfile.provincia : ''}`
+      : '',
+    '[EMAIL_ARQUITECTO]': architectProfile.email || '',
+    '[TELEFONO_ARQUITECTO]': architectProfile.telefono || '',
+    '[WEB_ARQUITECTO]': architectProfile.web || '',
+    '[TITULACION_ARQUITECTO]': architectProfile.titulacion || 'Arquitecto',
+    '[IBAN_ARQUITECTO]': architectProfile.iban || ''
+  }
+
+  let result = content
+  Object.entries(replacements).forEach(([placeholder, value]) => {
+    result = result.replace(new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), value)
+  })
+
+  return result
+}

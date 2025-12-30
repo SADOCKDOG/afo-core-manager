@@ -545,6 +545,13 @@ export interface Invoice {
   clientName: string
   clientNIF: string
   clientAddress?: string
+  issuerName?: string
+  issuerNIF?: string
+  issuerAddress?: string
+  issuerEmail?: string
+  issuerPhone?: string
+  issuerIBAN?: string
+  issuerLogo?: string
   status: InvoiceStatus
   lineItems: InvoiceLineItem[]
   subtotal: number

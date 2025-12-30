@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useKV } from '@github/spark/hooks'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -27,7 +28,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuCheckboxItem
 } from '@/components/ui/dropdown-menu'
-import { Document } from '@/lib/types'
+import { Document, ArchitectProfile } from '@/lib/types'
 import { exportDocumentToPDF, PDFExportOptions } from '@/lib/pdf-export'
 import { toast } from 'sonner'
 
@@ -40,6 +41,7 @@ interface DocumentPreviewProps {
 }
 
 export function DocumentPreview({ open, onOpenChange, document, content, projectTitle }: DocumentPreviewProps) {
+  const [architectProfile] = useKV<ArchitectProfile | null>('architect-profile', null)
   const [viewMode, setViewMode] = useState<'formatted' | 'raw'>('formatted')
   const [copied, setCopied] = useState(false)
   const [pdfOptions, setPdfOptions] = useState<PDFExportOptions>({
@@ -82,7 +84,10 @@ export function DocumentPreview({ open, onOpenChange, document, content, project
   const handleExportPDF = () => {
     if (!content) return
     try {
-      exportDocumentToPDF(document, content, projectTitle, pdfOptions)
+      exportDocumentToPDF(document, content, projectTitle, {
+        ...pdfOptions,
+        architectProfile
+      })
       toast.success('PDF generado correctamente', {
         description: 'El documento se ha exportado con formato optimizado para impresión'
       })

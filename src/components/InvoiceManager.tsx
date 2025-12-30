@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useKV } from '@github/spark/hooks'
-import { Invoice, Project, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS } from '@/lib/types'
+import { Invoice, Project, ArchitectProfile, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS } from '@/lib/types'
 import { getInvoiceStatusColor, formatCurrency, isInvoiceOverdue } from '@/lib/invoice-utils'
+import { exportInvoiceToPDF } from '@/lib/pdf-export'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
@@ -19,6 +20,7 @@ interface InvoiceManagerProps {
 
 export function InvoiceManager({ project }: InvoiceManagerProps) {
   const [invoices, setInvoices] = useKV<Invoice[]>('invoices', [])
+  const [architectProfile] = useKV<ArchitectProfile | null>('architect-profile', null)
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
   const [detailDialogOpen, setDetailDialogOpen] = useState(false)
 
@@ -68,9 +70,16 @@ export function InvoiceManager({ project }: InvoiceManagerProps) {
   }
 
   const handleExportInvoice = (invoice: Invoice) => {
-    toast.info('Exportación de factura', {
-      description: 'Funcionalidad de exportación en desarrollo'
-    })
+    try {
+      exportInvoiceToPDF(invoice, architectProfile)
+      toast.success('Factura exportada correctamente', {
+        description: `${invoice.invoiceNumber} descargado como PDF`
+      })
+    } catch (error) {
+      toast.error('Error al exportar la factura', {
+        description: 'No se pudo generar el PDF'
+      })
+    }
   }
 
   return (

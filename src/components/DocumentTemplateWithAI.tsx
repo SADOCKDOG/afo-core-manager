@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useKV } from '@github/spark/hooks'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -28,8 +29,9 @@ import {
   Eye,
   EyeSlash
 } from '@phosphor-icons/react'
-import { DocumentTemplate, TEMPLATE_CATEGORIES, TemplateCategory, TemplateSection, Project, Stakeholder } from '@/lib/types'
+import { DocumentTemplate, TEMPLATE_CATEGORIES, TemplateCategory, TemplateSection, Project, Stakeholder, ArchitectProfile } from '@/lib/types'
 import { ARCHITECTURAL_TEMPLATES, getTemplatesByCategory } from '@/lib/document-templates'
+import { replaceArchitectPlaceholders } from '@/lib/document-utils'
 import { AIContentGenerator } from '@/components/AIContentGenerator'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -56,6 +58,7 @@ export function DocumentTemplateWithAI({
   project,
   stakeholders 
 }: DocumentTemplateWithAIProps) {
+  const [architectProfile] = useKV<ArchitectProfile | null>('architect-profile', null)
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -96,7 +99,12 @@ export function DocumentTemplateWithAI({
           }
           break
         case 'arquitecto':
-          if (arquitecto) {
+          if (architectProfile) {
+            const name = architectProfile.razonSocial || architectProfile.nombreCompleto
+            const collegiateInfo = architectProfile.numeroColegial ? ` - Nº Col. ${architectProfile.numeroColegial}` : ''
+            fields[field] = name + collegiateInfo
+            filled.add(field)
+          } else if (arquitecto) {
             const name = `${arquitecto.name} ${arquitecto.apellido1 || ''} ${arquitecto.apellido2 || ''}`.trim()
             const collegiateInfo = arquitecto.collegiateNumber ? ` - Nº Col. ${arquitecto.collegiateNumber}` : ''
             fields[field] = name + collegiateInfo

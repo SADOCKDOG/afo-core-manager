@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
-import { Invoice, InvoiceLineItem, Client, Project, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, PAYMENT_METHOD_LABELS, PAYMENT_TERMS_LABELS, PaymentMethod, InvoiceType, InvoiceStatus } from '@/lib/types'
+import { Invoice, InvoiceLineItem, Client, Project, ArchitectProfile, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, PAYMENT_METHOD_LABELS, PAYMENT_TERMS_LABELS, PaymentMethod, InvoiceType, InvoiceStatus } from '@/lib/types'
 import { getClientTaxRate, getClientPaymentDays } from '@/lib/invoice-utils'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -25,6 +25,7 @@ interface InvoiceDialogProps {
 export function InvoiceDialog({ open, onOpenChange, onSave, invoice, projectId, clientId }: InvoiceDialogProps) {
   const [clients] = useKV<Client[]>('clients', [])
   const [projects] = useKV<Project[]>('projects', [])
+  const [architectProfile] = useKV<ArchitectProfile | null>('architect-profile', null)
   
   const [invoiceNumber, setInvoiceNumber] = useState('')
   const [type, setType] = useState<InvoiceType>('professional-fee')
@@ -209,6 +210,13 @@ export function InvoiceDialog({ open, onOpenChange, onSave, invoice, projectId, 
       clientName: clientInfo.name,
       clientNIF: clientInfo.nif,
       clientAddress: clientInfo.address,
+      issuerName: architectProfile?.razonSocial || architectProfile?.nombreCompleto,
+      issuerNIF: architectProfile?.nif,
+      issuerAddress: architectProfile?.direccion,
+      issuerEmail: architectProfile?.email,
+      issuerPhone: architectProfile?.telefono,
+      issuerIBAN: architectProfile?.iban,
+      issuerLogo: architectProfile?.logo,
       status,
       lineItems,
       subtotal: calculateSubtotal(),
