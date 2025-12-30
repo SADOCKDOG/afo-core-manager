@@ -1,131 +1,131 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Project, ProjectPhase, ProjectStatus, PHASE_LABELS, Client } from '@/lib/types'
 import { useState, useEffect } from 'react'
-import { Separator } from '@/components/ui/separator'
 import { useKV } from '@github/spark/hooks'
-import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
-  AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { Trash } from '@phosphor-icons/react'
-import { toast } from 'sonner'
-
-interface ProjectDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSave: (project: Partial<Project>) => void
-  onDelete?: (projectId: string) => void
-  project?: Project
+} from '
+import { toast
+interface ProjectDia
+  onOpenChange: (ope
+  onDelete?: (project
 }
-
-const ALL_PHASES: ProjectPhase[] = ['estudio-previo', 'anteproyecto', 'basico', 'ejecucion', 'direccion-obra']
-
-export function ProjectDialog({ open, onOpenChange, onSave, onDelete, project }: ProjectDialogProps) {
-  const [clients] = useKV<Client[]>('clients', [])
+const ALL_PHASES: Pr
+export function Proj
   
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [location, setLocation] = useState('')
-  const [clientId, setClientId] = useState('')
-  const [status, setStatus] = useState<ProjectStatus>('active')
-  const [selectedPhases, setSelectedPhases] = useState<Set<ProjectPhase>>(new Set())
-  const [phasePercentages, setPhasePercentages] = useState<Record<ProjectPhase, number>>({} as Record<ProjectPhase, number>)
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [description, setDescription]
+  const [clientId, setClientId] = useState(''
+  const [selectedPhases, setSe
 
   useEffect(() => {
-    if (project) {
-      setTitle(project.title)
-      setDescription(project.description || '')
+      setTitle(
       setLocation(project.location)
-      setClientId(project.clientId || '')
       setStatus(project.status)
-      const phases = new Set(project.phases.map(p => p.phase))
       setSelectedPhases(phases)
-      const percentages = {} as Record<ProjectPhase, number>
-      project.phases.forEach(p => {
-        percentages[p.phase] = p.percentage
-      })
-      setPhasePercentages(percentages)
-    } else {
-      setTitle('')
+      project.phase
+ 
+
       setDescription('')
-      setLocation('')
-      setClientId('')
-      setStatus('active')
+
       setSelectedPhases(new Set())
-      setPhasePercentages({} as Record<ProjectPhase, number>)
     }
-  }, [project, open])
 
-  const handlePhaseToggle = (phase: ProjectPhase) => {
-    const newSelected = new Set(selectedPhases)
-    if (newSelected.has(phase)) {
+    const newSelected = new Set(selected
       newSelected.delete(phase)
-      const newPercentages = { ...phasePercentages }
       delete newPercentages[phase]
-      setPhasePercentages(newPercentages)
     } else {
-      newSelected.add(phase)
       setPhasePercentages({ ...phasePercentages, [phase]: 0 })
-    }
     setSelectedPhases(newSelected)
-  }
 
-  const handlePercentageChange = (phase: ProjectPhase, value: string) => {
     const numValue = parseInt(value) || 0
-    setPhasePercentages({ ...phasePercentages, [phase]: Math.min(100, Math.max(0, numValue)) })
-  }
 
-  const totalPercentage = Object.values(phasePercentages).reduce((sum, val) => sum + val, 0)
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const totalPercen
+  const handleSubm
     
-    const phases = Array.from(selectedPhases).map(phase => ({
       phase,
-      percentage: phasePercentages[phase] || 0,
-      status: project?.phases.find(p => p.phase === phase)?.status || 'pending' as const
-    }))
+      status: project?.phases.find(
 
-    onSave({
       ...(project || {}),
-      title,
       description,
-      location,
       clientId,
-      status,
       phases,
-      stakeholders: project?.stakeholders || []
     })
-    
     onOpenChange(false)
-  }
 
-  const handleDeleteProject = () => {
     if (project && onDelete) {
-      onDelete(project.id)
-      setDeleteDialogOpen(false)
-      onOpenChange(false)
-      toast.success('Proyecto eliminado correctamente')
-    }
+      setDel
+      toast.succes
   }
-
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent 
+          <DialogTitle cl
+          </DialogTitle>
+            Complete la información básica del proyecto y sel
+     
+        <form onSubmi
+
+              <Input
+                value={title}
+                placeholder="Ej: 
+              />
+
+              <Label htmlFor="loca
+                id="location"
+            
+                required
+            </div>
+     
+              <Textarea
+   
+
+              />
+
+              <Label htmlFor="client">Cliente (Promotor) *</Label>
+   
+
+                  {(clients || []).length === 0 ? (
+
+                      const name = client.type =
+                      
+    
+                        </SelectItem>
+            
+                </SelectContent>
+              {(clients || []).length === 0 && (
+       
+
+
+              <Label html
+            
+                </
+               
+               
+             
+          </d
+          <Separator />
+      
+    
+                Selecci
+   
+
+                <div key={phase} clas
+                    id={phase}
+                    onChec
+                  <Label htmlFor
+                  </Label
+                    <div className="flex items-center g
+     
+   
+
+          
+                    </div>
+                </div>
+            </div>
           <DialogTitle className="text-2xl">
             {project ? 'Editar Proyecto' : 'Nuevo Proyecto'}
           </DialogTitle>
@@ -254,67 +254,67 @@ export function ProjectDialog({ open, onOpenChange, onSave, onDelete, project }:
 
             {selectedPhases.size > 0 && (
               <div className={`p-3 rounded-lg border ${totalPercentage === 100 ? 'bg-primary/10 border-primary/30' : 'bg-accent/10 border-accent/30'}`}>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Total:</span>
-                  <span className={`text-lg font-bold font-mono ${totalPercentage === 100 ? 'text-primary' : 'text-accent-foreground'}`}>
-                    {totalPercentage}%
-                  </span>
-                </div>
-                {totalPercentage !== 100 && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Nota: El total puede ser diferente de 100% según las condiciones del contrato.
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
 
-          <div className="flex justify-between gap-3 pt-4">
-            {project && onDelete ? (
-              <Button 
-                type="button" 
-                variant="destructive" 
-                onClick={() => setDeleteDialogOpen(true)}
-                className="gap-2"
-              >
-                <Trash size={16} weight="duotone" />
-                Eliminar Proyecto
-              </Button>
-            ) : (
-              <div />
-            )}
-            
-            <div className="flex gap-3">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={!title || !location || !clientId || selectedPhases.size === 0}>
-                {project ? 'Guardar Cambios' : 'Crear Proyecto'}
-              </Button>
-            </div>
-          </div>
-        </form>
-      </DialogContent>
 
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar proyecto?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta acción no se puede deshacer. Se eliminará permanentemente el proyecto "{project?.title}" y todos sus datos asociados (documentos, presupuestos, hitos, etc.).
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteProject}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Eliminar Proyecto
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </Dialog>
-  )
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
