@@ -230,7 +230,7 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[98vw] w-[98vw] max-h-[98vh] h-[98vh] flex flex-col p-0">
+      <DialogContent className="max-w-[98vw] w-[98vw] max-h-[98vh] h-[98vh] flex flex-col p-0" key={open ? 'open' : 'closed'}>
         <DialogHeader className="px-6 pt-6 pb-4 border-b bg-muted/30">
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Upload size={28} weight="duotone" />
@@ -548,18 +548,23 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
 
                       <div>
                         <Label htmlFor="client" className="text-base">Cliente (Promotor) *</Label>
-                        <Select value={clientId} onValueChange={setClientId}>
+                        <Select 
+                          value={clientId || undefined} 
+                          onValueChange={(value) => {
+                            setClientId(value)
+                          }}
+                        >
                           <SelectTrigger id="client" className="mt-2 h-11">
                             <SelectValue placeholder="Seleccionar cliente" />
                           </SelectTrigger>
                           <SelectContent>
                             {(clients || []).length === 0 ? (
-                              <SelectItem value="" disabled>No hay clientes disponibles</SelectItem>
+                              <SelectItem value="__no_clients__" disabled>No hay clientes disponibles</SelectItem>
                             ) : (
                               (clients || []).map(client => {
                                 const name = client.type === 'persona-juridica' 
                                   ? client.razonSocial 
-                                  : `${client.nombre} ${client.apellido1}`
+                                  : `${client.nombre} ${client.apellido1 || ''}`
                                 return (
                                   <SelectItem key={client.id} value={client.id}>
                                     {name} - {client.nif}
