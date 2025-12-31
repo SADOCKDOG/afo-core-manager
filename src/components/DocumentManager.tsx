@@ -45,7 +45,7 @@ interface DocumentManagerProps {
 }
 
 export function DocumentManager({ project, stakeholders, onProjectUpdate }: DocumentManagerProps) {
-  const [documents, setDocuments] = useKV<Document[]>('documents', [])
+  const [documents, setDocuments] = useKV<Document[]>('project-documents', [])
   const [documentContents, setDocumentContents] = useKV<Record<string, string>>('document-contents', {})
   const [architectProfile] = useKV<ArchitectProfile | null>('architect-profile', null)
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)

@@ -92,10 +92,28 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
       const allFileNames = new Set(result.analyzedFiles.map(f => f.fileName))
       setSelectedFiles(allFileNames)
       
+      const filesWithData = result.analyzedFiles.filter(f => f.fileData).length
+      
+      if (filesWithData === 0) {
+        toast.warning('Advertencia: No se pudo cargar el contenido de los archivos', {
+          description: 'Los metadatos se han guardado pero el contenido de los archivos puede no estar disponible'
+        })
+      } else if (filesWithData < result.totalFiles) {
+        toast.warning(`Solo se cargaron ${filesWithData} de ${result.totalFiles} archivos`, {
+          description: 'Algunos archivos pueden no estar disponibles para previsualización'
+        })
+      } else {
+        toast.success('Análisis completado correctamente', {
+          description: `${result.totalFiles} archivos analizados y listos para importar`
+        })
+      }
+      
       setStep('review')
     } catch (error) {
       console.error('Error analyzing files:', error)
-      toast.error('Error al analizar los archivos')
+      toast.error('Error al analizar los archivos', {
+        description: error instanceof Error ? error.message : 'Error desconocido'
+      })
       setStep('upload')
     } finally {
       setIsAnalyzing(false)
@@ -203,7 +221,7 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
     })).size
 
     toast.success(`Proyecto "${projectTitle}" importado correctamente`, {
-      description: `${analysis.totalFiles} documentos desde ${totalFolders} carpetas • ${stats.byConfidence.high} con alta confianza`
+      description: `${documents.length} documentos desde ${totalFolders} carpetas • ${stats.byConfidence.high} con alta confianza`
     })
     handleReset()
     onOpenChange(false)
@@ -360,7 +378,7 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
                   </TabsList>
 
                   <TabsContent value="overview" className="flex-1 space-y-5">
-                    <div className="grid grid-cols-3 gap-5">
+                    <div className="grid grid-cols-4 gap-5">
                       <div className="bg-card border rounded-lg p-6">
                         <div className="text-sm text-muted-foreground mb-2">Total Archivos</div>
                         <div className="text-3xl font-bold">{analysis.totalFiles}</div>
@@ -375,6 +393,12 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
                         <div className="text-sm text-muted-foreground mb-2">Alta Confianza</div>
                         <div className="text-3xl font-bold text-green-500">
                           {statistics!.byConfidence.high}
+                        </div>
+                      </div>
+                      <div className="bg-card border rounded-lg p-6">
+                        <div className="text-sm text-muted-foreground mb-2">Con Contenido</div>
+                        <div className="text-3xl font-bold text-blue-500">
+                          {analysis.analyzedFiles.filter(f => f.fileData).length}
                         </div>
                       </div>
                     </div>
@@ -478,6 +502,11 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
                                 <div className="flex items-center gap-2 mb-1">
                                   <FileText size={18} weight="duotone" />
                                   <span className="font-medium text-base truncate">{file.name}</span>
+                                  {file.fileData && (
+                                    <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-500 border-blue-500/20">
+                                      ✓ Contenido
+                                    </Badge>
+                                  )}
                                   {file.confidence === 'high' && (
                                     <CheckCircle size={16} weight="fill" className="text-green-500" />
                                   )}

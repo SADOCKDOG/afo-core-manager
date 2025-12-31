@@ -9,6 +9,8 @@ export interface ImportedFile {
   suggestedType: DocumentType
   suggestedFolder: string
   confidence: 'high' | 'medium' | 'low'
+  file?: File
+  fileData?: string
   metadata?: {
     title?: string
     author?: string
@@ -239,6 +241,13 @@ export async function analyzeProjectFiles(
 
     const analysis = analyzeFileName(file.name, folderPath)
 
+    let fileData: string | undefined
+    try {
+      fileData = await fileToBase64(file)
+    } catch (error) {
+      console.error(`Error convirtiendo ${file.name}:`, error)
+    }
+
     const importedFile: ImportedFile = {
       fileName: file.name,
       name: file.name,
@@ -247,7 +256,9 @@ export async function analyzeProjectFiles(
       extension,
       suggestedType: analysis.type,
       suggestedFolder: '',
-      confidence: analysis.confidence
+      confidence: analysis.confidence,
+      file: file,
+      fileData: fileData
     }
 
     analyzedFiles.push(importedFile)
@@ -268,6 +279,18 @@ export async function analyzeProjectFiles(
     projectNameSuggestion: metadata.projectNameSuggestion,
     locationSuggestion: metadata.locationSuggestion
   }
+}
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      const result = reader.result as string
+      resolve(result)
+    }
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(file)
+  })
 }
 
 export function generateDocumentsFromImport(
@@ -293,13 +316,16 @@ export function generateDocumentsFromImport(
           uploadedAt: Date.now(),
           uploadedBy: 'import',
           status: 'draft',
-          notes: `Importado automáticamente con confianza ${file.confidence}`
+          notes: `Importado automáticamente con confianza ${file.confidence}`,
+          fileData: file.fileData
         }
       ],
       createdAt: Date.now(),
       updatedAt: Date.now(),
       metadata: {
         format: file.extension,
+        originalPath: file.path,
+        importedFrom: 'project-import',
         ...file.metadata
       }
     }

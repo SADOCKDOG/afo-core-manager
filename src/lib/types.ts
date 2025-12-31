@@ -60,6 +60,7 @@ export interface DocumentVersion {
   uploadedBy: string
   status: DocumentStatus
   notes?: string
+  fileData?: string
 }
 
 export interface Document {
@@ -77,6 +78,9 @@ export interface Document {
     description?: string
     format?: string
     application?: string
+    originalPath?: string
+    importedFrom?: string
+    [key: string]: any
   }
 }
 
