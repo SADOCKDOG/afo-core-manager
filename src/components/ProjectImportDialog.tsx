@@ -25,7 +25,8 @@ import {
   ImportAnalysis, 
   ImportedFile,
   getImportStatistics,
-  generateDocumentsFromImport
+  generateDocumentsFromImport,
+  suggestFolderForDocument
 } from '@/lib/project-import'
 import { 
   DOCUMENT_TYPE_LABELS, 
@@ -40,6 +41,15 @@ import { AIDocumentClassifier } from './AIDocumentClassifier'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FolderTree } from '@/components/FolderTree'
+import { 
+  BatchProcessor, 
+  BatchProgress, 
+  analyzeFilesInBatches, 
+  processDocumentsInBatches,
+  calculateTotalSize,
+  formatFileSize
+} from '@/lib/batch-processor'
+import { BulkDocumentProcessor } from './BulkDocumentProcessor'
 
 interface ProjectImportDialogProps {
   open: boolean
@@ -61,6 +71,7 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
   const [files, setFiles] = useState<File[]>([])
   const [analysis, setAnalysis] = useState<ImportAnalysis | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [batchProgress, setBatchProgress] = useState<BatchProgress | null>(null)
   const [projectTitle, setProjectTitle] = useState('')
   const [projectLocation, setProjectLocation] = useState('')
   const [clientId, setClientId] = useState('')
@@ -78,31 +89,75 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
     
     if (selectedFiles.length === 0) return
 
+    const totalSize = calculateTotalSize(selectedFiles)
+    const isLargeImport = selectedFiles.length > 50 || totalSize > 100 * 1024 * 1024
+
     setFiles(selectedFiles)
     setStep('analyze')
     setIsAnalyzing(true)
+    setBatchProgress(null)
 
     try {
-      const result = await analyzeProjectFiles(selectedFiles)
-      setAnalysis(result)
-      setProjectTitle(result.projectNameSuggestion || '')
-      setProjectLocation(result.locationSuggestion || '')
-      setSelectedStructure(result.suggestedStructure)
-      
-      const allFileNames = new Set(result.analyzedFiles.map(f => f.fileName))
-      setSelectedFiles(allFileNames)
-      
-      const filesWithData = result.analyzedFiles.filter(f => f.fileData).length
-      
-      if (filesWithData === 0) {
-        toast.warning('Advertencia: No se pudo cargar el contenido de los archivos', {
-          description: 'Los metadatos se han guardado pero el contenido de los archivos puede no estar disponible'
+      if (isLargeImport) {
+        toast.info(`Procesando ${selectedFiles.length} archivos (${formatFileSize(totalSize)})`, {
+          description: 'Usando procesamiento por lotes para mejor rendimiento'
         })
-      } else if (filesWithData < result.totalFiles) {
-        toast.warning(`Solo se cargaron ${filesWithData} de ${result.totalFiles} archivos`, {
-          description: 'Algunos archivos pueden no estar disponibles para previsualización'
+
+        const result = await analyzeFilesInBatches(selectedFiles, {
+          batchSize: 20,
+          maxConcurrent: 5,
+          delayBetweenBatches: 50,
+          onProgress: (progress) => {
+            setBatchProgress(progress)
+          }
+        })
+
+        if (result.failed.length > 0) {
+          console.warn('Algunos archivos fallaron al analizar:', result.failed)
+        }
+
+        const analyzedFiles = result.successful.map(file => {
+          file.suggestedFolder = suggestFolderForDocument(file.suggestedType, 'by-type')
+          return file
+        })
+
+        const { extractProjectMetadata, determineStructureType } = await import('@/lib/project-import')
+        const metadata = extractProjectMetadata(analyzedFiles)
+        const structureType = determineStructureType(analyzedFiles)
+
+        analyzedFiles.forEach(file => {
+          file.suggestedFolder = suggestFolderForDocument(file.suggestedType, structureType)
+        })
+
+        const analysisResult: ImportAnalysis = {
+          analyzedFiles,
+          suggestedStructure: structureType,
+          projectNameSuggestion: metadata.projectNameSuggestion,
+          locationSuggestion: metadata.locationSuggestion,
+          totalFiles: analyzedFiles.length
+        }
+
+        setAnalysis(analysisResult)
+        setProjectTitle(analysisResult.projectNameSuggestion || '')
+        setProjectLocation(analysisResult.locationSuggestion || '')
+        setSelectedStructure(analysisResult.suggestedStructure)
+
+        const allFileNames = new Set(analyzedFiles.map(f => f.fileName))
+        setSelectedFiles(allFileNames)
+
+        toast.success('Análisis por lotes completado', {
+          description: `${result.stats.successCount} archivos procesados en ${(result.stats.totalTime / 1000).toFixed(1)}s`
         })
       } else {
+        const result = await analyzeProjectFiles(selectedFiles)
+        setAnalysis(result)
+        setProjectTitle(result.projectNameSuggestion || '')
+        setProjectLocation(result.locationSuggestion || '')
+        setSelectedStructure(result.suggestedStructure)
+        
+        const allFileNames = new Set(result.analyzedFiles.map(f => f.fileName))
+        setSelectedFiles(allFileNames)
+
         toast.success('Análisis completado correctamente', {
           description: `${result.totalFiles} archivos analizados y listos para importar`
         })
@@ -117,6 +172,7 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
       setStep('upload')
     } finally {
       setIsAnalyzing(false)
+      setBatchProgress(null)
     }
   }
 
@@ -197,40 +253,107 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
     setEditingFile(null)
   }
 
-  const handleImport = () => {
+  const handleImport = async () => {
     if (!analysis || !projectTitle || !projectLocation || !clientId) {
       toast.error('Por favor, complete todos los campos requeridos')
       return
     }
 
     const tempProjectId = `temp-${Date.now()}`
-    const documents = generateDocumentsFromImport(analysis.analyzedFiles, tempProjectId)
+    const selectedFilesList = analysis.analyzedFiles.filter(f => selectedFiles.has(f.fileName))
+    
+    const isLargeImport = selectedFilesList.length > 50
 
-    onImportComplete({
-      title: projectTitle,
-      location: projectLocation,
-      clientId,
-      folderStructure: selectedStructure,
-      documents
-    })
+    if (isLargeImport) {
+      setIsAnalyzing(true)
+      setBatchProgress({
+        total: selectedFilesList.length,
+        processed: 0,
+        successful: 0,
+        failed: 0,
+        currentBatch: 0,
+        totalBatches: Math.ceil(selectedFilesList.length / 20),
+        percentage: 0,
+        currentOperation: 'Iniciando procesamiento por lotes...'
+      })
 
-    const stats = getImportStatistics(analysis)
-    const totalFolders = new Set(analysis.analyzedFiles.map(f => {
-      const parts = f.path.split('/')
-      return parts.slice(0, -1).join('/')
-    })).size
+      toast.info('Procesamiento por lotes iniciado', {
+        description: `Generando ${selectedFilesList.length} documentos en múltiples lotes`
+      })
 
-    toast.success(`Proyecto "${projectTitle}" importado correctamente`, {
-      description: `${documents.length} documentos desde ${totalFolders} carpetas • ${stats.byConfidence.high} con alta confianza`
-    })
-    handleReset()
-    onOpenChange(false)
+      try {
+        const result = await processDocumentsInBatches(selectedFilesList, tempProjectId, {
+          batchSize: 20,
+          maxConcurrent: 5,
+          delayBetweenBatches: 100,
+          onProgress: (progress) => {
+            setBatchProgress(progress)
+          }
+        })
+
+        if (result.failed.length > 0) {
+          toast.warning(`${result.failed.length} documentos fallaron`, {
+            description: 'Revisa la consola para más detalles'
+          })
+          console.warn('Documentos fallidos:', result.failed)
+        }
+
+        onImportComplete({
+          title: projectTitle,
+          location: projectLocation,
+          clientId,
+          folderStructure: selectedStructure,
+          documents: result.successful
+        })
+
+        const stats = getImportStatistics(analysis)
+        const totalFolders = new Set(analysis.analyzedFiles.map(f => {
+          const parts = f.path.split('/')
+          return parts.slice(0, -1).join('/')
+        })).size
+
+        toast.success(`Proyecto "${projectTitle}" importado correctamente`, {
+          description: `${result.successful.length} documentos desde ${totalFolders} carpetas • Procesados en ${(result.stats.totalTime / 1000).toFixed(1)}s`
+        })
+      } catch (error) {
+        console.error('Error durante importación por lotes:', error)
+        toast.error('Error durante el procesamiento por lotes')
+      } finally {
+        setIsAnalyzing(false)
+        setBatchProgress(null)
+        handleReset()
+        onOpenChange(false)
+      }
+    } else {
+      const documents = generateDocumentsFromImport(selectedFilesList, tempProjectId)
+
+      onImportComplete({
+        title: projectTitle,
+        location: projectLocation,
+        clientId,
+        folderStructure: selectedStructure,
+        documents
+      })
+
+      const stats = getImportStatistics(analysis)
+      const totalFolders = new Set(analysis.analyzedFiles.map(f => {
+        const parts = f.path.split('/')
+        return parts.slice(0, -1).join('/')
+      })).size
+
+      toast.success(`Proyecto "${projectTitle}" importado correctamente`, {
+        description: `${documents.length} documentos desde ${totalFolders} carpetas • ${stats.byConfidence.high} con alta confianza`
+      })
+      handleReset()
+      onOpenChange(false)
+    }
   }
 
   const handleReset = () => {
     setStep('upload')
     setFiles([])
     setAnalysis(null)
+    setBatchProgress(null)
     setProjectTitle('')
     setProjectLocation('')
     setClientId('')
@@ -712,6 +835,11 @@ export function ProjectImportDialog({ open, onOpenChange, onImportComplete }: Pr
           />
         )}
       </DialogContent>
+
+      <BulkDocumentProcessor
+        isProcessing={isAnalyzing && batchProgress !== null}
+        progress={batchProgress}
+      />
     </Dialog>
   )
 }

@@ -36,6 +36,15 @@ import { ClassificationContext } from '@/lib/ai-document-classifier'
 import { AIDocumentClassifier } from './AIDocumentClassifier'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
+import { 
+  BatchProcessor, 
+  BatchProgress,
+  analyzeFilesInBatches,
+  processDocumentsInBatches,
+  calculateTotalSize,
+  formatFileSize
+} from '@/lib/batch-processor'
+import { BulkDocumentProcessor } from './BulkDocumentProcessor'
 
 interface ProjectImportData {
   id: string
@@ -71,6 +80,7 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
   const [projects, setProjects] = useState<ProjectImportData[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
+  const [batchProgress, setBatchProgress] = useState<BatchProgress | null>(null)
 
   const handleFoldersSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || [])
@@ -102,6 +112,13 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
       selected: true
     }))
 
+    const totalFiles = selectedFiles.length
+    const totalSize = calculateTotalSize(selectedFiles)
+
+    toast.info(`Iniciando análisis de ${newProjects.length} proyectos`, {
+      description: `${totalFiles} archivos (${formatFileSize(totalSize)}) en total`
+    })
+
     setProjects(newProjects)
     setStep('analyze')
     analyzeAllProjects(newProjects)
@@ -109,6 +126,16 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
 
   const analyzeAllProjects = async (projectsToAnalyze: ProjectImportData[]) => {
     setIsProcessing(true)
+    setBatchProgress({
+      total: projectsToAnalyze.length,
+      processed: 0,
+      successful: 0,
+      failed: 0,
+      currentBatch: 1,
+      totalBatches: projectsToAnalyze.length,
+      percentage: 0,
+      currentOperation: 'Iniciando análisis...'
+    })
     
     const analyzed: ProjectImportData[] = []
     
@@ -116,16 +143,67 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
       const project = projectsToAnalyze[i]
       setProgress(((i + 1) / projectsToAnalyze.length) * 100)
       
+      setBatchProgress(prev => prev ? {
+        ...prev,
+        processed: i + 1,
+        successful: analyzed.filter(p => !p.error).length,
+        failed: analyzed.filter(p => p.error).length,
+        currentBatch: i + 1,
+        percentage: ((i + 1) / projectsToAnalyze.length) * 100,
+        currentOperation: `Analizando: ${project.folderName}`
+      } : null)
+
       try {
-        const analysis = await analyzeProjectFiles(project.files)
-        analyzed.push({
-          ...project,
-          analysis,
-          title: analysis.projectNameSuggestion || project.folderName,
-          location: analysis.locationSuggestion || '',
-          folderStructure: analysis.suggestedStructure
-        })
+        const totalSize = calculateTotalSize(project.files)
+        const isLargeProject = project.files.length > 50 || totalSize > 50 * 1024 * 1024
+
+        if (isLargeProject) {
+          const result = await analyzeFilesInBatches(project.files, {
+            batchSize: 20,
+            maxConcurrent: 5,
+            onProgress: (fileProgress) => {
+              setBatchProgress(prev => prev ? {
+                ...prev,
+                currentOperation: `${project.folderName}: ${fileProgress.currentOperation || 'Procesando...'}`
+              } : null)
+            }
+          })
+
+          const { extractProjectMetadata, determineStructureType, suggestFolderForDocument } = await import('@/lib/project-import')
+          const metadata = extractProjectMetadata(result.successful)
+          const structureType = determineStructureType(result.successful)
+
+          result.successful.forEach(file => {
+            file.suggestedFolder = suggestFolderForDocument(file.suggestedType, structureType)
+          })
+
+          const analysisResult: ImportAnalysis = {
+            analyzedFiles: result.successful,
+            suggestedStructure: structureType,
+            projectNameSuggestion: metadata.projectNameSuggestion,
+            locationSuggestion: metadata.locationSuggestion,
+            totalFiles: result.successful.length
+          }
+
+          analyzed.push({
+            ...project,
+            analysis: analysisResult,
+            title: analysisResult.projectNameSuggestion || project.folderName,
+            location: analysisResult.locationSuggestion || '',
+            folderStructure: analysisResult.suggestedStructure
+          })
+        } else {
+          const analysis = await analyzeProjectFiles(project.files)
+          analyzed.push({
+            ...project,
+            analysis,
+            title: analysis.projectNameSuggestion || project.folderName,
+            location: analysis.locationSuggestion || '',
+            folderStructure: analysis.suggestedStructure
+          })
+        }
       } catch (error) {
+        console.error(`Error analizando proyecto ${project.folderName}:`, error)
         analyzed.push({
           ...project,
           error: 'Error al analizar carpeta'
@@ -135,8 +213,16 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
     
     setProjects(analyzed)
     setIsProcessing(false)
+    setBatchProgress(null)
     setProgress(0)
     setStep('configure')
+
+    const successful = analyzed.filter(p => !p.error).length
+    const failed = analyzed.filter(p => p.error).length
+
+    toast.success('Análisis completado', {
+      description: `${successful} proyectos analizados correctamente${failed > 0 ? `, ${failed} fallidos` : ''}`
+    })
   }
 
   const handleRemoveProject = (id: string) => {
@@ -553,6 +639,11 @@ export function BulkProjectImportDialog({ open, onOpenChange, onImportComplete }
           )}
         </div>
       </DialogContent>
+
+      <BulkDocumentProcessor
+        isProcessing={isProcessing && batchProgress !== null}
+        progress={batchProgress}
+      />
     </Dialog>
   )
 }

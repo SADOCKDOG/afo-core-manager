@@ -154,15 +154,23 @@ This MVP focuses on core project management functionality with client tracking, 
   - Real-time price count badges show database size and filtered results; selected prices display with type icons (material/labor/machinery/unit); chapter assignment customizable per price; supports adding 100+ prices to single budget without performance degradation; generated budgets include proper metadata (project ID, title, version, timestamps)
   - Toast notifications confirm budget generation with statistics (X chapters, Y partidas, total amount); budget appears immediately in project budget list; seamless workflow from generator to standard budget editor for refinement; comprehensive undo/start-over capability before final generation
 
-### Advanced Project Import with Multi-Folder Support
-- **Functionality**: Comprehensive project import system supporting single or multiple folders with recursive scanning of all subfolders, intelligent document classification, automated metadata extraction, visual folder tree preview, and real-time filtering/search of imported files
-- **Purpose**: Dramatically accelerate project onboarding by automatically organizing chaotic project folders into structured document repositories with 60-70% classification confidence, eliminating hours of manual file organization
+### Advanced Project Import with Multi-Folder Support and Batch Processing
+- **Functionality**: Comprehensive project import system supporting single or multiple folders with recursive scanning of all subfolders, intelligent document classification, automated metadata extraction, visual folder tree preview, real-time filtering/search of imported files, and high-performance batch processing for large imports (50+ files or 100+ MB)
+- **Purpose**: Dramatically accelerate project onboarding by automatically organizing chaotic project folders into structured document repositories with 60-70% classification confidence, eliminating hours of manual file organization. Large imports use batch processing to maintain browser responsiveness and provide real-time progress feedback.
 - **Trigger**: User clicks "Importar Proyecto" or "Importación Múltiple" from Tools menu
 - **Progression**: 
-  - **Single Project**: Select folder (recursive) or individual files → System scans all subfolders and files → AI analyzes each file based on name, path, extension, and folder keywords → Generate analysis showing 4-tab interface (Resumen/Árbol/Lista Archivos/Configuración) → Review statistics (total files, size, confidence distribution) → Explore visual folder tree with collapsible folders → Browse complete file list with search and type filters → Configure project name (auto-suggested from folder/file analysis) → Configure location (auto-detected from file patterns) → Select folder structure (by-type or screaming-architecture, intelligently recommended) → Review classification (edit individual file types if needed) → Confirm import → System creates project with organized documents → Success toast shows files imported from X folders with Y high-confidence classifications
-  - **Bulk Import**: Select parent folder containing multiple projects → System detects all first-level subfolders as individual projects → Analyzes each project folder recursively → Shows list of all detected projects with configurable details → Select/deselect projects to import → Configure title, location, folder structure per project → View statistics per project (file count, size, confidence) → Import all selected simultaneously → System creates multiple projects with organized documents → Success toast shows total projects, documents, and folders processed
+  - **Single Project**: Select folder (recursive) or individual files → System detects import size and automatically chooses processing method (batch for 50+ files or 100MB+) → For large imports: displays batch processing notification → System scans files in batches of 20 with 5 concurrent operations → Real-time progress indicator shows current batch, percentage, time remaining, and current operation → AI analyzes each file based on name, path, extension, and folder keywords → Generate analysis showing 4-tab interface (Resumen/Árbol/Lista Archivos/Configuración) → Review statistics (total files, size, confidence distribution, processing time) → Explore visual folder tree with collapsible folders → Browse complete file list with search and type filters → Configure project name (auto-suggested from folder/file analysis) → Configure location (auto-detected from file patterns) → Select folder structure (by-type or screaming-architecture, intelligently recommended) → Review classification (edit individual file types if needed) → Confirm import → System generates documents in batches if 50+ files → Floating progress indicator shows document generation progress → Success toast shows files imported from X folders with Y high-confidence classifications and total processing time
+  - **Bulk Import**: Select parent folder containing multiple projects → System detects all first-level subfolders as individual projects → Calculates total size and file count → Displays batch processing notification for large imports → Analyzes each project folder with batch processing → Progress shows current project and file-level progress → Shows list of all detected projects with configurable details → Select/deselect projects to import → Configure title, location, folder structure per project → View statistics per project (file count, size, confidence, processing time) → Import all selected simultaneously with batch processing per project → System creates multiple projects with organized documents → Success toast shows total projects, documents, folders processed, and total time
 - **Success criteria**: 
   - Handles deeply nested folder structures (10+ levels) without performance issues
+  - **Automatic detection of large imports** (50+ files or 100MB+) triggers batch processing
+  - **Batch processing maintains browser responsiveness** with no UI freezing during large imports
+  - **Real-time progress indicator** shows: current batch (e.g., "Lote 3 de 10"), percentage complete, estimated time remaining, current operation description
+  - **Floating progress card** in bottom-right corner with expandable details showing successful/failed counts
+  - **Processing statistics** displayed: total time, average time per item, success rate percentage
+  - **Configurable batch sizes** (default 20 files per batch) with concurrent processing (default 5 parallel operations)
+  - **Individual error handling** - failed files don't stop entire process, errors logged with details
+  - **Batch results summary** showing total processed, successful, failed items with export capability
   - File analysis achieves 60-70% high-confidence classifications using multi-factor scoring (filename keywords, path keywords, file extension, folder context)
   - Folder tree displays complete hierarchy with expand/collapse, file counts per folder, and proper sorting (folders first, then files)
   - Search filters files instantly across name and path with type dropdown filter
@@ -176,8 +184,12 @@ This MVP focuses on core project management functionality with client tracking, 
   - Individual file type corrections persist through import
   - Zero data loss - all imported files tracked with complete provenance
   - Graceful handling of duplicate filenames and special characters
-  - Toast notifications show detailed import summary (projects, documents, folders, confidence distribution)
+  - Toast notifications show detailed import summary (projects, documents, folders, confidence distribution, processing time)
   - Responsive dialog sizing (96vw x 96vh) for optimal content visibility
+  - **Batch processing provides 3-5x performance improvement** for large imports
+  - **Memory efficient** - processes incrementally rather than loading all files at once
+  - **Smooth animations** with Framer Motion for progress indicators
+  - **Professional progress messages** describing current operation in Spanish
 
 ### COAM/COACM Visa Processing Workflow with Document Validation
 - **Functionality**: Comprehensive workflow for submitting project documentation for professional college visa (visado colegial) with automated validation, requirement tracking, and status management
