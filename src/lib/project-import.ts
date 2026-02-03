@@ -1,7 +1,7 @@
 import { Document, DocumentType, DocumentStatus, FolderStructureType, DOCUMENT_TYPE_LABELS } from './types'
 
-  name: string
-  size: number
+export interface ImportedFile {
+  fileName: string
   name: string
   path: string
   size: number
@@ -12,119 +12,111 @@ import { Document, DocumentType, DocumentStatus, FolderStructureType, DOCUMENT_T
   file?: File
   fileData?: string
   metadata?: {
-  totalFiles: numb
     author?: string
-  'imagen': ['render
-  '
- 
-
-const FOLDER_TYPE_KEYWORDS: Recor
-  'memoria': ['memor
-  'imagen': ['imagenes', 'image
-  'modelo': ['modelos', 'models', '3d', '
-  'detalles-constructivos': ['de
+    createdDate?: Date
+  }
 }
-c
 
+export interface ImportAnalysis {
+  analyzedFiles: ImportedFile[]
+  suggestedStructure: FolderStructureType
+  projectNameSuggestion?: string
+  locationSuggestion?: string
+  totalFiles: number
+}
+
+const DOCUMENT_TYPE_KEYWORDS: Record<DocumentType, string[]> = {
+  'plano': ['plano', 'planta', 'seccion', 'alzado', 'dwg', 'dxf', 'plan'],
+  'memoria': ['memoria', 'descriptiva', 'justificativa', 'tecnica', 'constructiva'],
+  'presupuesto': ['presupuesto', 'mediciones', 'precios', 'coste', 'bc3'],
+  'administrativo': ['licencia', 'permiso', 'solicitud', 'instancia', 'certificado'],
+  'imagen': ['render', 'foto', 'imagen', 'visualizacion', 'perspectiva'],
+  'modelo': ['modelo', '3d', 'bim', 'revit', 'sketchup'],
+  'instalaciones': ['instalacion', 'electrica', 'fontaneria', 'climatizacion', 'saneamiento'],
+  'detalles-constructivos': ['detalle', 'constructivo', 'solucion'],
+  'otros': []
+}
+
+const FOLDER_TYPE_KEYWORDS: Record<string, string[]> = {
+  'memoria': ['memoria', 'memorias'],
+  'plano': ['plano', 'planos', 'plans'],
+  'presupuesto': ['presupuesto', 'presupuestos', 'budget'],
+  'imagen': ['imagenes', 'images', 'renders', 'fotos'],
+  'modelo': ['modelos', 'models', '3d', 'bim'],
+  'detalles-constructivos': ['detalles', 'details']
+}
+
+const EXTENSION_TYPE_MAP: Record<string, DocumentType> = {
+  'pdf': 'plano',
+  'dwg': 'plano',
+  'dxf': 'plano',
   'doc': 'memoria',
+  'docx': 'memoria',
   'xls': 'presupuesto',
+  'xlsx': 'presupuesto',
   'bc3': 'presupuesto',
+  'jpg': 'imagen',
   'jpeg': 'imagen',
+  'png': 'imagen',
   'tif': 'imagen',
+  'tiff': 'imagen',
   'rvt': 'modelo',
   'skp': 'modelo',
   '3ds': 'modelo',
   'fbx': 'modelo',
 }
-e
 
+export function analyzeFileName(fileName: string, folderPath?: string): { 
+  type: DocumentType
+  confidence: 'high' | 'medium' | 'low' 
+} {
   const nameLower = fileName.toLowerCase()
-  const extension = fileName.split('.').pop()?.toLowerCase() |
+  const extension = fileName.split('.').pop()?.toLowerCase() || ''
+  
   let bestMatch: DocumentType = 'otros'
+  let highestScore = 0
   let confidence: 'high' | 'medium' | 'low' = 'low'
+
   for (const [docType, keywords] of Object.entries(DOCUMENT_TYPE_KEYWORDS)) {
-
+    let score = 0
+    
+    for (const keyword of keywords) {
       if (nameLower.includes(keyword)) {
+        score += 2
       }
+    }
 
-    for (const keyword of folderKeywords) {
- 
+    if (folderPath) {
+      const folderKeywords = FOLDER_TYPE_KEYWORDS[docType] || []
+      for (const keyword of folderKeywords) {
+        if (folderPath.toLowerCase().includes(keyword)) {
+          score += 3
+        }
+      }
+    }
 
     if (score > highestScore) {
-      bestMatch = d
+      highestScore = score
+      bestMatch = docType as DocumentType
+    }
   }
-  if (extension &
-    if (highestScor
-      highestScore =
+
+  if (extension && EXTENSION_TYPE_MAP[extension]) {
+    if (highestScore === 0) {
+      bestMatch = EXTENSION_TYPE_MAP[extension]
+      highestScore = 1
+    } else {
       highestScore += 2
+    }
   }
-  if (highestScore >= 4
-  } else if (highe
+
+  if (highestScore >= 4) {
+    confidence = 'high'
+  } else if (highestScore >= 2) {
+    confidence = 'medium'
   } else {
+    confidence = 'low'
   }
-  return { type: b
-
-  docType: Documen
-): string {
-    const folderMa
-      'memoria': '
-      'imagen': '0
-      'modelo': '0
-      'detalles-co
-    }
- 
-
-      'presupuesto': 'Documentación',
-      'administrativ
-      'instalaciones': 'Servicios',
-   
-    return folderMap[docType]
-}
-export function extractProjectMetadata(files: ImportedFile[]): {
-
-  const fileNames = files.map(f => f.na
-
-    /(?:en|de)\s+([a-záéíóúñ\s]+?)(?:\.|_|-|$)/gi,
-
-  let locationMatch: string | undefined
-    const matches
-
-    }
-
-    /^([^_\-\.]+)/
-    /vi
-
-
-    if (match && match[1]) {
-      break
-  }
-  return {
-    loc
-}
-
-  
-  let screamingScore = 0
-  const byTypeKeywords = ['planos', 'memo
-
-   
-
-    }
-      if (path.includes(keyword)) {
-      }
-  }
-  return screamingScor
-
-  files: File[]
-  con
-  f
-
-
-
-    try {
-    } catch (error) {
-    }
-    const importedFile
-   
 
   return { type: bestMatch, confidence }
 }
@@ -249,7 +241,8 @@ export async function analyzeProjectFiles(
       extension,
       suggestedType: analysis.type,
       suggestedFolder: '',
-      confidence: analysis.confidence
+      confidence: analysis.confidence,
+      file: file
     }
 
     analyzedFiles.push(importedFile)
@@ -264,29 +257,29 @@ export async function analyzeProjectFiles(
   const metadata = extractProjectMetadata(analyzedFiles)
 
   return {
-
     analyzedFiles,
     suggestedStructure: structureType,
     projectNameSuggestion: metadata.projectNameSuggestion,
-    locationSuggestion: metadata.locationSuggestion
+    locationSuggestion: metadata.locationSuggestion,
+    totalFiles: analyzedFiles.length
   }
-
+}
 
 export function generateDocumentsFromImport(
   analyzedFiles: ImportedFile[],
-
+  projectId: string
 ): Document[] {
-
+  const documents: Document[] = []
 
   analyzedFiles.forEach((file, index) => {
     const doc: Document = {
-
+      id: `doc-${Date.now()}-${index}`,
       projectId,
-
+      name: file.name.replace(/\.[^/.]+$/, ''),
       type: file.suggestedType,
-
+      folder: file.suggestedFolder,
       currentVersion: 'P01',
-
+      versions: [
         {
           id: `v-${Date.now()}-${index}`,
           version: 'P01',
@@ -296,29 +289,29 @@ export function generateDocumentsFromImport(
           uploadedBy: 'import',
           status: 'draft',
           notes: `Importado automáticamente con confianza ${file.confidence}`
-
+        }
       ],
-
+      createdAt: Date.now(),
       updatedAt: Date.now(),
-
+      metadata: {
         format: file.extension,
-
+        suggestedFolder: file.suggestedFolder
       }
+    }
 
-
-
+    documents.push(doc)
   })
 
   return documents
-
+}
 
 export function getImportStatistics(analysis: ImportAnalysis) {
   const byType: Record<string, number> = {}
-
+  const byConfidence = {
     high: 0,
     medium: 0,
     low: 0
-
+  }
 
   for (const file of analysis.analyzedFiles) {
     const typeLabel = DOCUMENT_TYPE_LABELS[file.suggestedType]
@@ -326,9 +319,9 @@ export function getImportStatistics(analysis: ImportAnalysis) {
     byConfidence[file.confidence]++
   }
 
-
+  return {
     byType,
-
+    byConfidence,
     totalSize: analysis.analyzedFiles.reduce((sum, f) => sum + f.size, 0)
-
+  }
 }
